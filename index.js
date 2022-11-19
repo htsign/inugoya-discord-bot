@@ -1,3 +1,4 @@
+const dotenv = require('dotenv');
 const { Client, Events, GatewayIntentBits, PresenceUpdateStatus } = require('discord.js');
 const keywords = require('./keywords.json');
 
@@ -26,7 +27,11 @@ client.on(Events.MessageCreate, ({ content, author, channel }) => {
   }
 });
 
-const token = process.env.ACCESS_TOKEN;
+const token = dotenv.config().parsed?.ACCESS_TOKEN ?? process.env.ACCESS_TOKEN;
+if (token == null) {
+  throw new Error('token is empty');
+}
+
 client.login(token).then(_ => {
   client.user?.setPresence({
     activities: [
