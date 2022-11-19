@@ -1,4 +1,4 @@
-const { Client, Events, GatewayIntentBits } = require('discord.js');
+const { Client, Events, GatewayIntentBits, PresenceUpdateStatus } = require('discord.js');
 const keywords = require('./keywords.json');
 
 const template = ` 彡⌒ミ
@@ -27,4 +27,11 @@ client.on(Events.MessageCreate, ({ content, author, channel }) => {
 });
 
 const token = process.env.ACCESS_TOKEN;
-client.login(token);
+client.login(token).then(_ => {
+  client.user?.setPresence({
+    activities: [
+      { name: 'ハゲを監視しています' },
+    ],
+    status: PresenceUpdateStatus.Online,
+  });
+});
