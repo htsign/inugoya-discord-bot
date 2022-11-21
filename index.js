@@ -1,5 +1,5 @@
 const dotenv = require('dotenv');
-const { Client, Events, GatewayIntentBits, PresenceUpdateStatus } = require('discord.js');
+const { Client, Events, GatewayIntentBits, Partials, PresenceUpdateStatus } = require('discord.js');
 const keywords = require('./keywords.json');
 
 const template = ` 彡⌒ミ
@@ -12,8 +12,16 @@ const client = new Client({
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
   ],
+  partials: [
+    Partials.Message,
+    Partials.Reaction,
+  ]
 });
+
+/** @type {Set<string>} */
+const reactedMessageIds = new Set();
 
 client.once(Events.ClientReady, () => {
   console.log('watches...', keywords);
@@ -24,6 +32,27 @@ client.on(Events.MessageCreate, ({ content, author, channel }) => {
   console.log('incoming: ', content);
   if (keywords.some(keyword => content.includes(keyword))) {
     channel.send(template);
+  }
+});
+client.on(Events.MessageReactionAdd, async (reaction, user) => {
+  const message = await reaction.message.fetch();
+  const id = [message.channelId, message.guildId, message.id].join();
+  const hageCount = message.reactions.cache.find(({ emoji }) => emoji.name === 'hage')?.count ?? 0;
+
+  if (!reactedMessageIds.has(id)) {
+    if (hageCount > 0) {
+      reactedMessageIds.add(id);
+      message.channel.send(template);
+    }
+  }
+});
+client.on(Events.MessageReactionRemove, async (reaction, user) => {
+  const message = await reaction.message.fetch();
+  const id = [message.channelId, message.guildId, message.id].join();
+  const hageCount = message.reactions.cache.find(({ emoji }) => emoji.name === 'hage')?.count ?? 0;
+
+  if (hageCount === 0) {
+    reactedMessageIds.delete(id);
   }
 });
 
