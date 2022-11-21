@@ -1,3 +1,5 @@
+// @ts-check
+
 const dotenv = require('dotenv');
 const { Client, Events, GatewayIntentBits, Partials, PresenceUpdateStatus } = require('discord.js');
 const keywords = require('./keywords.json');
