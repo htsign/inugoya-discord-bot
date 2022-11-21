@@ -1,5 +1,10 @@
 // @ts-check
 
+/**
+ * @typedef {import('discord.js').Message<T> | import('discord.js').PartialMessage} Message<T>
+ * @template T
+ */
+
 const dotenv = require('dotenv');
 const { Client, Events, GatewayIntentBits, Partials, PresenceUpdateStatus } = require('discord.js');
 const keywords = require('./keywords.json');
@@ -25,6 +30,9 @@ const client = new Client({
 /** @type {Set<string>} */
 const reactedMessageIds = new Set();
 
+/** @type {function(Message<any>): string} */
+const getId = message => [message.channelId, message.guildId, message.id].join();
+
 client.once(Events.ClientReady, () => {
   console.log('watches...', keywords);
 });
@@ -40,7 +48,7 @@ client.on(Events.MessageCreate, message => {
 });
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
   const message = await reaction.message.fetch();
-  const id = [message.channelId, message.guildId, message.id].join();
+  const id = getId(message);
   const hageCount = message.reactions.cache.find(({ emoji }) => emoji.name === 'hage')?.count ?? 0;
 
   if (!reactedMessageIds.has(id)) {
@@ -52,7 +60,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
 });
 client.on(Events.MessageReactionRemove, async (reaction, user) => {
   const message = await reaction.message.fetch();
-  const id = [message.channelId, message.guildId, message.id].join();
+  const id = getId(message);
   const hageCount = message.reactions.cache.find(({ emoji }) => emoji.name === 'hage')?.count ?? 0;
 
   if (hageCount === 0) {
