@@ -38,13 +38,19 @@ client.once(Events.ClientReady, () => {
 });
 client.on(Events.MessageCreate, message => {
   const { content, author } = message;
+  const id = getId(message);
 
   if (author.bot) return;
 
   console.log('incoming: ', content);
   if (keywords.some(keyword => content.includes(keyword))) {
+    reactedMessageIds.add(id);
     message.reply(template);
   }
+});
+client.on(Events.MessageDelete, message => {
+  const id = getId(message);
+  reactedMessageIds.delete(id);
 });
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
   const message = await reaction.message.fetch();
