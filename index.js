@@ -54,8 +54,12 @@ client.on(Events.MessageDelete, message => {
 });
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
   const message = await reaction.message.fetch();
+  const { author, reactions } = message;
+
+  if (author.bot) return;
+
   const id = getId(message);
-  const hageCount = message.reactions.cache.find(({ emoji }) => emoji.name === 'hage')?.count ?? 0;
+  const hageCount = reactions.cache.find(({ emoji }) => emoji.name === 'hage')?.count ?? 0;
 
   if (!reactedMessageIds.has(id)) {
     if (hageCount > 0) {
@@ -66,8 +70,12 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
 });
 client.on(Events.MessageReactionRemove, async (reaction, user) => {
   const message = await reaction.message.fetch();
+  const { author, reactions } = message;
+
+  if (author.bot) return;
+
   const id = getId(message);
-  const hageCount = message.reactions.cache.find(({ emoji }) => emoji.name === 'hage')?.count ?? 0;
+  const hageCount = reactions.cache.find(({ emoji }) => emoji.name === 'hage')?.count ?? 0;
 
   if (hageCount === 0) {
     reactedMessageIds.delete(id);
