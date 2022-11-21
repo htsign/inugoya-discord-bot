@@ -28,12 +28,14 @@ const reactedMessageIds = new Set();
 client.once(Events.ClientReady, () => {
   console.log('watches...', keywords);
 });
-client.on(Events.MessageCreate, ({ content, author, channel }) => {
+client.on(Events.MessageCreate, message => {
+  const { content, author } = message;
+
   if (author.bot) return;
-  
+
   console.log('incoming: ', content);
   if (keywords.some(keyword => content.includes(keyword))) {
-    channel.send(template);
+    message.reply(template);
   }
 });
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
@@ -44,7 +46,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
   if (!reactedMessageIds.has(id)) {
     if (hageCount > 0) {
       reactedMessageIds.add(id);
-      message.channel.send(template);
+      message.reply(template);
     }
   }
 });
