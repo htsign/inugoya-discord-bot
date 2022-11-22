@@ -8,6 +8,7 @@
 const dotenv = require('dotenv');
 const { Client, Events, GatewayIntentBits, Partials, PresenceUpdateStatus } = require('discord.js');
 const keywords = require('./keywords.json');
+const keywordReactions = require('./keywordReactions.json');
 
 const template = ` 彡⌒ミ
 (´･ω･\`)　また髪の話してる・・・
@@ -34,7 +35,8 @@ const reactedMessageIds = new Set();
 const getId = message => [message.channelId, message.guildId, message.id].join();
 
 client.once(Events.ClientReady, () => {
-  console.log('watches...', keywords);
+  console.log('watch messages...', keywords);
+  console.log('watch reactions...', keywordReactions);
 });
 client.on(Events.MessageCreate, message => {
   const { content, author } = message;
@@ -42,7 +44,7 @@ client.on(Events.MessageCreate, message => {
 
   if (author.bot) return;
 
-  console.log('incoming: ', content);
+  console.log('message incoming: ', content);
   if (keywords.some(keyword => content.includes(keyword))) {
     reactedMessageIds.add(id);
     message.reply(template);
@@ -54,18 +56,14 @@ client.on(Events.MessageDelete, message => {
 });
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
   const message = await reaction.message.fetch();
-  const { author, reactions } = message;
-
-  if (author.bot) return;
-
   const id = getId(message);
-  const hageCount = reactions.cache.find(({ emoji }) => emoji.name === 'hage')?.count ?? 0;
 
-  if (!reactedMessageIds.has(id)) {
-    if (hageCount > 0) {
-      reactedMessageIds.add(id);
-      message.reply(template);
-    }
+  if (message.author.bot) return;
+
+  console.log('reaction incoming: ', reaction.emoji.name);
+  if (!reactedMessageIds.has(id) && keywordReactions.includes((await reaction.fetch()).emoji.name ?? '')) {
+    reactedMessageIds.add(id);
+    message.reply(template);
   }
 });
 client.on(Events.MessageReactionRemove, async (reaction, user) => {
@@ -74,10 +72,8 @@ client.on(Events.MessageReactionRemove, async (reaction, user) => {
 
   if (author.bot) return;
 
-  const id = getId(message);
-  const hageCount = reactions.cache.find(({ emoji }) => emoji.name === 'hage')?.count ?? 0;
-
-  if (hageCount === 0) {
+  if (!keywordReactions.some(kr => reactions.cache.get(kr))) {
+    const id = getId(message);
     reactedMessageIds.delete(id);
   }
 });
