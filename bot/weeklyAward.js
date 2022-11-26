@@ -54,7 +54,7 @@ const tick = async () => {
       const messagesArray = [...messages].sort(([, a], [, b]) => b - a);
       
       // take 3 elements
-      for (let i = 0, len = Math.max(messagesArray.length, 3); i < len; ++i) {
+      for (let i = 0, len = Math.min(messagesArray.length, 3); i < len; ++i) {
         const [message, count] = messagesArray[i];
         
         const rankText = i === 0 ? '最も' : ` ${i + 1}番目に`;
