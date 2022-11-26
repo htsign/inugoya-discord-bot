@@ -6,16 +6,9 @@
  */
 
 const { Events, ChannelType } = require('discord.js');
-const dayjs = require('dayjs');
-const utc = require('dayjs/plugin/utc');
-const timezone = require('dayjs/plugin/timezone');
+const dayjs = require('./dayjsSetup.js');
 const client = require('./client.js');
 const { log } = require('./log.js');
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-dayjs.tz.setDefault('Asia/Tokyo');
 
 /** @type {Map<Message<boolean>, number>} */
 const messages = new Map();

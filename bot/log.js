@@ -1,11 +1,6 @@
-const dayjs = require('dayjs');
-const utc = require('dayjs/plugin/utc');
-const timezone = require('dayjs/plugin/timezone');
+// @ts-check
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-dayjs.tz.setDefault('Asia/Tokyo');
+const dayjs = require('./dayjsSetup.js');
 
 exports.log = (...values) => {
   const now = dayjs().tz();
