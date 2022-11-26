@@ -7,6 +7,7 @@
 
 const { Events } = require('discord.js');
 const client = require('./client.js');
+const { log } = require('./log.js');
 const keywords = require('./keywords.json');
 const keywordReactions = require('./keywordReactions.json');
 
@@ -21,8 +22,8 @@ const reactedMessageIds = new Set();
 const getId = message => [message.channelId, message.guildId, message.id].join();
 
 client.once(Events.ClientReady, () => {
-  console.log('watch messages...', keywords);
-  console.log('watch reactions...', keywordReactions);
+  log('watch messages...', keywords);
+  log('watch reactions...', keywordReactions);
 });
 client.on(Events.MessageCreate, message => {
   const { content, author } = message;
@@ -30,7 +31,7 @@ client.on(Events.MessageCreate, message => {
 
   if (author.bot) return;
 
-  console.log('message incoming: ', content);
+  log('message incoming: ', content);
   if (keywords.some(keyword => content.includes(keyword))) {
     reactedMessageIds.add(id);
     message.reply(template);
@@ -46,7 +47,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
 
   if (message.author.bot) return;
 
-  console.log('reaction incoming: ', reaction.emoji.name);
+  log('reaction incoming: ', reaction.emoji.name);
   if (!reactedMessageIds.has(id) && keywordReactions.includes((await reaction.fetch()).emoji.name ?? '')) {
     reactedMessageIds.add(id);
     message.reply(template);

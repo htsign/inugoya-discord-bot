@@ -10,6 +10,7 @@ const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
 const client = require('./client.js');
+const { log } = require('./log.js');
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -20,7 +21,7 @@ dayjs.tz.setDefault('Asia/Tokyo');
 const messages = new Map();
 
 client.once(Events.ClientReady, async () => {
-  console.log('weekly award is ready.');
+  log('weekly award is ready.');
 });
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
   const message = await reaction.message.fetch();
