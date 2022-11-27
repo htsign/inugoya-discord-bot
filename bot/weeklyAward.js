@@ -50,17 +50,24 @@ const tick = async () => {
 
     if (rootChannel?.type === ChannelType.GuildText) {
       if ([...messages.values()].some(count => count > 0)) {
+        // tally messages by reactions count
+        /** @type {{ [count: number]: Message<boolean>[] }} */
+        const talliedMessages = [...messages]
+          .reduce((acc, [msg, count]) => acc[count] ? { ...acc, count: [...acc[count], msg] } : { ...acc, count: [msg] }, {});
         // sort descending order by reactions count
-        const messagesArray = [...messages].sort(([, a], [, b]) => b - a);
+        const messagesArray = Object.entries(talliedMessages).sort(([a, ], [b, ]) => (+b) - (+a));
 
         // take 3 elements
+        let rank = 1;
         for (let i = 0, len = Math.min(messagesArray.length, 3); i < len; ++i) {
-          const [message, count] = messagesArray[i];
+          const [count, messages] = messagesArray[i];
           
-          const rankText = i === 0 ? '最も' : ` ${i + 1}番目に`;
+          const rankText = rank === 1 ? '最も' : ` ${rank}番目に`;
           await rootChannel.send(`【リアクション大賞】
-先週${rankText}リアクションが多かった投稿です！！ [${count}個]
-${message.url}`);
+先週${rankText}リアクションが多かった投稿${messages.length >= 2 ? 'たち' : ''}です！！ [${count}個]
+${messages.map(message => message.url).join('\n')}`);
+
+          rank += messages.length;
         }
       }
       else {
