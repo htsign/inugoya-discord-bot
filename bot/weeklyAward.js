@@ -42,7 +42,7 @@ const SUNDAY = 0;
 const tick = async () => {
   const now = dayjs().tz();
 
-  if (now.day() === SUNDAY && now.hour() === 0 && now.minute() === 0) {
+  if (now.day() === SUNDAY && now.hour() === 12 && now.minute() === 0) {
     const guilds = await client.guilds.fetch();
     const server = await guilds.find(guild => guild.name === 'inugoya')?.fetch();
     const channels = server?.channels?.cache;
