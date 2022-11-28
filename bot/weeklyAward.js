@@ -53,7 +53,7 @@ const tick = async () => {
         // tally messages by reactions count
         /** @type {{ [count: number]: Message<boolean>[] }} */
         const talliedMessages = [...messages]
-          .reduce((acc, [msg, count]) => acc[count] ? { ...acc, count: [...acc[count], msg] } : { ...acc, count: [msg] }, {});
+          .reduce((acc, [msg, count]) => acc[count] ? { ...acc, [count]: [...acc[count], msg] } : { ...acc, [count]: [msg] }, {});
         // sort descending order by reactions count
         const messagesArray = Object.entries(talliedMessages).sort(([a, ], [b, ]) => (+b) - (+a));
 
