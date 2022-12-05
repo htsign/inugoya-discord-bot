@@ -25,7 +25,6 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
   const { author, reactions } = message;
 
   if (author.bot) return;
-  if (dayjs().diff(dayjs(message.createdTimestamp), 'days') >= 7) return; // ignore messages sent over a week ago
 
   const reactionsCount = reactions.cache.reduce((acc, reaction) => acc + reaction.count, 0);
   messages.set(message, reactionsCount);
@@ -55,6 +54,13 @@ const tick = async () => {
     if (rootChannel?.type === ChannelType.GuildText) {
       /** @type {function(APIEmbed): Promise<Message<true>>} */
       const sendEmbed = options => rootChannel.send({ embeds: [{ title: 'リアクション大賞', ...options }]});
+
+      // remove messages sent over a week ago
+      for (const [message] of messages) {
+        if (now.diff(dayjs(message.createdTimestamp).tz(), 'days') >= 7) {
+          messages.delete(message);
+        }
+      }
 
       if ([...messages.values()].some(count => count > 0)) {
         // tally messages by reactions count
