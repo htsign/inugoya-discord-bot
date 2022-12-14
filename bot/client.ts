@@ -1,7 +1,5 @@
-// @ts-check
-
-const { Client, GatewayIntentBits, Partials, PresenceUpdateStatus } = require('discord.js');
-const { TOKEN } = require('./credentials.js');
+import { Client, GatewayIntentBits, Partials, PresenceUpdateStatus } from 'discord.js';
+import { TOKEN } from './credentials.js';
 
 const client = new Client({
   intents: [
@@ -26,4 +24,4 @@ client.login(TOKEN).then(_ => {
   });
 });
 
-module.exports = client;
+export default client;

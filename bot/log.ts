@@ -1,8 +1,6 @@
-// @ts-check
+import dayjs from './dayjsSetup.js';
 
-const dayjs = require('./dayjsSetup.js');
-
-exports.log = (...values) => {
+export const log = (...values: unknown[]) => {
   const now = dayjs().tz();
   console.log(now.format('YYYY/MM/DD HH:mm:ss.SSS'), ...values);
 };

@@ -1,21 +1,10 @@
-// @ts-check
+import { APIEmbed, APIEmbedField, Events, ChannelType } from 'discord.js';
+import dayjs from './dayjsSetup';
+import client from './client';
+import { log } from './log';
+import { Message } from '../type/message';
 
-/**
- * @typedef {import('discord.js').Message<T> | import('discord.js').PartialMessage} Message<T>
- * @template T
- */
-/**
- * @typedef {import('discord.js').APIEmbed} APIEmbed
- * @typedef {import('discord.js').APIEmbedField} APIEmbedField
- */
-
-const { Events, ChannelType } = require('discord.js');
-const dayjs = require('./dayjsSetup.js');
-const client = require('./client.js');
-const { log } = require('./log.js');
-
-/** @type {Map<Message<boolean>, number>} */
-const messages = new Map();
+const messages: Map<Message<boolean>, number> = new Map();
 
 client.once(Events.ClientReady, async () => {
   log('weekly award is ready.');
@@ -52,8 +41,9 @@ const tick = async () => {
     const rootChannel = channels?.find(channel => channel.name === 'root');
 
     if (rootChannel?.type === ChannelType.GuildText) {
-      /** @type {function(APIEmbed): Promise<Message<true>>} */
-      const sendEmbed = options => rootChannel.send({ embeds: [{ title: 'リアクション大賞', ...options }]});
+      const sendEmbed = (options: APIEmbed) => rootChannel.send({
+        embeds: [{ title: 'リアクション大賞', ...options }],
+      });
 
       // remove messages sent over a week ago
       for (const [message] of messages) {
@@ -64,18 +54,19 @@ const tick = async () => {
 
       if ([...messages.values()].some(count => count > 0)) {
         // tally messages by reactions count
-        /** @type {{ [count: number]: Message<boolean>[] }} */
+        type MsgCount = { [count: number]: Message<boolean>[] };
         const talliedMessages = [...messages]
-          .reduce((acc, [msg, count]) => acc[count] ? { ...acc, [count]: [...acc[count], msg] } : { ...acc, [count]: [msg] }, {});
+          .reduce<MsgCount>((acc, [msg, count]) => ({ ...acc, [count]: [...(acc[count] ? acc[count] : []), msg] }), {});
+
         // sort descending order by reactions count
         const messagesArray = Object.entries(talliedMessages).sort(([a, ], [b, ]) => (+b) - (+a));
 
         const { fields } = messagesArray
-        // take 3 elements
+          // take 3 elements
           .filter((_, i) => i < Math.min(messagesArray.length, 3))
           // create fields
-          .reduce((/** @type {{ fields: APIEmbedField[], rank: number }} */ { fields, rank }, [count, messages]) => {
-          const rankText = rank === 1 ? '最も' : ` ${rank}番目に`;
+          .reduce<{ fields: APIEmbedField[], rank: number }>(({ fields, rank }, [count, messages]) => {
+            const rankText = rank === 1 ? '最も' : ` ${rank}番目に`;
             return {
               fields: fields.concat({
                 name: `先週${rankText}リアクションが多かった投稿${messages.length >= 2 ? 'たち' : ''}です！！ [${count}個]`,

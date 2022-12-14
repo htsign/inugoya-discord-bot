@@ -1,25 +1,17 @@
-// @ts-check
-
-/**
- * @typedef {import('discord.js').Message<T> | import('discord.js').PartialMessage} Message<T>
- * @template T
- */
-
-const { Events } = require('discord.js');
-const client = require('./client.js');
-const { log } = require('./log.js');
-const keywords = require('./keywords.json');
-const keywordReactions = require('./keywordReactions.json');
+import { Events } from 'discord.js';
+import client from './client.js';
+import { log } from './log.js';
+import { Message } from '../type/message';
+import keywords from './keywords.json';
+import keywordReactions from './keywordReactions.json';
 
 const template = ` 彡⌒ミ
 (´･ω･\`)　また髪の話してる・・・
 (|　　 |)::::`;
 
-/** @type {Set<string>} */
-const reactedMessageIds = new Set();
+const reactedMessageIds: Set<string> = new Set();
 
-/** @type {function(Message<any>): string} */
-const getId = message => [message.channelId, message.guildId, message.id].join();
+const getId = (message: Message<any>) => [message.channelId, message.guildId, message.id].join();
 
 client.once(Events.ClientReady, () => {
   log('watch messages...', keywords);
