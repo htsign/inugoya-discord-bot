@@ -2,7 +2,8 @@
   "dependencies": {
     "dayjs": "^1.11.6",
     "discord.js": "^14.6.0",
-    "dotenv": "^16.0.3"
+    "dotenv": "^16.0.3",
+    "grapheme-splitter": "^1.0.4"
   },
   "main": "index.js"
 }

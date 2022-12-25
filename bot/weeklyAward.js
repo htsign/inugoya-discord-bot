@@ -10,9 +10,12 @@
  */
 
 const { Events, ChannelType } = require('discord.js');
+const GraphemeSplitter = require('grapheme-splitter');
 const dayjs = require('./dayjsSetup.js');
 const client = require('./client.js');
 const { log } = require('./log.js');
+
+const splitter = new GraphemeSplitter();
 
 /** @type {Map<Message<boolean>, number>} */
 const messages = new Map();
@@ -75,11 +78,16 @@ const tick = async () => {
           .filter((_, i) => i < Math.min(messagesArray.length, 3))
           // create fields
           .reduce((/** @type {{ fields: APIEmbedField[], rank: number }} */ { fields, rank }, [count, messages]) => {
-          const rankText = rank === 1 ? '最も' : ` ${rank}番目に`;
+            const rankText = rank === 1 ? '最も' : ` ${rank}番目に`;
+            const createContent = (/** @type {Message<boolean>} */ message) => {
+              const LEN = 20;
+              const chars = splitter.splitGraphemes(message.content ?? '');
+              return chars.length > LEN ? chars.slice(0, LEN - 1).join('') + '…' : chars.join('');
+            };
             return {
               fields: fields.concat({
                 name: `先週${rankText}リアクションが多かった投稿${messages.length >= 2 ? 'たち' : ''}です！！ [${count}個]`,
-                value: messages.map(message => message.url).join('\n'),
+                value: messages.map(message => `[${createContent(message)}](${message.url})`).join('\n'),
               }),
               rank: rank + messages.length,
             };
