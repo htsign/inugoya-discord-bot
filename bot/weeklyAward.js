@@ -38,7 +38,11 @@ client.on(Events.MessageReactionRemove, async (reaction, user) => {
 
   if (author.bot) return;
 
-  if (!reactions.cache.first()) {
+  const reactionsCount = reactions.cache.reduce((acc, reaction) => acc + reaction.count, 0);
+  if (reactionsCount > 0) {
+    messages.set(message, reactionsCount);
+  }
+  else {
     messages.delete(message);
   }
 });
