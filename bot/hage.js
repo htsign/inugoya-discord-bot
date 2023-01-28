@@ -7,16 +7,27 @@
 
 const { Events } = require('discord.js');
 const client = require('./client.js');
+const { Timeout } = require('./timeout.js');
 const { log } = require('./log.js');
 const keywords = require('./keywords.json');
 const keywordReactions = require('./keywordReactions.json');
+
+const HAGE_TIMEOUT = 10 * 60 * 1000;
 
 const template = ` 彡⌒ミ
 (´･ω･\`)　また髪の話してる・・・
 (|　　 |)::::`;
 
+const moreTemplate = `:彡⌒:|
+(´･ω:|　　やっぱり髪の話してる
+ヽつ::|
+　ヽ :;|
+　　　 ＼`;
+
 /** @type {Set<string>} */
 const reactedMessageIds = new Set();
+/** @type {Set<Timeout>} */
+const timeouts = new Set();
 
 /** @type {function(Message<any>): string} */
 const getId = message => [message.channelId, message.guildId, message.id].join();
@@ -50,7 +61,17 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
   log('reaction incoming: ', reaction.emoji.name);
   if (!reactedMessageIds.has(id) && keywordReactions.includes((await reaction.fetch()).emoji.name ?? '')) {
     reactedMessageIds.add(id);
-    message.reply(template);
+    
+    // register an object that removes itself in 10 minutes
+    new Timeout(timeouts, HAGE_TIMEOUT);
+
+    if (timeouts.size < 5) {
+      message.reply(template);
+    }
+    else {
+      message.reply(moreTemplate);
+      timeouts.forEach(x => x.dispose());
+    }
   }
 });
 client.on(Events.MessageReactionRemove, async (reaction, user) => {
