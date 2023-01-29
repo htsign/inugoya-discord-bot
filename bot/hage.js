@@ -1,5 +1,3 @@
-// @ts-check
-
 /**
  * @typedef {import('discord.js').Message<T> | import('discord.js').PartialMessage} Message<T>
  * @template T

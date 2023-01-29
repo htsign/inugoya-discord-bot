@@ -1,5 +1,3 @@
-// @ts-check
-
 const dotenv = require('dotenv');
 
 const token = dotenv.config().parsed?.ACCESS_TOKEN ?? process.env.ACCESS_TOKEN;

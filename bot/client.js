@@ -1,5 +1,3 @@
-// @ts-check
-
 const { Client, GatewayIntentBits, Partials, PresenceUpdateStatus } = require('discord.js');
 const { TOKEN } = require('./credentials.js');
 
