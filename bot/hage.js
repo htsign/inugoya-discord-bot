@@ -30,6 +30,25 @@ const timeouts = new Set();
 /** @type {function(Message<unknown>): string} */
 const getId = message => [message.channelId, message.guildId, message.id].join();
 
+/**
+ * @param {Message<boolean>} message 
+ * @param {string} id
+ */
+const replyToHage = (message, id) => {
+    reactedMessageIds.add(id);
+    
+    // register an object that removes itself in 10 minutes
+    timeouts.add(new Timeout(x => timeouts.delete(x), HAGE_TIMEOUT));
+
+    if (timeouts.size < 5) {
+      message.reply(template);
+    }
+    else {
+      message.reply(moreTemplate);
+      timeouts.forEach(x => x.cancel());
+    }
+};
+
 client.once(Events.ClientReady, () => {
   log('watch messages...', keywords);
   log('watch reactions...', keywordReactions);
@@ -42,8 +61,7 @@ client.on(Events.MessageCreate, message => {
 
   log('message incoming: ', content);
   if (keywords.some(keyword => content.includes(keyword))) {
-    reactedMessageIds.add(id);
-    message.reply(template);
+    replyToHage(message, id);
   }
 });
 client.on(Events.MessageDelete, message => {
@@ -58,18 +76,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
 
   log('reaction incoming: ', reaction.emoji.name);
   if (!reactedMessageIds.has(id) && keywordReactions.includes((await reaction.fetch()).emoji.name ?? '')) {
-    reactedMessageIds.add(id);
-    
-    // register an object that removes itself in 10 minutes
-    timeouts.add(new Timeout(x => timeouts.delete(x), HAGE_TIMEOUT));
-
-    if (timeouts.size < 5) {
-      message.reply(template);
-    }
-    else {
-      message.reply(moreTemplate);
-      timeouts.forEach(x => x.cancel());
-    }
+    replyToHage(message, id);
   }
 });
 client.on(Events.MessageReactionRemove, async (reaction, user) => {
