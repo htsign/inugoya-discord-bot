@@ -45,7 +45,7 @@ const replyToHage = (message, id) => {
     }
     else {
       message.reply(moreTemplate);
-      timeouts.forEach(x => x.cancel());
+      timeouts.forEach(x => x.fire());
     }
 };
 
