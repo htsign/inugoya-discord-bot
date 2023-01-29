@@ -1,6 +1,10 @@
+/**
+ * @class Timeout
+ * @template T
+ */
 class Timeout {
-  /** @type {Set<Timeout>} */
-  #set;
+  /** @type {(instance: Timeout<T>) => T} */
+  #callback;
   /** @type {number} */
   #timeout;
   /** @type {NodeJS.Timeout} */
@@ -8,22 +12,26 @@ class Timeout {
 
   /**
    * @constructor
-   * @param {Set<Timeout>} set
+   * @param {(instance: Timeout<T>) => T} callback
+   * @param {number} timeout
    */
-  constructor(set, timeout) {
-    this.#set = set;
+  constructor(callback, timeout) {
+    this.#callback = callback;
     this.#timeout = timeout;
-    this.init();
+    this.#timeoutId = setTimeout(this.fire.bind(this), this.#timeout);
   }
 
-  init() {
-    this.#set.add(this);
-    this.#timeoutId = setTimeout(this.dispose.bind(this), this.#timeout);
-  }
-
-  dispose() {
+  /**
+   * fire the callback
+   * @returns {T}
+   */
+  fire() {
     clearTimeout(this.#timeoutId);
-    this.#set.delete(this);
+    return this.#callback(this);
+  }
+
+  cancel() {
+    clearTimeout(this.#timeoutId);
   }
 }
 

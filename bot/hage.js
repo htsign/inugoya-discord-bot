@@ -24,10 +24,10 @@ const moreTemplate = `:彡⌒:|
 
 /** @type {Set<string>} */
 const reactedMessageIds = new Set();
-/** @type {Set<Timeout>} */
+/** @type {Set<Timeout<boolean>>} */
 const timeouts = new Set();
 
-/** @type {function(Message<any>): string} */
+/** @type {function(Message<unknown>): string} */
 const getId = message => [message.channelId, message.guildId, message.id].join();
 
 client.once(Events.ClientReady, () => {
@@ -61,14 +61,14 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
     reactedMessageIds.add(id);
     
     // register an object that removes itself in 10 minutes
-    new Timeout(timeouts, HAGE_TIMEOUT);
+    timeouts.add(new Timeout(x => timeouts.delete(x), HAGE_TIMEOUT));
 
     if (timeouts.size < 5) {
       message.reply(template);
     }
     else {
       message.reply(moreTemplate);
-      timeouts.forEach(x => x.dispose());
+      timeouts.forEach(x => x.cancel());
     }
   }
 });
