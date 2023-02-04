@@ -1,3 +1,4 @@
+/** @typedef {import('discord.js').Channel} Channel */
 /**
  * @typedef {import('discord.js').Message<InGuild> | import('discord.js').PartialMessage} Message<InGuild>
  * @template {boolean} InGuild
@@ -18,3 +19,5 @@
  */
 /** @typedef {import('discord.js').ChatInputApplicationCommandData} ChatInputApplicationCommandData */
 /** @typedef {function(import('discord.js').ChatInputCommandInteraction): Promise<void>} ChatInputCommandFunction */
+
+/** @typedef {import('discord.js').VoiceState} VoiceState */
