@@ -1,4 +1,2 @@
-// @ts-check
-
-require('./bot/hage.js');
-require('./bot/weeklyAward.js');
+require('./bot/features/hage');
+require('./bot/features/weeklyAwards');

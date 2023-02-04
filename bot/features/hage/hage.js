@@ -4,9 +4,9 @@
  */
 
 const { Events } = require('discord.js');
-const client = require('./client.js');
-const { Timeout } = require('./timeout.js');
-const { log } = require('./log.js');
+const client = require('../../client.js');
+const { Timeout } = require('../../timeout.js');
+const { log } = require('../../log.js');
 const keywords = require('./keywords.json');
 const keywordReactions = require('./keywordReactions.json');
 

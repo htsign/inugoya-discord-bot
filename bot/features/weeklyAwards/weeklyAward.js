@@ -10,9 +10,9 @@
 
 const { Events, ChannelType } = require('discord.js');
 const GraphemeSplitter = require('grapheme-splitter');
-const dayjs = require('./dayjsSetup.js');
-const client = require('./client.js');
-const { log } = require('./log.js');
+const dayjs = require('../../dayjsSetup.js');
+const client = require('../../client.js');
+const { log } = require('../../log.js');
 
 const SUNDAY = 0;
 const CONTENT_MAX_LENGTH = 20;
