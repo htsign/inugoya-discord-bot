@@ -1,18 +1,8 @@
-/**
- * @typedef {import('discord.js').Message<T> | import('discord.js').PartialMessage} Message<T>
- * @template T
- */
-/**
- * @typedef {import('discord.js').Snowflake} Snowflake
- * @typedef {import('discord.js').APIEmbed} APIEmbed
- * @typedef {import('discord.js').APIEmbedField} APIEmbedField
- */
-
 const { Events, ChannelType } = require('discord.js');
 const GraphemeSplitter = require('grapheme-splitter');
-const dayjs = require('../../dayjsSetup.js');
+const dayjs = require('../../lib/dayjsSetup.js');
 const client = require('../../client.js');
-const { log } = require('../../log.js');
+const { log } = require('../../lib/log.js');
 
 const SUNDAY = 0;
 const CONTENT_MAX_LENGTH = 20;

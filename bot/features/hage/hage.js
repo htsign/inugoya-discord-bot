@@ -1,12 +1,7 @@
-/**
- * @typedef {import('discord.js').Message<T> | import('discord.js').PartialMessage} Message<T>
- * @template T
- */
-
 const { Events } = require('discord.js');
 const client = require('../../client.js');
-const { Timeout } = require('../../timeout.js');
-const { log } = require('../../log.js');
+const { Timeout } = require('../../lib/timeout.js');
+const { log } = require('../../lib/log.js');
 const keywords = require('./keywords.json');
 const keywordReactions = require('./keywordReactions.json');
 
@@ -27,16 +22,16 @@ const reactedMessageIds = new Set();
 /** @type {Set<Timeout<boolean>>} */
 const timeouts = new Set();
 
-/** @type {function(Message<unknown>): string} */
+/** @type {function(Message<boolean>): string} */
 const getId = message => [message.channelId, message.guildId, message.id].join();
 
 /**
- * @param {Message<boolean>} message 
+ * @param {Message<boolean>} message
  * @param {string} id
  */
 const replyToHage = (message, id) => {
     reactedMessageIds.add(id);
-    
+
     // register an object that removes itself in 10 minutes
     timeouts.add(new Timeout(x => timeouts.delete(x), HAGE_TIMEOUT));
 
