@@ -73,7 +73,7 @@ client.on(Events.MessageCreate, message => {
 
   if (author.bot) return;
 
-  log('message incoming: ', content);
+  log('message incoming: ', author.username, content);
   if (keywords.some(keyword => content.includes(keyword))) {
     replyToHage(message, id);
   }
@@ -88,7 +88,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
 
   if (message.author.bot) return;
 
-  log('reaction incoming: ', reaction.emoji.name);
+  log('reaction incoming: ', user.username, reaction.emoji.name);
   if (!reactedMessageIds.has(id) && keywordReactions.includes((await reaction.fetch()).emoji.name ?? '')) {
     replyToHage(message, id);
   }
