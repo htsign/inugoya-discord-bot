@@ -1,9 +1,11 @@
 const { Events } = require('discord.js');
+const MersenneTwister = require('mersenne-twister');
 const client = require('../../client.js');
 const { Timeout } = require('../../lib/timeout.js');
 const { log } = require('../../lib/log.js');
 const keywords = require('./keywords.json');
 const keywordReactions = require('./keywordReactions.json');
+const dayjs = require('dayjs');
 
 const HAGE_TIMEOUT = 10 * 60 * 1000;
 
@@ -17,10 +19,20 @@ const moreTemplate = `:彡⌒:|
 　ヽ :;|
 　　　 ＼`;
 
+const rareTemplate = `.        (~)
+　 ／⌒ヽ
+    {jjjjjjjjjjjj}
+     (  ´･ω･ )
+    ( :::： ::: )
+　  し―Ｊ`;
+
 /** @type {Set<string>} */
 const reactedMessageIds = new Set();
 /** @type {Set<Timeout<boolean>>} */
 const timeouts = new Set();
+
+const mtSeed = dayjs().tz();
+const mtRnd = new MersenneTwister(mtSeed.unix());
 
 /** @type {function(Message<boolean>): string} */
 const getId = message => [message.channelId, message.guildId, message.id].join();
@@ -30,11 +42,15 @@ const getId = message => [message.channelId, message.guildId, message.id].join()
  * @param {string} id
  */
 const replyToHage = (message, id) => {
-    reactedMessageIds.add(id);
+  reactedMessageIds.add(id);
 
-    // register an object that removes itself in 10 minutes
-    timeouts.add(new Timeout(x => timeouts.delete(x), HAGE_TIMEOUT));
+  // register an object that removes itself in 10 minutes
+  timeouts.add(new Timeout(x => timeouts.delete(x), HAGE_TIMEOUT));
 
+  if (mtRnd.random() < .05) {
+    message.reply(rareTemplate);
+  }
+  else {
     if (timeouts.size < 5) {
       message.reply(template);
     }
@@ -42,11 +58,14 @@ const replyToHage = (message, id) => {
       message.reply(moreTemplate);
       timeouts.forEach(x => x.fire());
     }
+  }
 };
 
 client.once(Events.ClientReady, () => {
   log('watch messages...', keywords);
   log('watch reactions...', keywordReactions);
+
+  log('random generator initialized by', mtSeed.format('YYYY/MM/DD HH:mm:ss'), mtSeed.unix());
 });
 client.on(Events.MessageCreate, message => {
   const { content, author } = message;
