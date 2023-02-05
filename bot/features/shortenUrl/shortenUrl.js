@@ -86,7 +86,8 @@ client.on(Events.MessageCreate, async message => {
 
   const referredMessage = await channel.messages.fetch(reference.messageId ?? '');
   const urls = await shortenUrlsOfMessage(referredMessage);
-  message.reply(urls.join('\n'));
+
+  message.reply(urls.length > 0 ? urls.join('\n') : 'URL が見つからないよ！');
 });
 
 module.exports = {

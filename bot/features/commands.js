@@ -19,7 +19,7 @@ const commands = {
       },
     ],
     async func(interaction) {
-      const url = interaction.options.getString('url', true);
+      const url = interaction.options.getString('url', true).trim();
 
       if (isUrl(url)) {
         await interaction.reply({ content: 'create shorten urls...', ephemeral: true });
