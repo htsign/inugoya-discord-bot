@@ -2,7 +2,7 @@ const { Events } = require('discord.js');
 const dotenv = require('dotenv');
 const client = require('../../client');
 const axios = require('axios').default;
-const { URL_REGEX, isUrl } = require('../../lib/util');
+const { URL_REGEX_GLOBAL, isUrl } = require('../../lib/util');
 
 const API_KEY = (dotenv.config().parsed ?? process.env).XGD_API_KEY;
 const API_ENTRYPOINT = 'https://xgd.io/V1/shorten';
@@ -68,7 +68,7 @@ const shortenUrlsOfContent = content => {
   /** @type {function(string[]): Url[]} */
   const filterUrls = contents => contents.filter(isUrl);
 
-  const urls = content.match(URL_REGEX) ?? [];
+  const urls = content.match(URL_REGEX_GLOBAL) ?? [];
   return shortenUrls(filterUrls(urls));
 };
 
