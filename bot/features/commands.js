@@ -19,11 +19,15 @@ const commands = {
       },
     ],
     async func(interaction) {
-      await interaction.reply({ content: 'create shorten urls...', ephemeral: true });
-
       const url = interaction.options.getString('url', true);
 
-      await interaction.editReply(isUrl(url) ? await shortenUrl(url) : '');
+      if (isUrl(url)) {
+        await interaction.reply({ content: 'create shorten urls...', ephemeral: true });
+        await interaction.editReply(await shortenUrl(url));
+      }
+      else {
+        await interaction.reply({ content: '`http://` または `https://` を付けたものを送ってね', ephemeral: true });
+      }
     },
   },
 };
