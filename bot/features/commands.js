@@ -1,8 +1,7 @@
 const { Events, ApplicationCommandOptionType } = require('discord.js');
 const client = require('../client.js');
 const { log } = require('../lib/log.js');
-const { isUrl } = require('../lib/util.js');
-const { shortenUrl } = require('./shortenUrl');
+const { shortenUrlsOfContent } = require('./shortenUrl');
 
 /**
  * @type {{ [commandName: string]: Omit<ChatInputApplicationCommandData, 'name'> & { func: ChatInputCommandFunction } }}
@@ -12,21 +11,23 @@ const commands = {
     description: '与えられたURLを省略します。',
     options: [
       {
-        name: 'url',
-        description: '省略したいURL',
-        required: true,
+        name: 'urls',
+        description: '省略したい URL を含んだ文字列（余計な文字は無視されます）',
         type: ApplicationCommandOptionType.String,
+        required: true,
       },
     ],
     async func(interaction) {
-      const url = interaction.options.getString('url', true).trim();
+      const content = interaction.options.getString('urls', true);
 
-      if (isUrl(url)) {
-        await interaction.reply({ content: 'create shorten urls...', ephemeral: true });
-        await interaction.editReply(await shortenUrl(url));
+      await interaction.reply('create shorten urls...');
+      const shortenUrls = await shortenUrlsOfContent(content);
+
+      if (shortenUrls.length > 0) {
+        await interaction.editReply(shortenUrls.join('\n'));
       }
       else {
-        await interaction.reply({ content: '`http://` または `https://` を付けたものを送ってね', ephemeral: true });
+        await interaction.reply({ content: 'URL が見つからないよ！', ephemeral: true });
       }
     },
   },
