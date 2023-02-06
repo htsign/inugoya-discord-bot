@@ -10,8 +10,7 @@ const dayjs = require('dayjs');
 const HAGE_TIMEOUT = 10 * 60 * 1000;
 
 const template = ` 彡⌒ミ
-(´･ω･\`)　また髪の話してる・・・
-(|　　 |)::::`;
+(´･ω･\`)　また髪の話してる・・・`;
 
 const moreTemplate = `:彡⌒:|
 (´･ω:|　　やっぱり髪の話してる
