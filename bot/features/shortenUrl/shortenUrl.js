@@ -35,7 +35,7 @@ const shortenUrls = async urls => {
         shortenUrls.push(`error occured [${status}]: unknown error`);
       }
       else if (data.status === 200) {
-        shortenUrls.push(`\`${data.originalurl}\`: ${data.shorturl}`);
+        shortenUrls.push(`\`${data.originalurl}\`: <${data.shorturl}>`);
       }
       else {
         shortenUrls.push(`error occured [${data.status}]: ${data.message}`);
