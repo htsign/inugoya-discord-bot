@@ -38,24 +38,24 @@ const mtRnd = new MersenneTwister(mtSeed.unix());
 const getId = message => [message.channelId, message.guildId, message.id].join();
 
 /**
- * @param {Message<boolean>} message
+ * @param {(text: string) => Promise<Message<boolean>>} messageHandler
  * @param {string} id
  */
-const replyToHage = (message, id) => {
+const replyToHage = (messageHandler, id) => {
   reactedMessageIds.add(id);
 
   // register an object that removes itself in 10 minutes
   timeouts.add(new Timeout(x => timeouts.delete(x), HAGE_TIMEOUT));
 
   if (mtRnd.random() < .05) {
-    message.reply(rareTemplate);
+    messageHandler(rareTemplate);
   }
   else {
     if (timeouts.size < 5) {
-      message.reply(template);
+      messageHandler(template);
     }
     else {
-      message.reply(moreTemplate);
+      messageHandler(moreTemplate);
       timeouts.forEach(x => x.fire());
     }
   }
@@ -75,7 +75,7 @@ client.on(Events.MessageCreate, message => {
 
   log('message incoming: ', author.username, content);
   if (keywords.some(keyword => content.includes(keyword))) {
-    replyToHage(message, id);
+    replyToHage(text => message.channel.send(text), id);
   }
 });
 client.on(Events.MessageDelete, message => {
@@ -90,7 +90,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
 
   log('reaction incoming: ', user.username, reaction.emoji.name);
   if (!reactedMessageIds.has(id) && keywordReactions.includes((await reaction.fetch()).emoji.name ?? '')) {
-    replyToHage(message, id);
+    replyToHage(text => message.reply(text), id);
   }
 });
 client.on(Events.MessageReactionRemove, async (reaction, user) => {
