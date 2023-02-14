@@ -18,7 +18,7 @@ client.on(Events.MessageCreate, async message => {
         const author = await referredMessage.author.fetch();
 
         const embed = new EmbedBuilder()
-          .setAuthor({ name: author.username, iconURL: author.displayAvatarURL() })
+          .setAuthor({ name: author.username, url, iconURL: author.displayAvatarURL() })
           .setDescription(referredMessage.content)
           .setTimestamp(referredMessage.editedTimestamp ?? referredMessage.createdTimestamp)
           .setColor(referredMessage.author.accentColor ?? Colors.Default);
@@ -32,7 +32,7 @@ client.on(Events.MessageCreate, async message => {
         }
         const files = [...referredMessage.attachments].map(([key, x]) => new AttachmentBuilder(x.attachment, { name: x.name ?? key }));
 
-        await message.channel.send({ content: url, embeds: [embed], files });
+        await message.channel.send({ embeds: [embed], files });
       }
     }
     catch (e) {
