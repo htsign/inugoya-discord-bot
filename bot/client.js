@@ -1,5 +1,5 @@
 const { Client, GatewayIntentBits, Partials, PresenceUpdateStatus } = require('discord.js');
-const { getEnv } = require('./lib/util.js');
+const { getEnv } = require('./lib/util');
 
 const client = new Client({
   intents: [

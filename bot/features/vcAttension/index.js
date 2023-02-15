@@ -1,1 +1,1 @@
-module.exports = require('./vcAttension.js');
+module.exports = require('./vcAttension');

@@ -1,1 +1,1 @@
-module.exports = require('./weeklyAward.js');
+module.exports = require('./weeklyAward');

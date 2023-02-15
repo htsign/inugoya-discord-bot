@@ -1,4 +1,4 @@
-require('./bot/features/commands.js');
+require('./bot/features/commands');
 require('./bot/features/hage');
 require('./bot/features/weeklyAwards');
 require('./bot/features/vcAttension');

@@ -1,1 +1,1 @@
-module.exports = require('./hage.js');
+module.exports = require('./hage');

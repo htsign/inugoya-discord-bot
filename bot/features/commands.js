@@ -1,6 +1,6 @@
 const { Events, ApplicationCommandOptionType } = require('discord.js');
-const client = require('../client.js');
-const { log } = require('../lib/log.js');
+const client = require('../client');
+const { log } = require('../lib/log');
 const { shortenUrlsOfContent } = require('./shortenUrl');
 
 /**

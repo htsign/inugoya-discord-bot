@@ -1,1 +1,1 @@
-module.exports = require('./shortenUrl.js');
+module.exports = require('./shortenUrl');

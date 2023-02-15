@@ -1,4 +1,4 @@
-const dayjs = require('./dayjsSetup.js');
+const dayjs = require('./dayjsSetup');
 
 /**
  * @param  {...any} values

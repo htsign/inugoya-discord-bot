@@ -1,11 +1,11 @@
 const { Events } = require('discord.js');
+const dayjs = require('dayjs');
 const MersenneTwister = require('mersenne-twister');
-const client = require('../../client.js');
-const { Timeout } = require('../../lib/timeout.js');
-const { log } = require('../../lib/log.js');
+const client = require('../../client');
+const { Timeout } = require('../../lib/timeout');
+const { log } = require('../../lib/log');
 const keywords = require('./keywords.json');
 const keywordReactions = require('./keywordReactions.json');
-const dayjs = require('dayjs');
 
 const HAGE_TIMEOUT = 10 * 60 * 1000;
 
