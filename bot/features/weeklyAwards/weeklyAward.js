@@ -3,14 +3,12 @@ const GraphemeSplitter = require('grapheme-splitter');
 const dayjs = require('../../lib/dayjsSetup');
 const client = require('../../client');
 const { log } = require('../../lib/log');
+const { db } = require('./db');
 
 const SUNDAY = 0;
 const CONTENT_MAX_LENGTH = 20;
 
 const splitter = new GraphemeSplitter();
-
-/** @type {Map<Snowflake, { message: Message<boolean>, count: number }>} */
-const messages = new Map();
 
 client.once(Events.ClientReady, async () => {
   log('weekly award is ready.');
@@ -19,23 +17,24 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
   const message = await reaction.message.fetch();
   const { author, reactions } = message;
 
-  if (author.bot) return;
+  if (author.bot || !message.inGuild()) return;
 
   const reactionsCount = reactions.cache.reduce((acc, reaction) => acc + reaction.count, 0);
-  messages.set(message.id, { message, count: reactionsCount });
+  db.set(message, reactionsCount);
 });
 client.on(Events.MessageReactionRemove, async (reaction, user) => {
   const message = await reaction.message.fetch();
   const { author, reactions } = message;
 
-  if (author.bot) return;
+  if (author.bot || !message.inGuild()) return;
+
 
   const reactionsCount = reactions.cache.reduce((acc, reaction) => acc + reaction.count, 0);
   if (reactionsCount > 0) {
-    messages.set(message.id, { message, count: reactionsCount });
+    db.set(message, reactionsCount);
   }
   else {
-    messages.delete(message.id);
+    db.delete(message.guildId, message.channelId, message.id);
   }
 });
 
@@ -53,17 +52,17 @@ const tick = async () => {
       const sendEmbed = options => rootChannel.send({ embeds: [{ title: 'リアクション大賞', ...options }]});
 
       // remove messages sent over a week ago
-      for (const [id, { message }] of messages) {
-        if (now.diff(dayjs(message.createdTimestamp).tz(), 'days') >= 7) {
-          messages.delete(id);
+      db.transaction([...db.iterate()], record => {
+        if (now.diff(record.timestamp, 'days') >= 7) {
+          db.delete(record.guildId, record.channelId, record.messageId);
         }
-      }
+      });
 
-      if ([...messages.values()].some(({ count }) => count > 0)) {
+      if ([...db.iterate()].some(({ reactionsCount: count }) => count > 0)) {
         // tally messages by reactions count
-        const talliedMessages = [...messages]
-          .reduce((/** @type {{ [count: number]: Message<boolean>[] }} */ acc, [_, { message, count }]) =>
-            acc[count] ? { ...acc, [count]: [...acc[count], message] } : { ...acc, [count]: [message] }, {});
+        const talliedMessages = [...db.iterate()]
+          .reduce((/** @type {{ [count: number]: WeeklyAwardRecord[] }} */ acc, record) =>
+            ({ ...acc, [record.reactionsCount]: [...acc[record.reactionsCount] ?? [], record] }), {});
         // sort descending order by reactions count
         const messagesArray = Object.entries(talliedMessages).sort(([a, ], [b, ]) => (+b) - (+a));
 
@@ -71,18 +70,18 @@ const tick = async () => {
         // take 3 elements
           .filter((_, i) => i < Math.min(messagesArray.length, 3))
           // create fields
-          .reduce((/** @type {{ fields: APIEmbedField[], rank: number }} */ { fields, rank }, [count, messages]) => {
+          .reduce((/** @type {{ fields: APIEmbedField[], rank: number }} */ { fields, rank }, [count, records]) => {
             const rankText = rank === 1 ? '最も' : ` ${rank}番目に`;
-            const createContent = (/** @type {Message<boolean>} */ message) => {
-              const chars = splitter.splitGraphemes(message.content ?? '');
+            const createContent = (/** @type {WeeklyAwardRecord} */ record) => {
+              const chars = splitter.splitGraphemes(record.content ?? '');
               return chars.length > CONTENT_MAX_LENGTH ? chars.slice(0, CONTENT_MAX_LENGTH - 1).join('') + '…' : chars.join('');
             };
             return {
               fields: fields.concat({
-                name: `先週${rankText}リアクションが多かった投稿${messages.length >= 2 ? 'たち' : ''}です！！ [${count}個]`,
-                value: messages.map(message => `[${createContent(message)}](${message.url})`).join('\n'),
+                name: `先週${rankText}リアクションが多かった投稿${records.length >= 2 ? 'たち' : ''}です！！ [${count}個]`,
+                value: records.map(record => `[${createContent(record)}](${record.url})`).join('\n'),
               }),
-              rank: rank + messages.length,
+              rank: rank + records.length,
             };
           }, { fields: [], rank: 1 });
 
@@ -92,7 +91,6 @@ const tick = async () => {
         await sendEmbed({ description: '先週はリアクションが付いた投稿はありませんでした！！' });
       }
     }
-    messages.clear();
 
     // run again almost next week.
     setTimeout(tick, 86400 * 6.9);
@@ -101,5 +99,5 @@ const tick = async () => {
   else {
     setTimeout(tick, 1000);
   }
-}
+  }
 tick();
