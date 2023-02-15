@@ -1,6 +1,6 @@
 const { Events } = require('discord.js');
-const dayjs = require('dayjs');
 const MersenneTwister = require('mersenne-twister');
+const dayjs = require('../../lib/dayjsSetup');
 const client = require('../../client');
 const { Timeout } = require('../../lib/timeout');
 const { log } = require('../../lib/log');
