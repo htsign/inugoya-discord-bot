@@ -18,6 +18,12 @@
  * @template {CacheType} TCacheType
  */
 /** @typedef {import('discord.js').ChatInputApplicationCommandData} ChatInputApplicationCommandData */
-/** @typedef {function(import('discord.js').ChatInputCommandInteraction): Promise<void>} ChatInputCommandFunction */
+/**@typedef {(interaction: ChatInputCommandInteraction<CacheType>) => Promise<void>} ChatInputCommandFunction */
 
 /** @typedef {import('discord.js').VoiceState} VoiceState */
+
+/**
+ * @typedef {{
+ *   [commandName: string]: Omit<ChatInputApplicationCommandData, 'name'> & { func: ChatInputCommandFunction }
+ * }} ChatInputCommand
+ */
