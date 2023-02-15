@@ -27,7 +27,8 @@
 
 /**
  * @typedef {{
- *   [commandName: string]: Omit<ChatInputApplicationCommandData, 'name'> & { func: ChatInputCommandFunction<TCacheType> }
+ *   [commandName: string]: Omit<ChatInputApplicationCommandData, 'name'> & { func: ChatInputCommandFunction<TCacheType> } & AdditionalProperties
  * }} ChatInputCommand
+ * @template {{}} [AdditionalProperties={}]
  * @template {CacheType=} [TCacheType=CacheType]
  */

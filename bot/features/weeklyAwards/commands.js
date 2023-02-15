@@ -3,15 +3,7 @@ const { log } = require("../../lib/log");
 const { startAward, stopAward } = require(".");
 const { db } = require("./db");
 
-/**
- * @type {{
- *   [commandName: string]: Omit<ChatInputApplicationCommandData, 'name'>
- *   & {
- *     func: ChatInputCommandFunction<'cached' | 'raw'>,
- *     resultMessage: string,
- *   }
- * }}
- */
+/** @type {ChatInputCommand<{ resultMessage: string }, 'cached' | 'raw'>} */
 const subCommands = {
   register: {
     description: '初期登録をします。',
