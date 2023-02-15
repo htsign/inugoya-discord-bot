@@ -28,11 +28,15 @@ client.on(Events.MessageCreate, async message => {
           .setColor(referredMessage.author.accentColor ?? Colors.Default);
 
         {
+          const text = referredMessage.channel.name;
           const iconURL = referredMessage.guild.iconURL();
-          embed.setFooter({
-            text: referredMessage.channel.name,
-            ...(iconURL != null ? { iconURL } : {}),
-          });
+
+          if (iconURL != null) {
+            embed.setFooter({ text, iconURL });
+          }
+          else {
+            embed.setFooter({ text });
+          }
         }
 
         embeds.push(embed.toJSON());
