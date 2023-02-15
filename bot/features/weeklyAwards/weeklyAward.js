@@ -10,7 +10,17 @@ const CONTENT_MAX_LENGTH = 20;
 
 const splitter = new GraphemeSplitter();
 
+/**
+ * @type {Map<string, NodeJS.Timeout>}
+ * key is Guild ID, value is Timeout ID
+ */
+const instances = new Map();
+
 client.once(Events.ClientReady, async () => {
+  for (const { guildId } of db.config.records) {
+    startAward(guildId);
+  }
+
   log('weekly award is ready.');
 });
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
@@ -38,18 +48,23 @@ client.on(Events.MessageReactionRemove, async (reaction, user) => {
   }
 });
 
-const tick = async () => {
+/**
+ * @param {string} guildId
+ * @param {string} guildName
+ * @param {string} channelName
+ * @returns {Promise<void>}
+ */
+const tick = async (guildId, guildName, channelName) => {
   const now = dayjs().tz();
 
   if (now.day() === SUNDAY && now.hour() === 12 && now.minute() === 0) {
     const guilds = await client.guilds.fetch();
-    const server = await guilds.find(guild => guild.name === 'inugoya')?.fetch();
-    const channels = server?.channels?.cache;
-    const rootChannel = channels?.find(channel => channel.name === 'root');
+    const guild = await guilds.find(guild => guild.name === guildName)?.fetch();
+    const channel = guild?.channels?.cache?.find(channel => channel.name === channelName);
 
-    if (rootChannel?.type === ChannelType.GuildText) {
+    if (channel?.type === ChannelType.GuildText) {
       /** @type {function(APIEmbed): Promise<Message<true>>} */
-      const sendEmbed = options => rootChannel.send({ embeds: [{ title: 'リアクション大賞', ...options }]});
+      const sendEmbed = options => channel.send({ embeds: [{ title: 'リアクション大賞', ...options }]});
 
       // remove messages sent over a week ago
       db.transaction([...db.iterate()], record => {
@@ -93,11 +108,50 @@ const tick = async () => {
     }
 
     // run again almost next week.
-    setTimeout(tick, 86400 * 6.9);
+    const timeout = setTimeout(() => tick(guildId, guildName, channelName), 86400 * 6.9);
+    instances.set(guildId, timeout);
   }
   // or else, after 1 sec.
   else {
-    setTimeout(tick, 1000);
+    const timeout = setTimeout(() => tick(guildId, guildName, channelName), 1000);
+    instances.set(guildId, timeout);
   }
+};
+
+/**
+ * @param {string} guildId
+ * @returns {Promise<void>}
+ */
+const startAward = guildId => {
+  const configRecord = db.config.get(guildId);
+  const { guildName, channelName, createdAt, updatedAt } = configRecord;
+  log('startAward:', {
+    ...configRecord,
+    createdAt: createdAt.toISOString(),
+    updatedAt: updatedAt.toISOString(),
+  });
+
+  return tick(guildId, guildName, channelName);
+};
+
+/**
+ * @param {string} guildId
+ */
+const stopAward = guildId => {
+  const configRecord = db.config.get(guildId);
+  const { createdAt, updatedAt } = configRecord;
+  log('stopAward:', {
+    ...configRecord,
+    createdAt: createdAt.toISOString(),
+    updatedAt: updatedAt.toISOString(),
+  });
+
+  if (instances.has(guildId)) {
+    clearTimeout(instances.get(guildId));
   }
-tick();
+};
+
+module.exports = {
+  startAward,
+  stopAward,
+};

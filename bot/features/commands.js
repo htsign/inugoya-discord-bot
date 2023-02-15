@@ -7,6 +7,7 @@ const { log } = require('../lib/log');
  */
 const commands = {
   ...require('./shortenUrl/commands'),
+  ...require('./weeklyAwards/commands'),
 };
 
 client.on(Events.InteractionCreate, async interaction => {

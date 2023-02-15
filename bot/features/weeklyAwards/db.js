@@ -5,6 +5,12 @@ const db = require('better-sqlite3')('weeklyAward.db');
 const TABLE = 'reacted_messages';
 
 class WeeklyAwardDatabase {
+  #config = new WeeklyAwardDatabaseConfig();
+
+  get config() {
+    return this.#config;
+  }
+
   constructor() {
     db.pragma('auto_vacuum = incremental');
     db.prepare(`
@@ -147,6 +153,96 @@ class WeeklyAwardDatabase {
 
     stmt.run({ guildId, channelId, messageId });
     db.pragma('incremental_vacuum');
+  }
+}
+
+class WeeklyAwardDatabaseConfig {
+  #TABLE = 'post_target';
+
+  /** @type {WeeklyAwardConfigRecord[]} */
+  get records() {
+    const stmt = db.prepare(`select * from ${this.#TABLE}`);
+
+    const rows = stmt.all();
+    return rows.map(row => ({
+      guildId: row.guild_id,
+      guildName: row.guild_name,
+      channelName: row.channel_name,
+      createdAt: dayjs(row.createed_at).tz(),
+      updatedAt: dayjs(row.updated_at).tz(),
+    }));
+  }
+
+  constructor() {
+    db.prepare(`
+      create table if not exists ${this.#TABLE} (
+        guild_id text not null primary key,
+        guild_name text not null,
+        channel_name text not null,
+        created_at text not null default (datetime('now')),
+        updated_at text not null default (datetime('now'))
+      )
+    `).run();
+  }
+
+  /**
+   * @param {string} guildId
+   * @param {string} guildName
+   * @param {string} channelName
+   */
+  register(guildId, guildName, channelName) {
+    const stmt = db.prepare(`
+      insert into ${this.#TABLE} (
+        guild_id,
+        guild_name,
+        channel_name
+      ) values (
+        @guildId,
+        @guildName,
+        @channelName
+      )
+      on conflict (guild_id) do
+        update set
+          guild_name = @guildName,
+          channel_name = @channelName,
+          updated_at = datetime('now')
+    `);
+
+    stmt.run({ guildId, guildName, channelName });
+  }
+
+  /**
+   * @param {string} guildId
+   */
+  unregister(guildId) {
+    const stmt = db.prepare(`
+      delete from ${this.#TABLE}
+      where
+        guild_id = ?
+    `);
+
+    stmt.run(guildId);
+  }
+
+  /**
+   * @param {string} guildId
+   * @returns {WeeklyAwardConfigRecord}
+   */
+  get(guildId) {
+    const stmt = db.prepare(`
+      select *
+      from ${this.#TABLE}
+      where guild_id = ?
+    `);
+
+    const row = stmt.get(guildId);
+    return {
+      guildId: row.guild_id,
+      guildName: row.guild_name,
+      channelName: row.channel_name,
+      createdAt: dayjs(row.created_at).tz(),
+      updatedAt: dayjs(row.updated_at).tz(),
+    };
   }
 }
 

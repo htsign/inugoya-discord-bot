@@ -9,3 +9,12 @@
  * @property {number} reactionsCount
  * @property {Dayjs} timestamp
  */
+
+/**
+ * @typedef WeeklyAwardConfigRecord
+ * @property {string} guildId
+ * @property {string} guildName
+ * @property {string} channelName
+ * @property {Dayjs} createdAt
+ * @property {Dayjs} updatedAt
+ */
