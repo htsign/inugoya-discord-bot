@@ -1,10 +1,9 @@
 const { Events } = require('discord.js');
-const dotenv = require('dotenv');
-const client = require('../../client');
 const axios = require('axios').default;
-const { URL_REGEX_GLOBAL, isUrl } = require('../../lib/util');
+const client = require('../../client');
+const { URL_REGEX_GLOBAL, getEnv, isUrl } = require('../../lib/util');
 
-const API_KEY = (dotenv.config().parsed ?? process.env).XGD_API_KEY;
+const API_KEY = getEnv('XGD_API_KEY', 'X.gd API key');
 const API_ENTRYPOINT = 'https://xgd.io/V1/shorten';
 
 /**
@@ -14,10 +13,6 @@ const API_ENTRYPOINT = 'https://xgd.io/V1/shorten';
 const shortenUrls = async urls => {
   /** @type {(XgdSuccessMessage | XgdFailureMessage)[]} */
   const shortenUrls = [];
-
-  if (API_KEY == null) {
-    throw new Error('X.gd API key is empty');
-  }
 
   for (const url of urls) {
     /** @type {XgdRequest} */

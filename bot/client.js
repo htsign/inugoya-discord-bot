@@ -1,5 +1,5 @@
 const { Client, GatewayIntentBits, Partials, PresenceUpdateStatus } = require('discord.js');
-const { TOKEN } = require('./credentials.js');
+const { getEnv } = require('./lib/util.js');
 
 const client = new Client({
   intents: [
@@ -16,7 +16,7 @@ const client = new Client({
   ]
 });
 
-client.login(TOKEN).then(_ => {
+client.login(getEnv('ACCESS_TOKEN')).then(_ => {
   client.user?.setPresence({
     activities: [
       { name: 'ハゲを監視しています' },
