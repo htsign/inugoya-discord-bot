@@ -16,14 +16,15 @@ module.exports = {
     async func(interaction) {
       const content = interaction.options.getString('urls', true);
 
-      await interaction.reply('create shorten urls...');
+      const firstReply = await interaction.reply({ content: 'create shorten urls...', fetchReply: true });
       const shortenUrls = await shortenUrlsOfContent(content);
 
       if (shortenUrls.length > 0) {
         await interaction.editReply(shortenUrls.join('\n'));
       }
       else {
-        await interaction.reply({ content: 'URL が見つからないよ！', ephemeral: true });
+        await firstReply.delete();
+        await interaction.followUp({ content: 'URL が見つからないよ！', ephemeral: true });
       }
     },
   },

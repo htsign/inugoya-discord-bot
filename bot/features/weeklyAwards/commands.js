@@ -61,8 +61,9 @@ module.exports = {
       }
 
       const { func, resultMessage } = subCommands[subCommand];
-      func(interaction);
-      await interaction.reply(resultMessage);
+      await interaction.deferReply();
+      await func(interaction);
+      await interaction.editReply(resultMessage);
     },
   },
 };

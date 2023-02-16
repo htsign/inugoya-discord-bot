@@ -12,7 +12,11 @@ const commands = {
 
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
-  return commands[interaction.commandName].func(interaction);
+
+  const { user, commandName } = interaction;
+
+  log(user.username, 'command kicked:', commandName);
+  return commands[commandName].func(interaction);
 });
 
 client.once(Events.ClientReady, async () => {
