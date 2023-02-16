@@ -108,7 +108,7 @@ const tick = async (guildId, guildName, channelName) => {
     }
 
     // run again almost next week.
-    const timeout = setTimeout(() => tick(guildId, guildName, channelName), 86400 * 6.9);
+    const timeout = setTimeout(() => tick(guildId, guildName, channelName), 86400 * 1000 * 6.9);
     instances.set(guildId, timeout);
   }
   // or else, after 1 sec.
