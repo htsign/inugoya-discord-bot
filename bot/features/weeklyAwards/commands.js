@@ -1,4 +1,4 @@
-const { ApplicationCommandType } = require("discord.js");
+const { ApplicationCommandType, PermissionFlagsBits } = require("discord.js");
 const { log } = require("../../lib/log");
 const { startAward, stopAward } = require(".");
 const { db } = require("./db");
@@ -65,5 +65,6 @@ module.exports = {
       await func(interaction);
       await interaction.editReply(resultMessage);
     },
+    defaultMemberPermissions: PermissionFlagsBits.CreateInstantInvite | PermissionFlagsBits.KickMembers,
   },
 };
