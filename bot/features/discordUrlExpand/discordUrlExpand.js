@@ -27,6 +27,19 @@ client.on(Events.MessageCreate, async message => {
           .setTimestamp(referredMessage.editedTimestamp ?? referredMessage.createdTimestamp)
           .setColor(referredMessage.author.accentColor ?? Colors.Default);
 
+        /** @type {APIEmbedField[]} */
+        const fields = [];
+
+        {
+          const reactions = referredMessage.reactions.cache;
+          const reactionsCount = reactions.reduce((acc, x) => acc + x.count, 0);
+
+          if (reactionsCount > 0) {
+            fields.push({ name: 'Reactions', value: String(reactionsCount) });
+          }
+        }
+        embed.setFields(...fields);
+
         {
           const text = referredMessage.channel.name;
           const iconURL = referredMessage.guild.iconURL();
