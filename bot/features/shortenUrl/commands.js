@@ -16,14 +16,18 @@ module.exports = {
     async func(interaction) {
       const content = interaction.options.getString('urls', true);
 
-      const firstReply = await interaction.reply({ content: 'create shorten urls...', fetchReply: true });
+      await interaction.reply('create shorten urls...');
       const shortenUrls = await shortenUrlsOfContent(content);
 
       if (shortenUrls.length > 0) {
         await interaction.editReply(shortenUrls.join('\n'));
       }
       else {
-        await firstReply.delete();
+        // I don't know why error occurs by deleting sent message if in DM
+        if (interaction.inGuild()) {
+          const repliedMessage = await interaction.fetchReply();
+          await repliedMessage.delete();
+        }
         await interaction.followUp({ content: 'URL が見つからないよ！', ephemeral: true });
       }
     },
