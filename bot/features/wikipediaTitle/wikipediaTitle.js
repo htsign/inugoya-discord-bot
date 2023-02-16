@@ -5,7 +5,8 @@ const axios = require("axios").default;
 client.on(Events.MessageCreate, async message => {
   if (message.author.bot) return;
 
-  const regExpIterator = message.content.matchAll(/https:\/\/ja\.wikipedia\.org\/(?:wiki\/\S+|\?[\w=&]*curid=\d+)/g);
+  const re = /https:\/\/ja\.wikipedia\.org\/(?:wiki\/\S+|\?[\w=&]*curid=\d+)/g;
+  const regExpIterator = message.content.matchAll(re);
 
   /** @type {APIEmbed[]} */
   const embeds = [];
