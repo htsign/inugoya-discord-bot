@@ -44,8 +44,8 @@ class WeeklyAwardDatabase {
         timestamp
       from ${TABLE}
       where
-        guild_id   = @guildId,
-        channel_id = @channelId,
+        guild_id   = @guildId   and
+        channel_id = @channelId and
         message_id = @messageId
     `);
 
@@ -146,8 +146,8 @@ class WeeklyAwardDatabase {
     const stmt = db.prepare(`
       delete from ${TABLE}
       where
-        guild_id   = @guildId,
-        channel_id = @channelId,
+        guild_id   = @guildId   and
+        channel_id = @channelId and
         message_id = @messageId
     `);
 
@@ -232,7 +232,8 @@ class WeeklyAwardDatabaseConfig {
     const stmt = db.prepare(`
       select *
       from ${this.#TABLE}
-      where guild_id = ?
+      where
+        guild_id = ?
     `);
 
     const row = stmt.get(guildId);
