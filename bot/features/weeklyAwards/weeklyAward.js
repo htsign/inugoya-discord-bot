@@ -23,6 +23,10 @@ client.once(Events.ClientReady, async () => {
 
   log('weekly award is ready.');
 });
+client.on(Events.GuildDelete, async guild => {
+  stopAward(guild.id);
+  db.config.unregister(guild.id);
+});
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
   const message = await reaction.message.fetch();
   const { author, reactions } = message;
