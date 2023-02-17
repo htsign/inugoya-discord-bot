@@ -168,7 +168,7 @@ class WeeklyAwardDatabaseConfig {
       guildId: row.guild_id,
       guildName: row.guild_name,
       channelName: row.channel_name,
-      createdAt: dayjs(row.createed_at).tz(),
+      createdAt: dayjs(row.created_at).tz(),
       updatedAt: dayjs(row.updated_at).tz(),
     }));
   }
