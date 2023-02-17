@@ -23,9 +23,12 @@ client.on(Events.MessageCreate, async message => {
         const embed = new EmbedBuilder()
           .setURL(url)
           .setAuthor({ name: author.username, url, iconURL: author.displayAvatarURL() })
-          .setDescription(referredMessage.content)
           .setTimestamp(referredMessage.editedTimestamp ?? referredMessage.createdTimestamp)
           .setColor(referredMessage.author.accentColor ?? Colors.Default);
+
+        if (referredMessage.content !== '') {
+          embed.setDescription(referredMessage.content);
+        }
 
         /** @type {APIEmbedField[]} */
         const fields = [];
@@ -61,7 +64,7 @@ client.on(Events.MessageCreate, async message => {
     }
     catch (e) {
       if (e instanceof Error) {
-        log(e.name, e.message);
+        log(e.stack ?? `${e.name}: ${e.message}`);
       }
       else {
         throw e;
