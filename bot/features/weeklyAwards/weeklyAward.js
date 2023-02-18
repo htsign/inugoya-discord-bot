@@ -30,6 +30,9 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
 
   if (author.bot || !message.inGuild()) return;
 
+  // do not record reactions count if message reacted is posted to not registered server
+  if (db.config.get(message.guildId) == null) return;
+
   const reactionsCount = reactions.cache.reduce((acc, reaction) => acc + reaction.count, 0);
   db.set(message, reactionsCount);
 });
@@ -38,7 +41,6 @@ client.on(Events.MessageReactionRemove, async (reaction, user) => {
   const { author, reactions } = message;
 
   if (author.bot || !message.inGuild()) return;
-
 
   const reactionsCount = reactions.cache.reduce((acc, reaction) => acc + reaction.count, 0);
   if (reactionsCount > 0) {
