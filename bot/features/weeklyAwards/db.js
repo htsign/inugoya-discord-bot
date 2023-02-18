@@ -32,7 +32,7 @@ class WeeklyAwardDatabase {
    * @param {string} guildId
    * @param {string} channelId
    * @param {string} messageId
-   * @returns {WeeklyAwardRecord}
+   * @returns {WeeklyAwardRecord?}
    */
   get(guildId, channelId, messageId) {
     const stmt = db.prepare(`
@@ -50,6 +50,8 @@ class WeeklyAwardDatabase {
     `);
 
     const row = stmt.get({ guildId, channelId, messageId });
+    if (row == null) return null;
+
     return {
       guildId,
       channelId,
@@ -229,7 +231,7 @@ class WeeklyAwardDatabaseConfig {
 
   /**
    * @param {string} guildId
-   * @returns {WeeklyAwardConfigRecord}
+   * @returns {WeeklyAwardConfigRecord?}
    */
   get(guildId) {
     const stmt = db.prepare(`
@@ -240,6 +242,8 @@ class WeeklyAwardDatabaseConfig {
     `);
 
     const row = stmt.get(guildId);
+    if (row == null) return null;
+
     return {
       guildId: row.guild_id,
       guildName: row.guild_name,

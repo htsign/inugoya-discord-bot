@@ -142,8 +142,12 @@ const tick = async (guildId, guildName, channelName) => {
  * @param {string} guildId
  * @returns {Promise<void>}
  */
-const startAward = guildId => {
+const startAward = async guildId => {
   const configRecord = db.config.get(guildId);
+  if (configRecord == null) {
+    return log(`startAward: ${{ guildId }} is not registered.`);
+  }
+
   const { guildName, channelName, createdAt, updatedAt } = configRecord;
   log('startAward:', {
     ...configRecord,
@@ -159,6 +163,10 @@ const startAward = guildId => {
  */
 const stopAward = guildId => {
   const configRecord = db.config.get(guildId);
+  if (configRecord == null) {
+    return log(`stopAward: ${{ guildId }} is not registered.`);
+  }
+
   const { createdAt, updatedAt } = configRecord;
   log('stopAward:', {
     ...configRecord,
