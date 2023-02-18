@@ -2,9 +2,10 @@ const { EmbedBuilder, Colors } = require("discord.js");
 
 /**
  * @param {Message<boolean>} message
+ * @param {boolean=} [addReactionField=true]
  * @returns {Promise<APIEmbed[]>}
  */
-const messageToEmbeds = async message => {
+const messageToEmbeds = async (message, addReactionField = true) => {
   const { channel } = message;
 
   if (channel.isTextBased() && !channel.isDMBased()) {
@@ -27,18 +28,19 @@ const messageToEmbeds = async message => {
       embed.setDescription(message.content);
     }
 
-    /** @type {APIEmbedField[]} */
-    const fields = [];
+    if (addReactionField) {
+      /** @type {APIEmbedField[]} */
+      const fields = [];
 
-    {
       const reactions = message.reactions.cache;
       const reactionsCount = reactions.reduce((acc, x) => acc + x.count, 0);
 
       if (reactionsCount > 0) {
         fields.push({ name: 'Reactions', value: String(reactionsCount) });
       }
+
+      embed.setFields(...fields);
     }
-    embed.setFields(...fields);
 
     {
       const text = channel.name;
