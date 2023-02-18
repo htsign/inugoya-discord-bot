@@ -72,10 +72,18 @@ const tick = async (guildId, guildName, channelName) => {
       });
 
       if ([...db.iterate()].some(({ reactionsCount: count }) => count > 0)) {
+        /** @type {{ message: Message<true>, reactionsCount: number }[]} */
+        const messages = [];
+
+        for (const record of db.iterate()) {
+          const message = await fetchMessageByIds(record.guildId, record.channelId, record.messageId);
+          if (message != null) messages.push({ message, reactionsCount: record.reactionsCount });
+        }
+
         // tally messages by reactions count
-        const talliedMessages = [...db.iterate()]
-          .reduce((/** @type {{ [count: number]: WeeklyAwardRecord[] }} */ acc, record) =>
-            ({ ...acc, [record.reactionsCount]: [...acc[record.reactionsCount] ?? [], record] }), {});
+        const talliedMessages = messages
+          .reduce((/** @type {{ [count: number]: Message<true>[] }} */ acc, { message, reactionsCount }) =>
+            ({ ...acc, [reactionsCount]: [...acc[reactionsCount] ?? [], message] }), {});
         // sort descending order by reactions count
         const messagesArray = Object.entries(talliedMessages).sort(([a, ], [b, ]) => (+b) - (+a));
 
@@ -85,24 +93,20 @@ const tick = async (guildId, guildName, channelName) => {
           let rank = 1;
 
           // take 3 elements
-          for (const [count, records] of messagesArray.filter((_, i) => i < Math.min(messagesArray.length, 3))) {
+          for (const [count, messages] of messagesArray.filter((_, i) => i < Math.min(messagesArray.length, 3))) {
             const rankText = rank === 1 ? '最も' : ` ${rank}番目に`;
 
             /** @type {APIEmbed[]} */
             const embeds = [];
 
-            for (const record of records) {
-              const message = await fetchMessageByIds(record.guildId, record.channelId, record.messageId);
-
-              if (message != null) {
+            for (const message of messages) {
                   embeds.push(...await messageToEmbeds(message, false));
-              }
             }
             contents.push({
-              title: `先週${rankText}リアクションが多かった投稿${records.length >= 2 ? 'たち' : ''}です！！ [${count}個]`,
+              title: `先週${rankText}リアクションが多かった投稿${messages.length >= 2 ? 'たち' : ''}です！！ [${count}個]`,
               embeds,
             });
-            rank += records.length;
+            rank += messages.length;
           }
         }
 
