@@ -152,6 +152,9 @@ class WeeklyAwardDatabase {
     `);
 
     stmt.run({ guildId, channelId, messageId });
+  }
+
+  vacuum() {
     db.pragma('incremental_vacuum');
   }
 }

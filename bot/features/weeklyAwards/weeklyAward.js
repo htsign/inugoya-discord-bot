@@ -70,6 +70,7 @@ const tick = async (guildId, guildName, channelName) => {
           db.delete(record.guildId, record.channelId, record.messageId);
         }
       });
+      db.vacuum();
 
       if ([...db.iterate()].some(({ reactionsCount: count }) => count > 0)) {
         /** @type {{ message: Message<true>, reactionsCount: number }[]} */
