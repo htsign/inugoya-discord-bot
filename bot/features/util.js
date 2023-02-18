@@ -37,7 +37,7 @@ const fetchMessageByIds = async (guildId, channelId, messageId) => {
 const messageToEmbeds = async (message, addReactionField = true) => {
   const { channel } = message;
 
-  if (channel.isTextBased() && !channel.isDMBased()) {
+  if (channel.isTextBased()) {
 
     /** @type {APIEmbed[]} */
     const embeds = [];
@@ -71,7 +71,7 @@ const messageToEmbeds = async (message, addReactionField = true) => {
       embed.setFields(...fields);
     }
 
-    {
+    if (!channel.isDMBased()) {
       const text = channel.name;
       const iconURL = message.guild?.iconURL();
 
