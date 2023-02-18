@@ -1,4 +1,33 @@
 const { EmbedBuilder, Colors } = require("discord.js");
+const client = require("../client");
+const { log } = require("../lib/log");
+
+/**
+ * @param {string} guildId
+ * @param {string} channelId
+ * @param {string} messageId
+ * @returns {Promise<Message<true>?>}
+ */
+const fetchMessageByIds = async (guildId, channelId, messageId) => {
+  try {
+    const guild = await client.guilds.fetch(guildId);
+    const channel = await guild.channels.fetch(channelId);
+
+    if (channel?.isTextBased()) {
+      return channel.messages.fetch(messageId);
+    }
+    return null;
+  }
+  catch (e) {
+    if (e instanceof Error) {
+      log(e.stack ?? `${e.name}: ${e.message}`);
+      return null;
+    }
+    else {
+      throw e;
+    }
+  }
+};
 
 /**
  * @param {Message<boolean>} message
@@ -68,5 +97,6 @@ const messageToEmbeds = async (message, addReactionField = true) => {
 };
 
 module.exports = {
+  fetchMessageByIds,
   messageToEmbeds,
 };

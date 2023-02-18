@@ -2,7 +2,7 @@ const { Events, ChannelType } = require('discord.js');
 const dayjs = require('../../lib/dayjsSetup');
 const client = require('../../client');
 const { log } = require('../../lib/log');
-const { messageToEmbeds } = require('../trans');
+const { fetchMessageByIds, messageToEmbeds } = require('../util');
 const { db } = require('./db');
 
 const SUNDAY = 0;
@@ -92,19 +92,10 @@ const tick = async (guildId, guildName, channelName) => {
             const embeds = [];
 
             for (const record of records) {
-              try {
-                const guild = await guilds.get(record.guildId)?.fetch();
-                const channel = guild?.channels.cache.get(record.channelId);
+              const message = await fetchMessageByIds(record.guildId, record.channelId, record.messageId);
 
-                if (channel?.isTextBased()) {
-                  const message = await channel.messages.fetch(record.messageId);
+              if (message != null) {
                   embeds.push(...await messageToEmbeds(message, false));
-                }
-              }
-              catch (e) {
-                if (e instanceof Error) {
-                  log(e.stack ?? `${e.name}: ${e.message}`);
-                }
               }
             }
             contents.push({
