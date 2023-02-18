@@ -10,11 +10,11 @@ const { log } = require("../lib/log");
  */
 const fetchMessageByIds = async (guildId, channelId, messageId) => {
   try {
-    const guild = await client.guilds.fetch(guildId);
-    const channel = await guild.channels.fetch(channelId);
+    const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
+    const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
 
     if (channel?.isTextBased()) {
-      return channel.messages.fetch(messageId);
+      return channel.messages.cache.get(messageId) ?? await channel.messages.fetch(messageId);
     }
     return null;
   }
