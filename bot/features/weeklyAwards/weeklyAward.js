@@ -1,14 +1,11 @@
 const { Events, ChannelType } = require('discord.js');
-const GraphemeSplitter = require('grapheme-splitter');
 const dayjs = require('../../lib/dayjsSetup');
 const client = require('../../client');
 const { log } = require('../../lib/log');
+const { messageToEmbeds } = require('../trans');
 const { db } = require('./db');
 
 const SUNDAY = 0;
-const CONTENT_MAX_LENGTH = 20;
-
-const splitter = new GraphemeSplitter();
 
 /**
  * @type {Map<string, NodeJS.Timeout>}
@@ -67,9 +64,6 @@ const tick = async (guildId, guildName, channelName) => {
     const channel = guild?.channels?.cache?.find(channel => channel.name === channelName);
 
     if (channel?.type === ChannelType.GuildText) {
-      /** @type {function(APIEmbed): Promise<Message<true>>} */
-      const sendEmbed = options => channel.send({ embeds: [{ title: 'リアクション大賞', ...options }]});
-
       // remove messages sent over a week ago
       db.transaction([...db.iterate()], record => {
         if (now.diff(record.timestamp, 'days') >= 7) {
@@ -85,29 +79,55 @@ const tick = async (guildId, guildName, channelName) => {
         // sort descending order by reactions count
         const messagesArray = Object.entries(talliedMessages).sort(([a, ], [b, ]) => (+b) - (+a));
 
-        const { fields } = messagesArray
-        // take 3 elements
-          .filter((_, i) => i < Math.min(messagesArray.length, 3))
-          // create fields
-          .reduce((/** @type {{ fields: APIEmbedField[], rank: number }} */ { fields, rank }, [count, records]) => {
-            const rankText = rank === 1 ? '最も' : ` ${rank}番目に`;
-            const createContent = (/** @type {WeeklyAwardRecord} */ record) => {
-              const chars = splitter.splitGraphemes(record.content ?? '');
-              return chars.length > CONTENT_MAX_LENGTH ? chars.slice(0, CONTENT_MAX_LENGTH - 1).join('') + '…' : chars.join('');
-            };
-            return {
-              fields: fields.concat({
-                name: `先週${rankText}リアクションが多かった投稿${records.length >= 2 ? 'たち' : ''}です！！ [${count}個]`,
-                value: records.map(record => `[${createContent(record)}](${record.url})`).join('\n'),
-              }),
-              rank: rank + records.length,
-            };
-          }, { fields: [], rank: 1 });
+        /** @type {{ title: string, embeds: APIEmbed[] }[]} */
+        const contents = [];
+        {
+          let rank = 1;
 
-        await sendEmbed({ fields });
+          // take 3 elements
+          for (const [count, records] of messagesArray.filter((_, i) => i < Math.min(messagesArray.length, 3))) {
+            const rankText = rank === 1 ? '最も' : ` ${rank}番目に`;
+
+            /** @type {APIEmbed[]} */
+            const embeds = [];
+
+            for (const record of records) {
+              try {
+                const guild = await guilds.get(record.guildId)?.fetch();
+                const channel = guild?.channels.cache.get(record.channelId);
+
+                if (channel?.isTextBased()) {
+                  const message = await channel.messages.fetch(record.messageId);
+                  embeds.push(...await messageToEmbeds(message, false));
+                }
+              }
+              catch (e) {
+                if (e instanceof Error) {
+                  log(e.stack ?? `${e.name}: ${e.message}`);
+                }
+              }
+            }
+            contents.push({
+              title: `先週${rankText}リアクションが多かった投稿${records.length >= 2 ? 'たち' : ''}です！！ [${count}個]`,
+              embeds,
+            });
+            rank += records.length;
+          }
+        }
+
+        const [firstContent, ...restContents] = contents;
+        const firstMessage = await channel.send({ content: `【リアクション大賞】\n${firstContent.title}`, embeds: firstContent.embeds });
+
+        if (restContents.length > 0) {
+          const thread = await firstMessage.startThread({ name: 'リアクション大賞全体' });
+
+          for (const content of restContents) {
+            await thread.send({ content: content.title, embeds: content.embeds });
+          }
+        }
       }
       else {
-        await sendEmbed({ description: '先週はリアクションが付いた投稿はありませんでした！！' });
+        await channel.send('【リアクション大賞】\n先週はリアクションが付いた投稿はありませんでした！！');
       }
     }
 
