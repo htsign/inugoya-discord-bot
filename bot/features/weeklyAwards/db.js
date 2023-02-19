@@ -18,6 +18,8 @@ class WeeklyAwardDatabase {
         guild_id text not null,
         channel_id text not null,
         message_id text not null,
+        guild_name text not null,
+        channel_name text not null,
         content text not null,
         author text not null,
         url text not null,
@@ -37,6 +39,8 @@ class WeeklyAwardDatabase {
   get(guildId, channelId, messageId) {
     const stmt = db.prepare(`
       select
+        guild_name,
+        channel_name,
         content,
         author,
         url,
@@ -56,6 +60,8 @@ class WeeklyAwardDatabase {
       guildId,
       channelId,
       messageId,
+      guildName: row.guild_name,
+      channelName: row.channel_name,
       content: row.content,
       author: row.author,
       url: row.url,
@@ -74,6 +80,8 @@ class WeeklyAwardDatabase {
         guild_id,
         channel_id,
         message_id,
+        guild_name,
+        channel_name,
         content,
         author,
         url,
@@ -83,6 +91,8 @@ class WeeklyAwardDatabase {
         @guildId,
         @channelId,
         @messageId,
+        @guildName,
+        @channelName,
         @content,
         @author,
         @url,
@@ -91,14 +101,22 @@ class WeeklyAwardDatabase {
       )
       on conflict (guild_id, channel_id, message_id) do
         update set
+          guild_name = @guildName,
+          channel_name = @channelName,
           content = @content,
+          author = @author,
           reactions_count = @reactionsCount
     `);
+
+    const { channel } = message;
+    const channelName = 'name' in channel ? channel.name : '';
 
     stmt.run({
       guildId: message.guildId,
       channelId: message.channelId,
       messageId: message.id,
+      guildName: message.guild?.name ?? '',
+      channelName,
       content: message.content,
       author: message.author?.username ?? '',
       url: message.url,
@@ -118,6 +136,8 @@ class WeeklyAwardDatabase {
         guildId: row.guild_id,
         channelId: row.channel_id,
         messageId: row.message_id,
+        guildName: row.guild_name,
+        channelName: row.channel_name,
         content: row.content,
         author: row.author,
         url: row.url,

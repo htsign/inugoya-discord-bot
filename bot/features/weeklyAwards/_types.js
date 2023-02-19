@@ -3,6 +3,8 @@
  * @property {string} guildId
  * @property {string} channelId
  * @property {string} messageId
+ * @property {string} guildName
+ * @property {string} channelName
  * @property {string} content
  * @property {string} author
  * @property {Url} url
