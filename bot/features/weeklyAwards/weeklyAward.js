@@ -78,8 +78,11 @@ const tick = async (guildId, guildName, channelName) => {
         /** @type {{ message: Message<true>, reactionsCount: number }[]} */
         const messages = [];
 
+        // collect messages posted in current guild
         for (const record of db.iterate()) {
-          const message = await fetchMessageByIds(record.guildId, record.channelId, record.messageId);
+          if (record.guildId !== guildId) continue;
+
+          const message = await fetchMessageByIds(guildId, record.channelId, record.messageId);
           if (message != null) messages.push({ message, reactionsCount: record.reactionsCount });
         }
 
