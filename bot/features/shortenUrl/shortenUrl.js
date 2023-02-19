@@ -51,8 +51,13 @@ const shortenUrls = async urls => {
  * @returns {Promise<XgdSuccessMessage | XgdFailureMessage>}
  */
 const shortenUrl = async url => {
-  const [shortenUrl] = await shortenUrls([url]);
-  return shortenUrl;
+  const { isNonEmpty } = await import('ts-array-length');
+
+  const shortens = await shortenUrls([url]);
+  if (!isNonEmpty(shortens)) {
+    throw new Error('unexpected procedure');
+  }
+  return shortens[0];
 };
 
 /**

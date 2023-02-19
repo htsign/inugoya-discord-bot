@@ -33,9 +33,14 @@ const toEmojis = text => {
       return String.fromCodePoint(cpDiff + cp);
     }
     else if (isNumber(cp)) {
-      return numberEmojis[cp - code0];
+      const emojiString = numberEmojis[cp - code0];
+
+      if (emojiString == null) {
+        throw new Error('invalid index access');
+      }
+      return emojiString;
     }
-    throw new Error('invalid procedure');
+    throw new Error('unexpected procedure');
   };
   return { success: true, values: codePoints.map(toEmoji) };
 };

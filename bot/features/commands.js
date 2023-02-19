@@ -17,7 +17,12 @@ client.on(Events.InteractionCreate, async interaction => {
   const { user, commandName } = interaction;
 
   log(user.username, 'command kicked:', commandName);
-  return commands[commandName].func(interaction);
+
+  const command = commands[commandName];
+  if (command == null) {
+    throw new Error('invalid command name');
+  }
+  return command.func(interaction);
 });
 
 client.once(Events.ClientReady, async () => {

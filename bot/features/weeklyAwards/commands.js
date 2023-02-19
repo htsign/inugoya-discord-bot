@@ -53,17 +53,20 @@ module.exports = {
       ...content,
     })),
     async func(interaction) {
-      const subCommand = interaction.options.getSubcommand(true);
+      const subCommandName = interaction.options.getSubcommand(true);
 
       if (!interaction.inGuild()) {
         await interaction.reply({ content: 'サーバー内で実行してください。', ephemeral: true });
         return;
       }
 
-      const { func, resultMessage } = subCommands[subCommand];
-      await interaction.deferReply();
-      await func(interaction);
-      await interaction.editReply(resultMessage);
+      const subCommand = subCommands[subCommandName];
+      if (subCommand != null) {
+        const { func, resultMessage } = subCommand;
+        await interaction.deferReply();
+        await func(interaction);
+        await interaction.editReply(resultMessage);
+      }
     },
     defaultMemberPermissions: PermissionFlagsBits.CreateInstantInvite | PermissionFlagsBits.KickMembers,
   },

@@ -8,6 +8,10 @@ client.on(Events.MessageCreate, async message => {
   const regExpIterator = message.content.matchAll(/https:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)\b/g) ?? [];
 
   for (const [, guildId, channelId, messageId] of regExpIterator) {
+    if (guildId == null || channelId == null || messageId == null) {
+      throw new Error('invalid url');
+    }
+
     const referredMessage = await fetchMessageByIds(guildId, channelId, messageId);
 
     if (referredMessage != null) {

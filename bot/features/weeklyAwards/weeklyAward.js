@@ -58,6 +58,8 @@ client.on(Events.MessageReactionRemove, async (reaction, user) => {
  * @returns {Promise<void>}
  */
 const tick = async (guildId, guildName, channelName) => {
+  const { isNonEmpty } = await import('ts-array-length');
+
   const now = dayjs().tz();
 
   if (now.day() === SUNDAY && now.hour() === 12 && now.minute() === 0) {
@@ -116,14 +118,16 @@ const tick = async (guildId, guildName, channelName) => {
           }
         }
 
-        const [firstContent, ...restContents] = contents;
-        const firstMessage = await channel.send({ content: `【リアクション大賞】\n${firstContent.title}`, embeds: firstContent.embeds });
+        if (isNonEmpty(contents)) {
+          const [firstContent, ...restContents] = contents;
+          const firstMessage = await channel.send({ content: `【リアクション大賞】\n${firstContent.title}`, embeds: firstContent.embeds });
 
-        if (restContents.length > 0) {
-          const thread = await firstMessage.startThread({ name: 'リアクション大賞全体' });
+          if (restContents.length > 0) {
+            const thread = await firstMessage.startThread({ name: 'リアクション大賞全体' });
 
-          for (const content of restContents) {
-            await thread.send({ content: content.title, embeds: content.embeds });
+            for (const content of restContents) {
+              await thread.send({ content: content.title, embeds: content.embeds });
+            }
           }
         }
       }
