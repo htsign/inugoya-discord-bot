@@ -1,7 +1,7 @@
 import { Message } from 'discord.js';
-import { dayjs } from '../../lib/dayjsSetup';
+import { dayjs } from '@lib/dayjsSetup';
 import Database, { Transaction } from 'better-sqlite3';
-import type { WeeklyAwardConfigRecord, WeeklyAwardRecord } from './_types';
+import type { WeeklyAwardConfigRecord, WeeklyAwardRecord } from 'types/bot/features/weeklyAwards';
 
 const db = Database('weeklyAward.db');
 const TABLE = 'reacted_messages';

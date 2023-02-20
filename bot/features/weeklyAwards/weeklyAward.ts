@@ -1,8 +1,8 @@
 import { Events, ChannelType, Message, APIEmbed } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
-import { dayjs } from '../../lib/dayjsSetup';
-import client from '../../client';
-import { log } from '../../lib/log';
+import { dayjs } from '@lib/dayjsSetup';
+import { log } from '@lib/log';
+import client from 'bot/client';
 import { fetchMessageByIds, messageToEmbeds } from '../util';
 import { db } from './db';
 

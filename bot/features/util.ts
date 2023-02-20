@@ -1,6 +1,6 @@
 import { EmbedBuilder, Colors, Message, APIEmbed, APIEmbedField } from 'discord.js';
+import { log } from '@lib/log';
 import client from '../client';
-import { log } from '../lib/log';
 
 export const fetchMessageByIds = async (guildId: string, channelId: string, messageId: string): Promise<Message<true> | null> => {
   try {

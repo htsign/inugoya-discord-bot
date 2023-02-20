@@ -1,9 +1,9 @@
 import { Events, Message } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
 import axios from 'axios';
-import client from '../../client';
-import { URL_REGEX_GLOBAL, getEnv, isUrl } from '../../lib/util';
-import type { ShortenUrlResponse, XgdFailureMessage, XgdRequest, XgdSuccessMessage } from './_types';
+import { URL_REGEX_GLOBAL, getEnv, isUrl } from '@lib/util';
+import client from 'bot/client';
+import type { ShortenUrlResponse, XgdFailureMessage, XgdRequest, XgdSuccessMessage } from 'types/bot/features/shortenUrl';
 
 const API_KEY = getEnv('XGD_API_KEY', 'X.gd API key');
 const API_ENTRYPOINT = 'https://xgd.io/V1/shorten';

@@ -1,6 +1,6 @@
 import { ApplicationCommandOptionType, ChatInputCommandInteraction } from 'discord.js';
 import { toEmojis } from '.';
-import type { ChatInputCommandCollection } from '../_types';
+import type { ChatInputCommandCollection } from 'types/bot';
 
 export const commands: ChatInputCommandCollection<{}> = {
   emojify: {

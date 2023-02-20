@@ -1,4 +1,4 @@
-import type { RegionalIndicatorsResult } from './_types';
+import type { RegionalIndicatorsResult } from 'types/bot/features/regionalIndicators';
 
 const codeRegionalIndicatorA = '🇦'.codePointAt(0) ?? 0;
 const codeLowerA = 'a'.codePointAt(0) ?? 0;

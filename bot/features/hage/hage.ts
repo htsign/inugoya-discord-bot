@@ -1,9 +1,9 @@
 import { Events, Message, PartialMessage } from 'discord.js';
 import MersenneTwister from 'mersenne-twister';
-import { dayjs } from '../../lib/dayjsSetup';
-import client from '../../client';
-import { Timeout } from '../../lib/timeout';
-import { log } from '../../lib/log';
+import { dayjs } from '@lib/dayjsSetup';
+import { Timeout } from '@lib/timeout';
+import { log } from '@lib/log';
+import client from 'bot/client';
 import * as keywords from './keywords.json';
 import * as keywordReactions from './keywordReactions.json';
 

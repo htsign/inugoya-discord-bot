@@ -1,6 +1,6 @@
 import { Events, ChannelType, Snowflake, Channel } from 'discord.js';
-import client from '../../client';
-import { log } from '../../lib/log';
+import { log } from '@lib/log';
+import client from 'bot/client';
 
 const THRIVING_THRESHOLD = 3;
 

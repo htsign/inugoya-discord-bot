@@ -3,6 +3,11 @@
     "module": "ES2022",
     "moduleResolution": "node",
     "esModuleInterop": true,
+    "baseUrl": "./",
+    "paths": {
+      "@features/*": ["bot/features/*"],
+      "@lib/*": ["bot/lib/*"],
+    },
     "target": "ES2021",
     "outDir": "dest",
     "strict": true,

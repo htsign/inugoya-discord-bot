@@ -1,5 +1,5 @@
 import { Events } from 'discord.js';
-import client from '../../client';
+import client from 'bot/client';
 import { fetchMessageByIds, messageToEmbeds } from '../util';
 
 client.on(Events.MessageCreate, async message => {

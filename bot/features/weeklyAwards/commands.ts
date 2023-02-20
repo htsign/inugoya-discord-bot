@@ -1,8 +1,8 @@
 import { ApplicationCommandOptionType, ChatInputCommandInteraction, PermissionFlagsBits } from 'discord.js';
-import { log } from '../../lib/log';
+import { log } from '@lib/log';
 import { startAward, stopAward } from '.';
 import { db } from './db';
-import type { ChatInputCommandCollection } from '../_types';
+import type { ChatInputCommandCollection } from 'types/bot';
 
 const subCommands: ChatInputCommandCollection<{ resultMessage: string; }, 'cached' | 'raw'> = {
   register: {

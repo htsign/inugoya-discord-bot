@@ -1,6 +1,6 @@
 import { Events } from 'discord.js';
+import { log } from '@lib/log';
 import client from '../client';
-import { log } from '../lib/log';
 
 import { commands as shortenUrlCommands } from './shortenUrl/commands';
 import { commands as weeklyAwardsCommands } from './weeklyAwards/commands';
