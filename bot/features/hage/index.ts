@@ -1,1 +1,1 @@
-export * from "./hage";
+export * from './hage';

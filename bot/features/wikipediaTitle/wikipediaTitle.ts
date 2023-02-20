@@ -1,6 +1,6 @@
-import { APIEmbed, Events } from "discord.js";
-import axios from "axios";
-import client from "../../client";
+import { APIEmbed, Events } from 'discord.js';
+import axios from 'axios';
+import client from '../../client';
 
 client.on(Events.MessageCreate, async message => {
   if (message.author.bot) return;

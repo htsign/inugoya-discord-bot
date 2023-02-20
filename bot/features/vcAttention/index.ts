@@ -1,1 +1,1 @@
-export * from "./vcAttention";
+export * from './vcAttention';

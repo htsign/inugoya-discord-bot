@@ -1,1 +1,1 @@
-export * from "./wikipediaTitle";
+export * from './wikipediaTitle';

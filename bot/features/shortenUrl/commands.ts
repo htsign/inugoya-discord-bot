@@ -1,6 +1,6 @@
-import { ApplicationCommandOptionType, ChatInputCommandInteraction } from "discord.js";
-import { shortenUrlsOfContent } from "./shortenUrl";
-import type { ChatInputCommandCollection } from "../_types";
+import { ApplicationCommandOptionType, ChatInputCommandInteraction } from 'discord.js';
+import { shortenUrlsOfContent } from './shortenUrl';
+import type { ChatInputCommandCollection } from '../_types';
 
 export const commands: ChatInputCommandCollection<{}> = {
   shorten: {

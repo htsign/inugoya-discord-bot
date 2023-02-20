@@ -1,1 +1,1 @@
-export * from "./discordUrlExpand";
+export * from './discordUrlExpand';

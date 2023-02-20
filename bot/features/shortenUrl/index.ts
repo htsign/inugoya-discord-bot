@@ -1,1 +1,1 @@
-export * from "./shortenUrl";
+export * from './shortenUrl';

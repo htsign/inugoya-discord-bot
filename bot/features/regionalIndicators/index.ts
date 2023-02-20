@@ -1,1 +1,1 @@
-export * from "./regionalIndicators";
+export * from './regionalIndicators';

@@ -1,1 +1,1 @@
-export * from "./weeklyAward";
+export * from './weeklyAward';
