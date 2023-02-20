@@ -1,6 +1,6 @@
-const { Events } = require("discord.js");
-const client = require("../../client");
-const { fetchMessageByIds, messageToEmbeds } = require("../util");
+import { Events } from "discord.js";
+import client from "../../client";
+import { fetchMessageByIds, messageToEmbeds } from "../util";
 
 client.on(Events.MessageCreate, async message => {
   if (message.author.bot) return;

@@ -1,7 +1,7 @@
-const dayjs = require('../../lib/dayjsSetup');
+import dayjs from '../../lib/dayjsSetup';
+import Database from 'better-sqlite3';
 
-const db = require('better-sqlite3')('weeklyAward.db');
-
+const db = Database('weeklyAward.db');
 const TABLE = 'reacted_messages';
 
 class WeeklyAwardDatabase {
@@ -34,7 +34,7 @@ class WeeklyAwardDatabase {
    * @param {string} guildId
    * @param {string} channelId
    * @param {string} messageId
-   * @returns {WeeklyAwardRecord?}
+   * @returns {import('./_types').WeeklyAwardRecord?}
    */
   get(guildId, channelId, messageId) {
     const stmt = db.prepare(`
@@ -71,7 +71,7 @@ class WeeklyAwardDatabase {
   }
 
   /**
-   * @param {Message<true>} message
+   * @param {import('discord.js').Message<true>} message
    * @param {number} reactionsCount
    */
   set(message, reactionsCount) {
@@ -126,7 +126,7 @@ class WeeklyAwardDatabase {
   }
 
   /**
-   * @returns {Generator<WeeklyAwardRecord>}
+   * @returns {Generator<import('./_types').WeeklyAwardRecord>}
    */
   *iterate() {
     const stmt = db.prepare(`select * from ${TABLE}`);
@@ -153,7 +153,7 @@ class WeeklyAwardDatabase {
    * @template T
    */
   transaction(values, callback) {
-    /** @type {Transaction<(values: T[]) => void>} */
+    /** @type {import('better-sqlite3').Transaction<(values: T[]) => void>} */
     const fn = db.transaction(values => values.forEach(callback));
 
     fn(values);
@@ -184,7 +184,7 @@ class WeeklyAwardDatabase {
 class WeeklyAwardDatabaseConfig {
   #TABLE = 'post_target';
 
-  /** @type {WeeklyAwardConfigRecord[]} */
+  /** @type {import('./_types').WeeklyAwardConfigRecord[]} */
   get records() {
     const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
@@ -251,7 +251,7 @@ class WeeklyAwardDatabaseConfig {
 
   /**
    * @param {string} guildId
-   * @returns {WeeklyAwardConfigRecord?}
+   * @returns {import('./_types').WeeklyAwardConfigRecord?}
    */
   get(guildId) {
     const stmt = db.prepare(`
@@ -274,4 +274,5 @@ class WeeklyAwardDatabaseConfig {
   }
 }
 
-exports.db = new WeeklyAwardDatabase();
+const _db = new WeeklyAwardDatabase();
+export { _db as db };

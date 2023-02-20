@@ -1,9 +1,9 @@
-const { ApplicationCommandType, PermissionFlagsBits } = require("discord.js");
-const { log } = require("../../lib/log");
-const { startAward, stopAward } = require(".");
-const { db } = require("./db");
+import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
+import { log } from "../../lib/log";
+import { startAward, stopAward } from ".";
+import { db } from "./db";
 
-/** @type {ChatInputCommand<{ resultMessage: string }, 'cached' | 'raw'>} */
+/** @type {import('../_types').ChatInputCommandCollection<{ resultMessage: string }, 'cached' | 'raw'>} */
 const subCommands = {
   register: {
     description: '初期登録をします。',
@@ -43,15 +43,20 @@ const subCommands = {
   },
 };
 
-/** @type {ChatInputCommand} */
-module.exports = {
+/** @type {import('../_types').ChatInputCommandCollection<{}>} */
+export const commands = {
   weeklyaward: {
     description: 'リアクション大賞',
+    // @ts-ignore
     options: Object.entries(subCommands).map(([name, content]) => ({
       name,
-      type: ApplicationCommandType.ChatInput,
+      type: ApplicationCommandOptionType.Subcommand,
       ...content,
     })),
+    /**
+     * @param {import('discord.js').ChatInputCommandInteraction} interaction
+     * @returns {Promise<void>}
+     */
     async func(interaction) {
       const subCommandName = interaction.options.getSubcommand(true);
 

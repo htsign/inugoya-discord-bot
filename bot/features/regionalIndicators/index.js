@@ -1,1 +1,1 @@
-module.exports = require('./regionalIndicators');
+export * from "./regionalIndicators";

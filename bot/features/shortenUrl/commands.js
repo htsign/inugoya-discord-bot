@@ -1,8 +1,8 @@
-const { ApplicationCommandOptionType } = require("discord.js");
-const { shortenUrlsOfContent } = require("./shortenUrl");
+import { ApplicationCommandOptionType } from "discord.js";
+import { shortenUrlsOfContent } from "./shortenUrl";
 
-/** @type {ChatInputCommand} */
-module.exports = {
+/** @type {import('../_types').ChatInputCommandCollection<{}>} */
+export default {
   shorten: {
     description: '与えられたURLを省略します。',
     options: [
@@ -13,6 +13,10 @@ module.exports = {
         required: true,
       },
     ],
+    /**
+     * @param {import('discord.js').ChatInputCommandInteraction} interaction
+     * @returns {Promise<void>}
+     */
     async func(interaction) {
       const content = interaction.options.getString('urls', true);
 

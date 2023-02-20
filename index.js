@@ -1,7 +1,7 @@
-require('./bot/features/commands');
-require('./bot/features/hage');
-require('./bot/features/weeklyAwards');
-require('./bot/features/vcAttention');
-require('./bot/features/shortenUrl');
-require('./bot/features/wikipediaTitle');
-require('./bot/features/discordUrlExpand');
+import './bot/features/commands';
+import './bot/features/hage';
+import './bot/features/weeklyAwards';
+import './bot/features/vcAttention';
+import './bot/features/shortenUrl';
+import './bot/features/wikipediaTitle';
+import './bot/features/discordUrlExpand';

@@ -1,11 +1,11 @@
-const { Events } = require('discord.js');
-const MersenneTwister = require('mersenne-twister');
-const dayjs = require('../../lib/dayjsSetup');
-const client = require('../../client');
-const { Timeout } = require('../../lib/timeout');
-const { log } = require('../../lib/log');
-const keywords = require('./keywords.json');
-const keywordReactions = require('./keywordReactions.json');
+import { Events } from 'discord.js';
+import MersenneTwister from 'mersenne-twister';
+import dayjs from '../../lib/dayjsSetup';
+import client from '../../client';
+import { Timeout } from '../../lib/timeout';
+import { log } from '../../lib/log';
+import * as keywords from './keywords.json';
+import * as keywordReactions from './keywordReactions.json';
 
 const HAGE_TIMEOUT = 10 * 60 * 1000;
 
@@ -33,11 +33,11 @@ const timeouts = new Set();
 const mtSeed = dayjs().tz();
 const mtRnd = new MersenneTwister(mtSeed.unix());
 
-/** @type {function(Message<boolean>): string} */
+/** @type {function(import('discord.js').Message<boolean> | import('discord.js').PartialMessage): string} */
 const getId = message => [message.channelId, message.guildId, message.id].join();
 
 /**
- * @param {(text: string) => Promise<Message<boolean>>} messageHandler
+ * @param {(text: string) => Promise<import('discord.js').Message<boolean>>} messageHandler
  * @param {string} id
  */
 const replyToHage = (messageHandler, id) => {

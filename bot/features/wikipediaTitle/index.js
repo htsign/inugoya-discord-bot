@@ -1,1 +1,1 @@
-module.exports = require('./wikipediaTitle');
+export * from "./wikipediaTitle";

@@ -1,14 +1,14 @@
-const dotenv = require('dotenv');
+import { config } from 'dotenv';
 
-const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
-const configOutput = dotenv.config();
+export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
+const configOutput = config();
 
 /**
  * @param {string} key
  * @param {string=} [name='token']
  * @returns {string}
  */
-const getEnv = (key, name = 'token') => {
+export const getEnv = (key, name = 'token') => {
   const token = configOutput.parsed?.[key] ?? process.env[key];
   if (token == null) {
     throw new Error(`${name} is empty`);
@@ -20,10 +20,4 @@ const getEnv = (key, name = 'token') => {
  * @param {string} content
  * @returns {content is Url}
  */
-const isUrl = content => /^https?:\/\/\S+$/.test(content);
-
-module.exports = {
-  URL_REGEX_GLOBAL,
-  getEnv,
-  isUrl,
-};
+export const isUrl = content => /^https?:\/\/\S+$/.test(content);

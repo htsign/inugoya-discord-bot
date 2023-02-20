@@ -1,9 +1,9 @@
-const dayjs = require('./dayjsSetup');
+import dayjs from './dayjsSetup';
 
 /**
  * @param  {...any} values
  */
-exports.log = (...values) => {
+export function log(...values) {
   const now = dayjs().tz();
   console.log(now.format('YYYY/MM/DD HH:mm:ss.SSS'), ...values);
-};
+}

@@ -1,1 +1,1 @@
-module.exports = require('./weeklyAward');
+export * from "./weeklyAward";

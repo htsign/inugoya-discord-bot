@@ -1,14 +1,18 @@
-const { Events } = require('discord.js');
-const client = require('../client');
-const { log } = require('../lib/log');
+import { Events } from 'discord.js';
+import client from '../client';
+import { log } from '../lib/log';
+
+import shortenUrlCommands from './shortenUrl/commands';
+import weeklyAwardsCommands from './weeklyAwards/commands';
+import regionalIndicatorsCommands from './regionalIndicators/commands';
 
 /**
- * @type {ChatInputCommand}
+ * @type {import('./_types').ChatInputCommandCollection<{}>}
  */
 const commands = {
-  ...require('./shortenUrl/commands'),
-  ...require('./weeklyAwards/commands'),
-  ...require('./regionalIndicators/commands'),
+  ...shortenUrlCommands,
+  ...weeklyAwardsCommands,
+  ...regionalIndicatorsCommands,
 };
 
 client.on(Events.InteractionCreate, async interaction => {

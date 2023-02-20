@@ -1,8 +1,11 @@
 {
   "compilerOptions": {
     "checkJs": true,
-    "module": "CommonJS",
+    "module": "ES2022",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
     "target": "ES2021",
+    "outDir": "dest",
     "strict": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,

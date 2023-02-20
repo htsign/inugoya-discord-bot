@@ -14,9 +14,9 @@ const isNumber = cp => code0 <= cp && cp <= code9;
 
 /**
  * @param {string} text
- * @returns {RegionalIndicatorsResult}
+ * @returns {import('./_types').RegionalIndicatorsResult}
  */
-const toEmojis = text => {
+export const toEmojis = text => {
   if (text.length !== new Set(text).size) {
     return { success: false, message: '重複文字が含まれています。' };
   }
@@ -43,8 +43,4 @@ const toEmojis = text => {
     throw new Error('unexpected procedure');
   };
   return { success: true, values: codePoints.map(toEmoji) };
-};
-
-module.exports = {
-  toEmojis,
 };

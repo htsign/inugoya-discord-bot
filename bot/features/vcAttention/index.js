@@ -1,1 +1,1 @@
-module.exports = require('./vcAttention');
+export * from "./vcAttention";

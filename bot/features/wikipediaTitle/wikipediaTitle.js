@@ -1,6 +1,6 @@
-const { Events } = require("discord.js");
-const client = require("../../client");
-const axios = require("axios").default;
+import { Events } from "discord.js";
+import axios from "axios";
+import client from "../../client";
 
 client.on(Events.MessageCreate, async message => {
   if (message.author.bot) return;
@@ -8,7 +8,7 @@ client.on(Events.MessageCreate, async message => {
   const re = /https:\/\/ja\.wikipedia\.org\/(?:wiki\/\S+|\?[\w=&]*curid=\d+)/g;
   const regExpIterator = message.content.matchAll(re);
 
-  /** @type {APIEmbed[]} */
+  /** @type {import('discord.js').APIEmbed[]} */
   const embeds = [];
 
   for (const [url] of regExpIterator) {
