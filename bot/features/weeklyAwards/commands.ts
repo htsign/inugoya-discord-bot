@@ -1,14 +1,14 @@
-import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
+import { ApplicationCommandOptionType, ChatInputCommandInteraction, PermissionFlagsBits } from "discord.js";
 import { log } from "../../lib/log";
 import { startAward, stopAward } from ".";
 import { db } from "./db";
+import type { ChatInputCommandCollection } from "../_types";
 
-/** @type {import('../_types').ChatInputCommandCollection<{ resultMessage: string }, 'cached' | 'raw'>} */
-const subCommands = {
+const subCommands: ChatInputCommandCollection<{ resultMessage: string; }, 'cached' | 'raw'> = {
   register: {
     description: '初期登録をします。',
     resultMessage: 'リアクション大賞の巡回対象にこのサーバーを登録し、週の報告をこのチャンネルで行うよう設定しました。',
-    async func(interaction) {
+    async func(interaction: ChatInputCommandInteraction<'cached' | 'raw'>): Promise<void> {
       const guildId = interaction.guildId;
       const guildName = interaction.guild?.name;
       const channelName = interaction.channel?.name;
@@ -26,7 +26,7 @@ const subCommands = {
   unregister: {
     description: '登録を解除します。',
     resultMessage: 'リアクション大賞の巡回対象からこのサーバーを削除しました。',
-    async func(interaction) {
+    async func(interaction: ChatInputCommandInteraction<'cached' | 'raw'>) {
       const guildId = interaction.guildId;
       const guildName = interaction.guild?.name;
       const channelName = interaction.channel?.name;
@@ -43,8 +43,7 @@ const subCommands = {
   },
 };
 
-/** @type {import('../_types').ChatInputCommandCollection<{}>} */
-export const commands = {
+export const commands: ChatInputCommandCollection<{}> = {
   weeklyaward: {
     description: 'リアクション大賞',
     // @ts-ignore
@@ -53,11 +52,7 @@ export const commands = {
       type: ApplicationCommandOptionType.Subcommand,
       ...content,
     })),
-    /**
-     * @param {import('discord.js').ChatInputCommandInteraction} interaction
-     * @returns {Promise<void>}
-     */
-    async func(interaction) {
+    async func(interaction: ChatInputCommandInteraction): Promise<void> {
       const subCommandName = interaction.options.getSubcommand(true);
 
       if (!interaction.inGuild()) {

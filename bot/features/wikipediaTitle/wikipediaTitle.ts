@@ -1,4 +1,4 @@
-import { Events } from "discord.js";
+import { APIEmbed, Events } from "discord.js";
 import axios from "axios";
 import client from "../../client";
 
@@ -8,16 +8,14 @@ client.on(Events.MessageCreate, async message => {
   const re = /https:\/\/ja\.wikipedia\.org\/(?:wiki\/\S+|\?[\w=&]*curid=\d+)/g;
   const regExpIterator = message.content.matchAll(re);
 
-  /** @type {import('discord.js').APIEmbed[]} */
-  const embeds = [];
+  const embeds: APIEmbed[] = [];
 
   for (const [url] of regExpIterator) {
     try {
       const { data, status } = await axios.get(url);
 
       if (status === 200) {
-        /** @type {string} */
-        const html = data;
+        const html: string = data;
 
         const [, title] = html.match(/<meta property="og:title" content="([^"]+)"/) ?? [];
         if (title == null) return;

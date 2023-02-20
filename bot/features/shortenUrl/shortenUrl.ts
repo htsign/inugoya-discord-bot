@@ -1,31 +1,25 @@
-import { Events } from 'discord.js';
+import { Events, Message } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
 import axios from 'axios';
 import client from '../../client';
 import { URL_REGEX_GLOBAL, getEnv, isUrl } from '../../lib/util';
+import type { ShortenUrlResponse, XgdFailureMessage, XgdRequest, XgdSuccessMessage } from './_types';
 
 const API_KEY = getEnv('XGD_API_KEY', 'X.gd API key');
 const API_ENTRYPOINT = 'https://xgd.io/V1/shorten';
 
-/**
- * @param {Url[]} urls
- * @returns {Promise<(import('./_types').XgdSuccessMessage | import('./_types').XgdFailureMessage)[]>}
- */
-export const shortenUrls = async urls => {
-  /** @type {(import('./_types').XgdSuccessMessage | import('./_types').XgdFailureMessage)[]} */
-  const shortenUrls = [];
+export const shortenUrls = async (urls: Url[]): Promise<(XgdSuccessMessage | XgdFailureMessage)[]> => {
+  const shortenUrls: (XgdSuccessMessage | XgdFailureMessage)[] = [];
 
   for (const url of urls) {
-    /** @type {import('./_types').XgdRequest} */
-    const params = {
+    const params: XgdRequest = {
       key: API_KEY,
       url,
       analytics: false,
     };
 
     try {
-      /** @type {import('./_types').ShortenUrlResponse} */
-      const { data, status } = await axios.get(API_ENTRYPOINT, { params });
+      const { data, status }: ShortenUrlResponse = await axios.get(API_ENTRYPOINT, { params });
 
       if (status !== 200) {
         shortenUrls.push(`error occured [${status}]: unknown error`);
@@ -47,11 +41,7 @@ export const shortenUrls = async urls => {
   return shortenUrls;
 };
 
-/**
- * @param {Url} url
- * @returns {Promise<import('./_types').XgdSuccessMessage | import('./_types').XgdFailureMessage>}
- */
-export const shortenUrl = async url => {
+export const shortenUrl = async (url: Url): Promise<XgdSuccessMessage | XgdFailureMessage> => {
   const shortens = await shortenUrls([url]);
   if (!isNonEmpty(shortens)) {
     throw new Error('unexpected procedure');
@@ -59,23 +49,15 @@ export const shortenUrl = async url => {
   return shortens[0];
 };
 
-/**
- * @param {string} content
- * @returns {Promise<(import('./_types').XgdSuccessMessage | import('./_types').XgdFailureMessage)[]>}
- */
-export const shortenUrlsOfContent = content => {
-  /** @type {function(string[]): Url[]} */
-  const filterUrls = contents => contents.filter(isUrl);
+export const shortenUrlsOfContent = (content: string): Promise<(XgdSuccessMessage | XgdFailureMessage)[]> => {
+  const filterUrls = (contents: string[]): Url[] => contents.filter(isUrl);
 
   const urls = content.match(URL_REGEX_GLOBAL) ?? [];
   return shortenUrls(filterUrls(urls));
 };
 
-/**
- * @param {import('discord.js').Message<boolean>} message
- * @returns {Promise<(import('./_types').XgdSuccessMessage | import('./_types').XgdFailureMessage)[]>}
- */
-export const shortenUrlsOfMessage = message => shortenUrlsOfContent(message.content ?? '');
+export const shortenUrlsOfMessage = (message: Message): Promise<(XgdSuccessMessage | XgdFailureMessage)[]> =>
+  shortenUrlsOfContent(message.content ?? '');
 
 client.on(Events.MessageCreate, async message => {
   const { reference, content, channel } = message;

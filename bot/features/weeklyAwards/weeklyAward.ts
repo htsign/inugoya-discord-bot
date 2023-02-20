@@ -1,6 +1,6 @@
-import { Events, ChannelType } from 'discord.js';
+import { Events, ChannelType, Message, APIEmbed } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
-import dayjs from '../../lib/dayjsSetup';
+import { dayjs } from '../../lib/dayjsSetup';
 import client from '../../client';
 import { log } from '../../lib/log';
 import { fetchMessageByIds, messageToEmbeds } from '../util';
@@ -9,10 +9,9 @@ import { db } from './db';
 const SUNDAY = 0;
 
 /**
- * @type {Map<string, NodeJS.Timeout>}
  * key is Guild ID, value is Timeout ID
  */
-const instances = new Map();
+const instances = new Map<string, NodeJS.Timeout>();
 
 client.once(Events.ClientReady, async () => {
   for (const { guildId } of db.config.records) {
@@ -52,13 +51,7 @@ client.on(Events.MessageReactionRemove, async (reaction, user) => {
   }
 });
 
-/**
- * @param {string} guildId
- * @param {string} guildName
- * @param {string} channelName
- * @returns {Promise<void>}
- */
-const tick = async (guildId, guildName, channelName) => {
+const tick = async (guildId: string, guildName: string, channelName: string): Promise<void> => {
   const now = dayjs().tz();
 
   if (now.day() === SUNDAY && now.hour() === 12 && now.minute() === 0) {
@@ -76,8 +69,7 @@ const tick = async (guildId, guildName, channelName) => {
       db.vacuum();
 
       if ([...db.iterate()].some(({ reactionsCount: count }) => count > 0)) {
-        /** @type {{ message: import('discord.js').Message<true>, reactionsCount: number }[]} */
-        const messages = [];
+        const messages: { message: Message<true>, reactionsCount: number }[] = [];
 
         // collect messages posted in current guild
         for (const record of db.iterate()) {
@@ -89,13 +81,13 @@ const tick = async (guildId, guildName, channelName) => {
 
         // tally messages by reactions count
         const talliedMessages = messages
-          .reduce((/** @type {{ [count: number]: import('discord.js').Message<true>[] }} */ acc, { message, reactionsCount }) =>
+          .reduce<{ [count: number]: Message<true>[] }>((acc, { message, reactionsCount }) =>
             ({ ...acc, [reactionsCount]: [...acc[reactionsCount] ?? [], message] }), {});
+
         // sort descending order by reactions count
         const messagesArray = Object.entries(talliedMessages).sort(([a, ], [b, ]) => (+b) - (+a));
 
-        /** @type {{ title: string, embeds: import('discord.js').APIEmbed[] }[]} */
-        const contents = [];
+        const contents: { title: string, embeds: APIEmbed[] }[] = [];
         {
           let rank = 1;
 
@@ -103,8 +95,7 @@ const tick = async (guildId, guildName, channelName) => {
           for (const [count, messages] of messagesArray.filter((_, i) => i < Math.min(messagesArray.length, 3))) {
             const rankText = rank === 1 ? '最も' : ` ${rank}番目に`;
 
-            /** @type {import('discord.js').APIEmbed[]} */
-            const embeds = [];
+            const embeds: APIEmbed[] = [];
 
             for (const message of messages) {
                   embeds.push(...await messageToEmbeds(message, false));
@@ -146,11 +137,7 @@ const tick = async (guildId, guildName, channelName) => {
   }
 };
 
-/**
- * @param {string} guildId
- * @returns {Promise<void>}
- */
-export const startAward = async guildId => {
+export const startAward = async (guildId: string): Promise<void> => {
   const configRecord = db.config.get(guildId);
   if (configRecord == null) {
     return log(`startAward: ${{ guildId }} is not registered.`);
@@ -166,10 +153,7 @@ export const startAward = async guildId => {
   return tick(guildId, guildName, channelName);
 };
 
-/**
- * @param {string} guildId
- */
-export const stopAward = guildId => {
+export const stopAward = (guildId: string): void => {
   const configRecord = db.config.get(guildId);
   if (configRecord == null) {
     return log(`stopAward: ${{ guildId }} is not registered.`);

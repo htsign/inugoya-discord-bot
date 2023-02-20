@@ -1,5 +1,7 @@
-import dayjs from '../../lib/dayjsSetup';
-import Database from 'better-sqlite3';
+import { Message } from 'discord.js';
+import { dayjs } from '../../lib/dayjsSetup';
+import Database, { Transaction } from 'better-sqlite3';
+import type { WeeklyAwardConfigRecord, WeeklyAwardRecord } from './_types';
 
 const db = Database('weeklyAward.db');
 const TABLE = 'reacted_messages';
@@ -30,13 +32,7 @@ class WeeklyAwardDatabase {
     `).run();
   }
 
-  /**
-   * @param {string} guildId
-   * @param {string} channelId
-   * @param {string} messageId
-   * @returns {import('./_types').WeeklyAwardRecord?}
-   */
-  get(guildId, channelId, messageId) {
+  get(guildId: string, channelId: string, messageId: string): WeeklyAwardRecord | null {
     const stmt = db.prepare(`
       select
         guild_name,
@@ -70,11 +66,7 @@ class WeeklyAwardDatabase {
     };
   }
 
-  /**
-   * @param {import('discord.js').Message<true>} message
-   * @param {number} reactionsCount
-   */
-  set(message, reactionsCount) {
+  set(message: Message<true>, reactionsCount: number): void {
     const stmt = db.prepare(`
       insert into ${TABLE} (
         guild_id,
@@ -125,10 +117,7 @@ class WeeklyAwardDatabase {
     });
   }
 
-  /**
-   * @returns {Generator<import('./_types').WeeklyAwardRecord>}
-   */
-  *iterate() {
+  *iterate(): Generator<WeeklyAwardRecord> {
     const stmt = db.prepare(`select * from ${TABLE}`);
 
     for (const row of stmt.iterate()) {
@@ -147,24 +136,13 @@ class WeeklyAwardDatabase {
     }
   }
 
-  /**
-   * @param {T[]} values
-   * @param {function(T): void} callback
-   * @template T
-   */
-  transaction(values, callback) {
-    /** @type {import('better-sqlite3').Transaction<(values: T[]) => void>} */
-    const fn = db.transaction(values => values.forEach(callback));
+  transaction<T>(values: T[], callback: (value: T) => void): void {
+    const fn: Transaction<(values: T[]) => void> = db.transaction(values => values.forEach(callback));
 
     fn(values);
   }
 
-  /**
-   * @param {string} guildId
-   * @param {string} channelId
-   * @param {string} messageId
-   */
-  delete(guildId, channelId, messageId) {
+  delete(guildId: string, channelId: string, messageId: string): void {
     const stmt = db.prepare(`
       delete from ${TABLE}
       where
@@ -184,8 +162,7 @@ class WeeklyAwardDatabase {
 class WeeklyAwardDatabaseConfig {
   #TABLE = 'post_target';
 
-  /** @type {import('./_types').WeeklyAwardConfigRecord[]} */
-  get records() {
+  get records(): WeeklyAwardConfigRecord[] {
     const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
     const rows = stmt.all();
@@ -210,12 +187,7 @@ class WeeklyAwardDatabaseConfig {
     `).run();
   }
 
-  /**
-   * @param {string} guildId
-   * @param {string} guildName
-   * @param {string} channelName
-   */
-  register(guildId, guildName, channelName) {
+  register(guildId: string, guildName: string, channelName: string): void {
     const stmt = db.prepare(`
       insert into ${this.#TABLE} (
         guild_id,
@@ -236,10 +208,7 @@ class WeeklyAwardDatabaseConfig {
     stmt.run({ guildId, guildName, channelName });
   }
 
-  /**
-   * @param {string} guildId
-   */
-  unregister(guildId) {
+  unregister(guildId: string): void {
     const stmt = db.prepare(`
       delete from ${this.#TABLE}
       where
@@ -249,11 +218,7 @@ class WeeklyAwardDatabaseConfig {
     stmt.run(guildId);
   }
 
-  /**
-   * @param {string} guildId
-   * @returns {import('./_types').WeeklyAwardConfigRecord?}
-   */
-  get(guildId) {
+  get(guildId: string): WeeklyAwardConfigRecord | null {
     const stmt = db.prepare(`
       select *
       from ${this.#TABLE}

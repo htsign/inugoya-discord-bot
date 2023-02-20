@@ -1,14 +1,8 @@
-import { EmbedBuilder, Colors } from "discord.js";
+import { EmbedBuilder, Colors, Message, APIEmbed, APIEmbedField } from "discord.js";
 import client from "../client";
 import { log } from "../lib/log";
 
-/**
- * @param {string} guildId
- * @param {string} channelId
- * @param {string} messageId
- * @returns {Promise<import('discord.js').Message<true>?>}
- */
-export const fetchMessageByIds = async (guildId, channelId, messageId) => {
+export const fetchMessageByIds = async (guildId: string, channelId: string, messageId: string): Promise<Message<true> | null> => {
   try {
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
     const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
@@ -29,18 +23,12 @@ export const fetchMessageByIds = async (guildId, channelId, messageId) => {
   }
 };
 
-/**
- * @param {import('discord.js').Message<boolean>} message
- * @param {boolean=} [addReactionField=true]
- * @returns {Promise<import('discord.js').APIEmbed[]>}
- */
-export const messageToEmbeds = async (message, addReactionField = true) => {
+export const messageToEmbeds = async (message: Message<boolean>, addReactionField: boolean = true): Promise<APIEmbed[]> => {
   const { channel } = message;
 
   if (channel.isTextBased()) {
 
-    /** @type {import('discord.js').APIEmbed[]} */
-    const embeds = [];
+    const embeds: APIEmbed[] = [];
 
     const author = await message.author?.fetch();
 
@@ -58,8 +46,7 @@ export const messageToEmbeds = async (message, addReactionField = true) => {
     }
 
     if (addReactionField) {
-      /** @type {import('discord.js').APIEmbedField[]} */
-      const fields = [];
+      const fields: APIEmbedField[] = [];
 
       const reactions = message.reactions.cache;
       const reactionsCount = reactions.reduce((acc, x) => acc + x.count, 0);

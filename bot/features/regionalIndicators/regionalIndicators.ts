@@ -1,3 +1,5 @@
+import type { RegionalIndicatorsResult } from "./_types";
+
 const codeRegionalIndicatorA = '🇦'.codePointAt(0) ?? 0;
 const codeLowerA = 'a'.codePointAt(0) ?? 0;
 const codeLowerZ = 'z'.codePointAt(0) ?? 0;
@@ -7,16 +9,10 @@ const code0 = '0'.codePointAt(0) ?? 0;
 const code9 = '9'.codePointAt(0) ?? 0;
 const numberEmojis = Array.from({ length: 10 }, (_, i) => `${i}\u20e3`);
 
-/** @type {(codePoint: number) => boolean} */
-const isLowerAlphabet = cp => codeLowerA <= cp && cp <= codeLowerZ;
-/** @type {(codePoint: number) => boolean} */
-const isNumber = cp => code0 <= cp && cp <= code9;
+const isLowerAlphabet = (codePoint: number): boolean => codeLowerA <= codePoint && codePoint <= codeLowerZ;
+const isNumber = (codePoint: number): boolean => code0 <= codePoint && codePoint <= code9;
 
-/**
- * @param {string} text
- * @returns {import('./_types').RegionalIndicatorsResult}
- */
-export const toEmojis = text => {
+export const toEmojis = (text: string): RegionalIndicatorsResult => {
   if (text.length !== new Set(text).size) {
     return { success: false, message: '重複文字が含まれています。' };
   }
@@ -27,13 +23,12 @@ export const toEmojis = text => {
     return { success: false, message: 'アルファベットまたは算用数字以外が含まれています。' };
   }
 
-  /** @type {(codePoint: number) => string} */
-  const toEmoji = cp => {
-    if (isLowerAlphabet(cp)) {
-      return String.fromCodePoint(cpDiff + cp);
+  const toEmoji = (codePoint: number): string => {
+    if (isLowerAlphabet(codePoint)) {
+      return String.fromCodePoint(cpDiff + codePoint);
     }
-    else if (isNumber(cp)) {
-      const emojiString = numberEmojis[cp - code0];
+    else if (isNumber(codePoint)) {
+      const emojiString = numberEmojis[codePoint - code0];
 
       if (emojiString == null) {
         throw new Error('invalid index access');

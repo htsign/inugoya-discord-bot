@@ -1,8 +1,8 @@
-import { ApplicationCommandOptionType } from 'discord.js';
+import { ApplicationCommandOptionType, ChatInputCommandInteraction } from 'discord.js';
 import { toEmojis } from '.';
+import type { ChatInputCommandCollection } from '../_types';
 
-/** @type {import('../_types').ChatInputCommandCollection<{}>} */
-export default {
+export const commands: ChatInputCommandCollection<{}> = {
   emojify: {
     description: 'アルファベット絵文字で連続リアクションします。',
     options: [
@@ -19,11 +19,7 @@ export default {
         required: true,
       },
     ],
-    /**
-     * @param {import('discord.js').ChatInputCommandInteraction} interaction
-     * @returns {Promise<void>}
-     */
-    async func(interaction) {
+    async func(interaction: ChatInputCommandInteraction): Promise<void> {
       const to = interaction.options.getString('to', true);
       const text = interaction.options.getString('text', true);
 

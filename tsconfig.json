@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "checkJs": true,
     "module": "ES2022",
     "moduleResolution": "node",
     "esModuleInterop": true,

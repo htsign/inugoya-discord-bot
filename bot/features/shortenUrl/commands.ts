@@ -1,8 +1,8 @@
-import { ApplicationCommandOptionType } from "discord.js";
+import { ApplicationCommandOptionType, ChatInputCommandInteraction } from "discord.js";
 import { shortenUrlsOfContent } from "./shortenUrl";
+import type { ChatInputCommandCollection } from "../_types";
 
-/** @type {import('../_types').ChatInputCommandCollection<{}>} */
-export default {
+export const commands: ChatInputCommandCollection<{}> = {
   shorten: {
     description: '与えられたURLを省略します。',
     options: [
@@ -13,11 +13,7 @@ export default {
         required: true,
       },
     ],
-    /**
-     * @param {import('discord.js').ChatInputCommandInteraction} interaction
-     * @returns {Promise<void>}
-     */
-    async func(interaction) {
+    async func(interaction: ChatInputCommandInteraction): Promise<void> {
       const content = interaction.options.getString('urls', true);
 
       await interaction.reply('create shorten urls...');

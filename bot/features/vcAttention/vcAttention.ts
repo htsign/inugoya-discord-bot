@@ -1,11 +1,10 @@
-import { Events, ChannelType } from "discord.js";
+import { Events, ChannelType, Snowflake, Channel } from "discord.js";
 import client from "../../client";
 import { log } from "../../lib/log";
 
 const THRIVING_THRESHOLD = 3;
 
-/** @type {Set<import('discord.js').Snowflake>} */
-const thrivingVoiceChannels = new Set();
+const thrivingVoiceChannels = new Set<Snowflake>();
 
 client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
   const { channelId: oldChannelId } = oldState;
@@ -19,8 +18,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
     log('member joined', newChannel?.name, { membersCount });
 
     if (membersCount >= THRIVING_THRESHOLD) {
-      /** @type {function(import('discord.js').Channel): boolean} */
-      const isVcChat = channel => channel.type === ChannelType.GuildText && channel.name === 'vc-chat';
+      const isVcChat = (channel: Channel): boolean => channel.type === ChannelType.GuildText && channel.name === 'vc-chat';
 
       if (!thrivingVoiceChannels.has(newChannelId)) {
         const vcChat = await client.channels.cache.find(isVcChat)?.fetch();

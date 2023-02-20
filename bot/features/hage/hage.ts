@@ -1,6 +1,6 @@
-import { Events } from 'discord.js';
+import { Events, Message, PartialMessage } from 'discord.js';
 import MersenneTwister from 'mersenne-twister';
-import dayjs from '../../lib/dayjsSetup';
+import { dayjs } from '../../lib/dayjsSetup';
 import client from '../../client';
 import { Timeout } from '../../lib/timeout';
 import { log } from '../../lib/log';
@@ -25,22 +25,15 @@ const rareTemplate = `.        (~)
     ( :::： ::: )
 　  し―Ｊ`;
 
-/** @type {Set<string>} */
-const reactedMessageIds = new Set();
-/** @type {Set<Timeout<boolean>>} */
-const timeouts = new Set();
+const reactedMessageIds = new Set<string>();
+const timeouts = new Set<Timeout<boolean>>();
 
 const mtSeed = dayjs().tz();
 const mtRnd = new MersenneTwister(mtSeed.unix());
 
-/** @type {function(import('discord.js').Message<boolean> | import('discord.js').PartialMessage): string} */
-const getId = message => [message.channelId, message.guildId, message.id].join();
+const getId = (message: Message | PartialMessage): string => [message.channelId, message.guildId, message.id].join();
 
-/**
- * @param {(text: string) => Promise<import('discord.js').Message<boolean>>} messageHandler
- * @param {string} id
- */
-const replyToHage = (messageHandler, id) => {
+const replyToHage = (messageHandler: (text: string) => Promise<Message>, id: string): void => {
   reactedMessageIds.add(id);
 
   // register an object that removes itself in 10 minutes

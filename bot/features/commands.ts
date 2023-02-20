@@ -2,9 +2,9 @@ import { Events } from 'discord.js';
 import client from '../client';
 import { log } from '../lib/log';
 
-import shortenUrlCommands from './shortenUrl/commands';
-import weeklyAwardsCommands from './weeklyAwards/commands';
-import regionalIndicatorsCommands from './regionalIndicators/commands';
+import { commands as shortenUrlCommands } from './shortenUrl/commands';
+import { commands as weeklyAwardsCommands } from './weeklyAwards/commands';
+import { commands as regionalIndicatorsCommands } from './regionalIndicators/commands';
 
 /**
  * @type {import('./_types').ChatInputCommandCollection<{}>}
