@@ -88,7 +88,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
   if (message.author.bot) return;
 
   log('reaction incoming: ', user.username, reaction.emoji.name);
-  if (!reactedMessageIds.has(id) && keywordReactions.includes((await reaction.fetch()).emoji.name ?? '')) {
+  if (!reactedMessageIds.has(id) && keywordReactions.includes(reaction.emoji.name ?? '')) {
     replyToHage(text => message.reply(text), id);
   }
 });
