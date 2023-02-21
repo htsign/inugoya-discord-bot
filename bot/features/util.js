@@ -47,7 +47,7 @@ const messageToEmbeds = async (message, addReactionField = true) => {
     const embed = new EmbedBuilder()
       .setURL(message.url)
       .setTimestamp(message.editedTimestamp ?? message.createdTimestamp)
-      .setColor(message.author?.accentColor ?? Colors.Default);
+      .setColor(author?.accentColor ?? Colors.Default);
 
     if (author != null) {
       embed.setAuthor({ name: author.username, url: message.url, iconURL: author.displayAvatarURL() });
