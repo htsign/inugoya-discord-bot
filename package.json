@@ -6,6 +6,7 @@
     "dayjs": "1.11",
     "discord.js": "^14.7.1",
     "dotenv": "^16.0.3",
+    "fast-average-color-node": "^2.6.0",
     "mersenne-twister": "^1.1.0"
   },
   "devDependencies": {
