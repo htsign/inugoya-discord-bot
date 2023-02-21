@@ -1,4 +1,5 @@
 const { EmbedBuilder, Colors } = require("discord.js");
+const fastAvgColor = require('fast-average-color-node');
 const client = require("../client");
 const { log } = require("../lib/log");
 
@@ -44,10 +45,18 @@ const messageToEmbeds = async (message, addReactionField = true) => {
 
     const author = await message.author?.fetch();
 
+    /** @type {(avatarUrl: string | null | undefined) => Promise<number | null>} */
+    const getAverageColor = async avatarUrl => {
+      if (avatarUrl == null) return null;
+
+      const { value: [red, green, blue] } = await fastAvgColor.getAverageColor(avatarUrl, { silent: true });
+      return (red << 16) + (green << 8) + blue;
+    };
+
     const embed = new EmbedBuilder()
       .setURL(message.url)
       .setTimestamp(message.editedTimestamp ?? message.createdTimestamp)
-      .setColor(author?.accentColor ?? Colors.Default);
+      .setColor(author?.accentColor ?? await getAverageColor(author?.avatarURL()) ?? Colors.Default);
 
     if (author != null) {
       embed.setAuthor({ name: author.username, url: message.url, iconURL: author.displayAvatarURL() });
