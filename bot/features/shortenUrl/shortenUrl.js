@@ -83,6 +83,7 @@ client.on(Events.MessageCreate, async message => {
 
   if (reference == null) return;
   if (content !== '短縮して') return;
+  if (!channel.isTextBased() || channel.isVoiceBased()) return;
 
   const referredMessage = await channel.messages.fetch(reference.messageId ?? '');
   const urls = await shortenUrlsOfMessage(referredMessage);
