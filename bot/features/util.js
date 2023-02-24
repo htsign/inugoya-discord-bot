@@ -67,17 +67,18 @@ const messageToEmbeds = async (message, addReactionField = true) => {
     }
 
     if (addReactionField) {
-      /** @type {APIEmbedField[]} */
-      const fields = [];
-
       const reactions = message.reactions.cache;
       const reactionsCount = reactions.reduce((acc, x) => acc + x.count, 0);
 
       if (reactionsCount > 0) {
-        fields.push({ name: 'Reactions', value: String(reactionsCount) });
+        embed.addFields({ name: 'Reactions', value: String(reactionsCount) });
       }
+    }
 
-      embed.setFields(...fields);
+    const [attachments, spoilerAttachments] = message.attachments.partition(x => !x.spoiler);
+
+    if (spoilerAttachments.size > 0) {
+      embed.addFields({ name: 'Spoilers', value: String(spoilerAttachments.size) });
     }
 
     if (!channel.isDMBased()) {
@@ -94,7 +95,7 @@ const messageToEmbeds = async (message, addReactionField = true) => {
 
     embeds.push(embed.toJSON());
 
-    for (const attachment of message.attachments.values()) {
+    for (const attachment of attachments.values()) {
       embeds.push({ url: message.url, image: { url: attachment.url } });
     }
 
