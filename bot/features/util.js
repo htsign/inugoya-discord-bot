@@ -1,4 +1,4 @@
-const { EmbedBuilder, Colors } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 const fastAvgColor = require('fast-average-color-node');
 const client = require("../client");
 const { log } = require("../lib/log");
@@ -56,7 +56,7 @@ const messageToEmbeds = async (message, addReactionField = true) => {
     const embed = new EmbedBuilder()
       .setURL(message.url)
       .setTimestamp(message.editedTimestamp ?? message.createdTimestamp)
-      .setColor(author?.accentColor ?? await getAverageColor(author?.avatarURL()) ?? Colors.Default);
+      .setColor(author?.accentColor ?? await getAverageColor(author?.avatarURL()));
 
     if (author != null) {
       embed.setAuthor({ name: author.username, url: message.url, iconURL: author.displayAvatarURL() });
