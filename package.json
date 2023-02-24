@@ -2,7 +2,7 @@
   "main": "index.js",
   "dependencies": {
     "bun-types": "^0.5.7",
-    "dayjs": "1.11",
+    "dayjs": "1.11.7",
     "discord.js": "^14.7.1",
     "fast-average-color-node": "^2.6.0",
     "mersenne-twister": "^1.1.0"

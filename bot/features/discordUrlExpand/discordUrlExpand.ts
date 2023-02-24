@@ -3,7 +3,7 @@ import client from 'bot/client';
 import { fetchMessageByIds, messageToEmbeds } from '../util';
 
 client.on(Events.MessageCreate, async message => {
-  if (message.author.bot) return;
+  if (message.author.bot || message.channel.isVoiceBased()) return;
 
   const regExpIterator = message.content.matchAll(/https:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)\b/g) ?? [];
 

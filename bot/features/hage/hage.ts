@@ -60,14 +60,14 @@ client.once(Events.ClientReady, () => {
   log('random generator initialized by', mtSeed.format('YYYY/MM/DD HH:mm:ss'), mtSeed.unix());
 });
 client.on(Events.MessageCreate, message => {
-  const { content, author } = message;
+  const { content, author, channel } = message;
   const id = getId(message);
 
-  if (author.bot) return;
+  if (author.bot || channel.isVoiceBased()) return;
 
   log('message incoming: ', author.username, content);
   if (keywords.some(keyword => content.includes(keyword))) {
-    replyToHage(text => message.channel.send(text), id);
+    replyToHage(text => channel.send(text), id);
   }
 });
 client.on(Events.MessageDelete, message => {

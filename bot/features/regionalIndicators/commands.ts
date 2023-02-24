@@ -23,9 +23,15 @@ export const commands: ChatInputCommandCollection<{}> = {
       const to = interaction.options.getString('to', true);
       const text = interaction.options.getString('text', true);
 
+      const { channel } = interaction;
+      if (channel == null || !channel.isTextBased() || channel.isVoiceBased()) {
+        await interaction.reply({ content: '対応していないチャンネルです。', ephemeral: true });
+        return;
+      }
+
       await interaction.deferReply({ ephemeral: true });
 
-      const messages = await interaction.channel?.messages.fetch();
+      const messages = await channel.messages.fetch();
       const message = messages?.get(to);
 
       if (message == null) {
@@ -35,7 +41,7 @@ export const commands: ChatInputCommandCollection<{}> = {
 
       const emojis = toEmojis(text);
       if (emojis.success) {
-        await interaction.channel?.send(`${interaction.user} が \`/emojify "${text}"\` を使用しました。`);
+        await channel.send(`${interaction.user} が \`/emojify "${text}"\` を使用しました。`);
 
         for (const emojiText of emojis.values) {
           await message.react(emojiText);

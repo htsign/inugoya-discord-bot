@@ -1,4 +1,4 @@
-import { EmbedBuilder, Colors, Message, APIEmbed, APIEmbedField } from 'discord.js';
+import { EmbedBuilder, Message, APIEmbed } from 'discord.js';
 import fastAvgColor from 'fast-average-color-node';
 import { log } from '@lib/log';
 import client from '../client';
@@ -8,7 +8,7 @@ export const fetchMessageByIds = async (guildId: string, channelId: string, mess
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
     const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
 
-    if (channel?.isTextBased()) {
+    if (channel?.isTextBased() &&!channel.isVoiceBased()) {
       return channel.messages.cache.get(messageId) ?? await channel.messages.fetch(messageId);
     }
     return null;
@@ -43,7 +43,7 @@ export const messageToEmbeds = async (message: Message<boolean>, addReactionFiel
     const embed = new EmbedBuilder()
       .setURL(message.url)
       .setTimestamp(message.editedTimestamp ?? message.createdTimestamp)
-      .setColor(author.accentColor ?? await getAverageColor(author.avatarURL()) ?? Colors.Default);
+      .setColor(author?.accentColor ?? await getAverageColor(author?.avatarURL()));
 
     if (author != null) {
       embed.setAuthor({ name: author.username, url: message.url, iconURL: author.displayAvatarURL() });
@@ -54,16 +54,18 @@ export const messageToEmbeds = async (message: Message<boolean>, addReactionFiel
     }
 
     if (addReactionField) {
-      const fields: APIEmbedField[] = [];
-
       const reactions = message.reactions.cache;
       const reactionsCount = reactions.reduce((acc, x) => acc + x.count, 0);
 
       if (reactionsCount > 0) {
-        fields.push({ name: 'Reactions', value: String(reactionsCount) });
+        embed.addFields({ name: 'Reactions', value: String(reactionsCount) });
       }
+    }
 
-      embed.setFields(...fields);
+    const [attachments, spoilerAttachments] = message.attachments.partition(x => !x.spoiler);
+
+    if (spoilerAttachments.size > 0) {
+      embed.addFields({ name: 'Spoilers', value: String(spoilerAttachments.size) });
     }
 
     if (!channel.isDMBased()) {
@@ -80,7 +82,7 @@ export const messageToEmbeds = async (message: Message<boolean>, addReactionFiel
 
     embeds.push(embed.toJSON());
 
-    for (const attachment of message.attachments.values()) {
+    for (const attachment of attachments.values()) {
       embeds.push({ url: message.url, image: { url: attachment.url } });
     }
 
