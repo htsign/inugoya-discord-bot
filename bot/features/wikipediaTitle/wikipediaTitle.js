@@ -21,6 +21,7 @@ client.on(Events.MessageCreate, async message => {
 
         const [, title] = html.match(/<meta property="og:title" content="([^"]+)"/) ?? [];
         if (title == null) return;
+        if (/^[ -~]*? - Wikipedia$/.test(title)) return;
 
         embeds.push({
           fields: [{ name: title, value: url }],
