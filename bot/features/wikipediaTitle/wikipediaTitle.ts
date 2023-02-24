@@ -1,5 +1,4 @@
 import { APIEmbed, Events } from 'discord.js';
-import axios from 'axios';
 import client from 'bot/client';
 
 client.on(Events.MessageCreate, async message => {
@@ -12,11 +11,10 @@ client.on(Events.MessageCreate, async message => {
 
   for (const [url] of regExpIterator) {
     try {
-      const { data, status } = await axios.get(url);
+      const res = await fetch(url);
+      const html = await res.text();
 
-      if (status === 200) {
-        const html: string = data;
-
+      if (res.status === 200) {
         const [, title] = html.match(/<meta property="og:title" content="([^"]+)"/) ?? [];
         if (title == null) return;
 
@@ -29,7 +27,7 @@ client.on(Events.MessageCreate, async message => {
       }
     }
     catch (e) {
-      if (axios.isAxiosError(e)) {
+      if (e instanceof Error) {
         console.log(e.name, e.message);
       }
     }

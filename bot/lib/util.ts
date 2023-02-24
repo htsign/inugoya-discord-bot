@@ -12,3 +12,5 @@ export const getEnv = (key: string, name: string = 'token'): string => {
 };
 
 export const isUrl = (content: string): content is Url => /^https?:\/\/\S+$/.test(content);
+
+export const toQueryString = (queries: {}) => Object.entries(queries).map(([key, val]): string => `${key}=${val}`).join('&');

@@ -1,5 +1,3 @@
-import type { AxiosResponse } from 'axios';
-
 export type XgdUrl = `https://x.gd/${string}`;
 export type XgdSuccessMessage = `\`${Url}\`: <${XgdUrl}>`;
 export type XgdFailureMessage = `error occured [${XgdFailureStatus | number}]: ${string}`;
@@ -29,4 +27,3 @@ export interface XgdFailureResponse {
 }
 
 export type XgdResponse = XgdSuccessResponse | XgdFailureResponse;
-export type ShortenUrlResponse = AxiosResponse<XgdResponse, XgdRequest>;

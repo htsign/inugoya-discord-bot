@@ -1,9 +1,8 @@
 import { Events, Message } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
-import axios from 'axios';
-import { URL_REGEX_GLOBAL, getEnv, isUrl } from '@lib/util';
+import { URL_REGEX_GLOBAL, getEnv, isUrl, toQueryString } from '@lib/util';
 import client from 'bot/client';
-import type { ShortenUrlResponse, XgdFailureMessage, XgdRequest, XgdSuccessMessage } from 'types/bot/features/shortenUrl';
+import type { XgdFailureMessage, XgdRequest, XgdResponse, XgdSuccessMessage } from 'types/bot/features/shortenUrl';
 
 const API_KEY = getEnv('XGD_API_KEY', 'X.gd API key');
 const API_ENTRYPOINT = 'https://xgd.io/V1/shorten';
@@ -19,10 +18,11 @@ export const shortenUrls = async (urls: Url[]): Promise<(XgdSuccessMessage | Xgd
     };
 
     try {
-      const { data, status }: ShortenUrlResponse = await axios.get(API_ENTRYPOINT, { params });
+      const res: Response = await fetch(`${API_ENTRYPOINT}?${toQueryString(params)}`);
+      const data: XgdResponse = await res.json();
 
-      if (status !== 200) {
-        shortenUrls.push(`error occured [${status}]: unknown error`);
+      if (res.status !== 200) {
+        shortenUrls.push(`error occured [${res.status}]: unknown error`);
       }
       else if (data.status === 200) {
         shortenUrls.push(`\`${data.originalurl}\`: <${data.shorturl}>`);
@@ -32,9 +32,8 @@ export const shortenUrls = async (urls: Url[]): Promise<(XgdSuccessMessage | Xgd
       }
     }
     catch (e) {
-      if (axios.isAxiosError(e)) {
-        const status = e.response?.status ?? e.status ?? 400;
-        shortenUrls.push(`error occured [${status}]: ${e.message || 'unknown error'}`);
+      if (e instanceof Error) {
+        shortenUrls.push(`error occured [400]: ${e.message || 'unknown error'}`);
       }
     }
   }
