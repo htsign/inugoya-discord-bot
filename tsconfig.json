@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "ES2022",
+    "module": "ESNext",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "baseUrl": "./",
@@ -8,6 +8,7 @@
       "@features/*": ["bot/features/*"],
       "@lib/*": ["bot/lib/*"],
     },
+    "types": ["bun-types"],
     "target": "ES2021",
     "outDir": "dest",
     "strict": true,
