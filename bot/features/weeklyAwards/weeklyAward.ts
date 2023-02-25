@@ -152,14 +152,14 @@ export const startAward = async (guildId: string): Promise<void> => {
   return tick(guildId, guildName, channelName);
 };
 
-export const stopAward = (guildId: string): void => {
+export const stopAward = async (guildId: string): Promise<void> => {
   const configRecord = db.config.get(guildId);
   if (configRecord == null) {
-    return log(`stopAward: ${{ guildId }} is not registered.`);
+    return await log(`stopAward: ${{ guildId }} is not registered.`);
   }
 
   const { createdAt, updatedAt } = configRecord;
-  log('stopAward:', {
+  await log('stopAward:', {
     ...configRecord,
     createdAt: createdAt.toISOString(),
     updatedAt: updatedAt.toISOString(),
