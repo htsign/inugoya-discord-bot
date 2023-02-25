@@ -2,7 +2,7 @@ import { ApplicationCommandOptionType, ChatInputCommandInteraction } from 'disco
 import { toEmojis } from '.';
 import type { ChatInputCommandCollection } from 'types/bot';
 
-export const commands: ChatInputCommandCollection<{}> = {
+export const commands: ChatInputCommandCollection<void, {}> = {
   emojify: {
     description: 'アルファベット絵文字で連続リアクションします。',
     options: [

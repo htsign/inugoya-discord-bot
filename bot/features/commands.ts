@@ -1,15 +1,13 @@
 import { Events } from 'discord.js';
 import { log } from '@lib/log';
 import client from '../client';
+import type { ChatInputCommandCollection } from 'types/bot'
 
 import { commands as shortenUrlCommands } from './shortenUrl/commands';
 import { commands as weeklyAwardsCommands } from './weeklyAwards/commands';
 import { commands as regionalIndicatorsCommands } from './regionalIndicators/commands';
 
-/**
- * @type {import('./_types').ChatInputCommandCollection<{}>}
- */
-const commands = {
+const commands: ChatInputCommandCollection<any, {}> = {
   ...shortenUrlCommands,
   ...weeklyAwardsCommands,
   ...regionalIndicatorsCommands,

@@ -2,7 +2,7 @@ import { ApplicationCommandOptionType, ChatInputCommandInteraction } from 'disco
 import { shortenUrlsOfContent } from './shortenUrl';
 import type { ChatInputCommandCollection } from 'types/bot';
 
-export const commands: ChatInputCommandCollection<{}> = {
+export const commands: ChatInputCommandCollection<void, {}> = {
   shorten: {
     description: '与えられたURLを省略します。',
     options: [
