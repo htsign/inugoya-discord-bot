@@ -1,7 +1,7 @@
 const { ApplicationCommandOptionType } = require('discord.js');
 const { toEmojis } = require('.');
 
-/** @type {ChatInputCommand} */
+/** @type {ChatInputCommand<void>} */
 module.exports = {
   emojify: {
     description: 'アルファベット絵文字で連続リアクションします。',

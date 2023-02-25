@@ -3,7 +3,7 @@ const client = require('../client');
 const { log } = require('../lib/log');
 
 /**
- * @type {ChatInputCommand}
+ * @type {ChatInputCommand<any>}
  */
 const commands = {
   ...require('./shortenUrl/commands'),

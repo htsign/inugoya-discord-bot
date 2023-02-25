@@ -20,7 +20,8 @@
  */
 /** @typedef {import('discord.js').ChatInputApplicationCommandData} ChatInputApplicationCommandData */
 /**
- * @typedef {(interaction: ChatInputCommandInteraction<TCacheType>) => Promise<void>} ChatInputCommandFunction<TCacheType>
+ * @typedef {(interaction: ChatInputCommandInteraction<TCacheType>) => Promise<Result>} ChatInputCommandFunction<TCacheType>
+ * @template Result
  * @template {CacheType=} [TCacheType=CacheType]
  */
 
@@ -28,8 +29,9 @@
 
 /**
  * @typedef {{
- *   [commandName: string]: Omit<ChatInputApplicationCommandData, 'name'> & { func: ChatInputCommandFunction<TCacheType> } & AdditionalProperties
+ *   [commandName: string]: Omit<ChatInputApplicationCommandData, 'name'> & { func: ChatInputCommandFunction<FuncResult, TCacheType> } & AdditionalProperties
  * }} ChatInputCommand
+ * @template FuncResult
  * @template {{}} [AdditionalProperties={}]
  * @template {CacheType=} [TCacheType=CacheType]
  */
