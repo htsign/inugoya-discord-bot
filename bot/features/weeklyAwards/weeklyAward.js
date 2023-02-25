@@ -169,15 +169,16 @@ const startAward = async guildId => {
 
 /**
  * @param {string} guildId
+ * @returns {Promise<void>}
  */
-const stopAward = guildId => {
+const stopAward = async guildId => {
   const configRecord = db.config.get(guildId);
   if (configRecord == null) {
-    return log(`stopAward: ${{ guildId }} is not registered.`);
+    return await log(`stopAward: ${{ guildId }} is not registered.`);
   }
 
   const { createdAt, updatedAt } = configRecord;
-  log('stopAward:', {
+  await log('stopAward:', {
     ...configRecord,
     createdAt: createdAt.toISOString(),
     updatedAt: updatedAt.toISOString(),

@@ -22,8 +22,20 @@ const getEnv = (key, name = 'token') => {
  */
 const isUrl = content => /^https?:\/\/\S+$/.test(content);
 
+/**
+ * for debug
+ * @param {T} value
+ * @returns {T}
+ * @template T
+ */
+const peek = value => {
+  console.log(value);
+  return value;
+}
+
 module.exports = {
   URL_REGEX_GLOBAL,
   getEnv,
   isUrl,
+  peek,
 };
