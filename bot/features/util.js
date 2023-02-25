@@ -96,7 +96,10 @@ const messageToEmbeds = async (message, addReactionField = true) => {
     embeds.push(embed.toJSON());
 
     for (const attachment of attachments.values()) {
-      embeds.push({ url: message.url, image: { url: attachment.url } });
+      const [type] = attachment.contentType?.split('/') ?? [];
+      const key = type === 'video' ? 'video' : 'image';
+
+      embeds.push({ url: message.url, [key]: { url: attachment.url } });
     }
 
     return embeds;
