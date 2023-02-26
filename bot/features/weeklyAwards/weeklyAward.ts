@@ -100,7 +100,7 @@ const tick = async (guildId: string, guildName: string, channelName: string): Pr
                   embeds.push(...await messageToEmbeds(message, false));
             }
             contents.push({
-              title: `先週${rankText}リアクションが多かった投稿${messages.length >= 2 ? 'たち' : ''}です！！ [${count}個]`,
+              title: `**先週${rankText}リアクションが多かった投稿${messages.length >= 2 ? 'たち' : ''}です！！** [${count}個]`,
               embeds,
             });
             rank += messages.length;
@@ -108,14 +108,14 @@ const tick = async (guildId: string, guildName: string, channelName: string): Pr
         }
 
         if (isNonEmpty(contents)) {
-          const [firstContent, ...restContents] = contents;
-          const firstMessage = await channel.send({ content: `【リアクション大賞】\n${firstContent.title}`, embeds: firstContent.embeds });
+          const [{ title, embeds }, ...restContents] = contents;
+          const firstMessage = await channel.send({ content: `**【リアクション大賞】**\n${title}`, embeds });
 
           if (restContents.length > 0) {
             const thread = await firstMessage.startThread({ name: 'リアクション大賞全体' });
 
-            for (const content of restContents) {
-              await thread.send({ content: content.title, embeds: content.embeds });
+            for (const { title, embeds } of restContents) {
+              await thread.send({ content: title, embeds });
             }
           }
         }
