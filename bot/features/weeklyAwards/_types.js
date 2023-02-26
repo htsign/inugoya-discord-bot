@@ -10,6 +10,8 @@
  * @property {Url} url
  * @property {number} reactionsCount
  * @property {Dayjs} timestamp
+ * @property {Dayjs} createdAt
+ * @property {Dayjs} updatedAt
  */
 
 /**

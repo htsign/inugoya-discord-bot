@@ -25,6 +25,8 @@ class WeeklyAwardDatabase {
         url text not null,
         reactions_count integer not null,
         timestamp text not null,
+        created_at text not null default (datetime('now')),
+        updated_at text not null default (datetime('now')),
         primary key (guild_id, channel_id, message_id)
       )
     `).run();
@@ -45,7 +47,9 @@ class WeeklyAwardDatabase {
         author,
         url,
         reactions_count,
-        timestamp
+        timestamp,
+        created_at,
+        updated_at
       from ${TABLE}
       where
         guild_id   = @guildId   and
@@ -67,6 +71,8 @@ class WeeklyAwardDatabase {
       url: row.url,
       reactionsCount: row.reactions_count,
       timestamp: dayjs(row.timestamp).tz(),
+      createdAt: dayjs(row.created_at).tz(),
+      updatedAt: dayjs(row.updated_at).tz(),
     };
   }
 
@@ -105,7 +111,8 @@ class WeeklyAwardDatabase {
           channel_name = @channelName,
           content = @content,
           author = @author,
-          reactions_count = @reactionsCount
+          reactions_count = @reactionsCount,
+          updated_at = datetime('now')
     `);
 
     const { channel } = message;
@@ -143,6 +150,8 @@ class WeeklyAwardDatabase {
         url: row.url,
         reactionsCount: row.reactions_count,
         timestamp: dayjs(row.timestamp).tz(),
+        createdAt: dayjs(row.created_at).tz(),
+        updatedAt: dayjs(row.updated_at).tz(),
       };
     }
   }
