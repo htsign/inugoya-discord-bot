@@ -185,6 +185,21 @@ class WeeklyAwardDatabase {
     stmt.run({ guildId, channelId, messageId });
   }
 
+  /**
+   * @param {string} guildId
+   * @param {number} days
+   */
+  deleteOutdated(guildId, days) {
+    const stmt = db.prepare(`
+      delete from ${TABLE}
+      where
+        guild_id = @guildId and
+        julianday('now') - julianday(timestamp) > @days
+    `);
+
+    stmt.run({ guildId, days });
+  }
+
   vacuum() {
     db.pragma('incremental_vacuum');
   }

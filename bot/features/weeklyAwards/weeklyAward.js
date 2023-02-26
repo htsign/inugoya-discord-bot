@@ -69,11 +69,7 @@ const tick = async (guildId, guildName, channelName) => {
 
     if (channel?.type === ChannelType.GuildText) {
       // remove messages sent over a week ago
-      db.transaction([...db.iterate()], record => {
-        if (now.diff(record.timestamp, 'days') >= 7) {
-          db.delete(record.guildId, record.channelId, record.messageId);
-        }
-      });
+      db.deleteOutdated(guildId, 7);
       db.vacuum();
 
       if ([...db.iterate()].some(({ reactionsCount: count }) => count > 0)) {
