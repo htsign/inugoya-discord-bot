@@ -11,6 +11,8 @@ export interface WeeklyAwardRecord {
   url: Url;
   reactionsCount: number;
   timestamp: Dayjs;
+  createdAt: Dayjs;
+  updatedAt: Dayjs;
 }
 
 export interface WeeklyAwardConfigRecord {
@@ -32,6 +34,8 @@ export interface WeeklyAwardDatabaseRow {
   url: Url;
   reactions_count: number;
   timestamp: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface WeeklyAwardConfigRow {

@@ -23,6 +23,8 @@ class WeeklyAwardDatabase {
     if (!('url' in row && typeof row.url === 'string' && isUrl(row.url))) return false;
     if (!('reactions_count' in row && typeof row.reactions_count === 'number')) return false;
     if (!('timestamp' in row && typeof row.timestamp === 'string')) return false;
+    if (!('created_at' in row && typeof row.created_at === 'string')) return false;
+    if (!('updated_at' in row && typeof row.updated_at === 'string')) return false;
 
     return true;
   }
@@ -44,6 +46,8 @@ class WeeklyAwardDatabase {
         url text not null,
         reactions_count integer not null,
         timestamp text not null,
+        created_at text not null default (datetime('now')),
+        updated_at text not null default (datetime('now')),
         primary key (guild_id, channel_id, message_id)
       )
     `);
@@ -58,7 +62,9 @@ class WeeklyAwardDatabase {
         author,
         url,
         reactions_count,
-        timestamp
+        timestamp,
+        created_at,
+        updated_at
       from ${TABLE}
       where
         guild_id   = $guildId   and
@@ -85,6 +91,8 @@ class WeeklyAwardDatabase {
       url: row.url,
       reactionsCount: row.reactions_count,
       timestamp: dayjs(row.timestamp).tz(),
+      createdAt: dayjs(row.created_at).tz(),
+      updatedAt: dayjs(row.updated_at).tz(),
     };
   }
 
@@ -119,7 +127,8 @@ class WeeklyAwardDatabase {
           channel_name = $channelName,
           content = $content,
           author = $author,
-          reactions_count = $reactionsCount
+          reactions_count = $reactionsCount,
+          updated_at = datetime('now')
     `);
 
     stmt.run({
@@ -153,6 +162,8 @@ class WeeklyAwardDatabase {
         url: row.url,
         reactionsCount: row.reactions_count,
         timestamp: dayjs(row.timestamp).tz(),
+        createdAt: dayjs(row.created_at).tz(),
+        updatedAt: dayjs(row.updated_at).tz(),
       };
     }
   }
