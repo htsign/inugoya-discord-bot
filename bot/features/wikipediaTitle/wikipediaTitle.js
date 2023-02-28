@@ -13,12 +13,10 @@ client.on(Events.MessageCreate, async message => {
 
   for (const [url] of regExpIterator) {
     try {
-      const { data, status } = await axios.get(url);
+      /** @type {import('axios').AxiosResponse<string>} */
+      const { data: html, status } = await axios.get(url);
 
       if (status === 200) {
-        /** @type {string} */
-        const html = data;
-
         const [, title] = html.match(/<meta property="og:title" content="([^"]+)"/) ?? [];
         if (title == null) return;
         if (/^[ -~]*? - Wikipedia$/.test(title)) return;
