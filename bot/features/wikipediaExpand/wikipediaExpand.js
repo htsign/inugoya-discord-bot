@@ -19,6 +19,12 @@ client.on(Events.MessageCreate, async message => {
       if (res.status === 200) {
         const { window: { document } } = new JSDOM(html);
 
+        /** @type {APIEmbedAuthor} */
+        const author = {
+          name: 'Wikipedia',
+          url: 'https://ja.wikipedia.org/',
+          icon_url: 'https://upload.wikimedia.org/wikipedia/commons/6/63/Wikipedia-logo.png',
+        };
         const title = document.querySelector('title')?.textContent;
         const content = document.getElementById('bodyContent')?.querySelector('p:not([class*="empty"])')?.textContent?.trim();
 
@@ -26,10 +32,10 @@ client.on(Events.MessageCreate, async message => {
         if (/^[ -~]*? - Wikipedia$/.test(title)) return;
 
         if (content != null) {
-          embeds.push({ title, description: content, url });
+          embeds.push({ author, title, description: content, url });
         }
         else {
-          embeds.push({ title, url });
+          embeds.push({ author, title, url });
         }
       }
       else {

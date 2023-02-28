@@ -7,6 +7,7 @@
 /** @typedef {import('discord.js').MessageCreateOptions} MessageCreateOptions */
 /** @typedef {import('discord.js').Snowflake} Snowflake */
 /** @typedef {import('discord.js').APIEmbed} APIEmbed */
+/** @typedef {import('discord.js').APIEmbedAuthor} APIEmbedAuthor */
 /** @typedef {import('discord.js').APIEmbedField} APIEmbedField */
 
 /** @typedef {import('discord.js').CacheType} CacheType */
