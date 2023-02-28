@@ -1,6 +1,6 @@
 /** @typedef {`https://x.gd/${string}`} XgdUrl */
 /** @typedef {`\`${Url}\`: <${XgdUrl}>`} XgdSuccessMessage */
-/** @typedef {`error occured [${XgdFailureStatus | number}]: ${string}`} XgdFailureMessage */
+/** @typedef {`error occurred [${XgdFailureStatus | number}]: ${string}`} XgdFailureMessage */
 /** @typedef {200} XgdSuccessStatus */
 /** @typedef {400 | 401 | 403 | 409 | 429 | 500 | 503} XgdFailureStatus */
 /** @typedef {XgdSuccessStatus | XgdFailureStatus} XgdStatus */
