@@ -22,18 +22,18 @@ export const shortenUrls = async (urls: Url[]): Promise<(XgdSuccessMessage | Xgd
       const data: XgdResponse = await res.json();
 
       if (res.status !== 200) {
-        shortenUrls.push(`error occured [${res.status}]: unknown error`);
+        shortenUrls.push(`error occurred [${res.status}]: unknown error`);
       }
       else if (data.status === 200) {
         shortenUrls.push(`\`${data.originalurl}\`: <${data.shorturl}>`);
       }
       else {
-        shortenUrls.push(`error occured [${data.status}]: ${data.message}`);
+        shortenUrls.push(`error occurred [${data.status}]: ${data.message}`);
       }
     }
     catch (e) {
       if (e instanceof Error) {
-        shortenUrls.push(`error occured [400]: ${e.message || 'unknown error'}`);
+        shortenUrls.push(`error occurred [400]: ${e.message || 'unknown error'}`);
       }
     }
   }

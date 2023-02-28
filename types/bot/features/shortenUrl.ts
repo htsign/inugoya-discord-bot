@@ -1,6 +1,6 @@
 export type XgdUrl = `https://x.gd/${string}`;
 export type XgdSuccessMessage = `\`${Url}\`: <${XgdUrl}>`;
-export type XgdFailureMessage = `error occured [${XgdFailureStatus | number}]: ${string}`;
+export type XgdFailureMessage = `error occurred [${XgdFailureStatus | number}]: ${string}`;
 export type XgdSuccessStatus = 200;
 export type XgdFailureStatus = 400 | 401 | 403 | 409 | 429 | 500 | 503;
 export type XgdStatus = XgdSuccessStatus | XgdFailureStatus;
