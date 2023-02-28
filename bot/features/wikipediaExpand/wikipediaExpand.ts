@@ -1,3 +1,4 @@
+import { JSDOM } from 'jsdom';
 import { APIEmbed, Events } from 'discord.js';
 import client from 'bot/client';
 
@@ -15,13 +16,20 @@ client.on(Events.MessageCreate, async message => {
       const html = await res.text();
 
       if (res.status === 200) {
-        const [, title] = html.match(/<meta property="og:title" content="([^"]+)"/) ?? [];
+        const { window: { document } } = new JSDOM(html);
+
+        const title = document.querySelector('title')?.textContent;
+        const content = document.getElementById('bodyContent')?.querySelector('p:not([class*="empty"])')?.textContent?.trim();
+
         if (title == null) return;
         if (/^[ -~]*? - Wikipedia$/.test(title)) return;
 
-        embeds.push({
-          fields: [{ name: title, value: url }],
-        });
+        if (content != null) {
+          embeds.push({ title, description: content, url });
+        }
+        else {
+          embeds.push({ title, url });
+        }
       }
       else {
         console.log('wikipediaExpand:', { status: res.status });
@@ -35,6 +43,6 @@ client.on(Events.MessageCreate, async message => {
   }
 
   if (embeds.length > 0) {
-    await message.reply({ content: 'Wikipedia(ja) タイトル展開', embeds });
+    await message.reply({ content: 'Wikipedia(ja) 展開', embeds });
   }
 });
