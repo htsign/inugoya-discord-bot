@@ -1,7 +1,6 @@
 const { Events } = require('discord.js');
-const axios = require('axios').default;
 const client = require('../../client');
-const { URL_REGEX_GLOBAL, getEnv, isUrl } = require('../../lib/util');
+const { URL_REGEX_GLOBAL, getEnv, isUrl, toQueryString } = require('../../lib/util');
 
 const API_KEY = getEnv('XGD_API_KEY', 'X.gd API key');
 const API_ENTRYPOINT = 'https://xgd.io/V1/shorten';
@@ -23,11 +22,12 @@ const shortenUrls = async urls => {
     };
 
     try {
-      /** @type {ShortenUrlResponse} */
-      const { data, status } = await axios.get(API_ENTRYPOINT, { params });
+      const res = await fetch(`${API_ENTRYPOINT}?${toQueryString(params)}`);
+      /** @type {XgdResponse} */
+      const data = await res.json();
 
-      if (status !== 200) {
-        shortenUrls.push(`error occured [${status}]: unknown error`);
+      if (res.status !== 200) {
+        shortenUrls.push(`error occured [${res.status}]: unknown error`);
       }
       else if (data.status === 200) {
         shortenUrls.push(`\`${data.originalurl}\`: <${data.shorturl}>`);
@@ -37,9 +37,8 @@ const shortenUrls = async urls => {
       }
     }
     catch (e) {
-      if (axios.isAxiosError(e)) {
-        const status = e.response?.status ?? e.status ?? 400;
-        shortenUrls.push(`error occured [${status}]: ${e.message || 'unknown error'}`);
+      if (e instanceof Error) {
+        shortenUrls.push(`error occured [400]: ${e.message || 'unknown error'}`);
       }
     }
   }

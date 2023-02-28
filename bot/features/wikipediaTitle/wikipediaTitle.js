@@ -1,6 +1,5 @@
 const { Events } = require("discord.js");
 const client = require("../../client");
-const axios = require("axios").default;
 
 client.on(Events.MessageCreate, async message => {
   if (message.author.bot) return;
@@ -13,10 +12,10 @@ client.on(Events.MessageCreate, async message => {
 
   for (const [url] of regExpIterator) {
     try {
-      /** @type {import('axios').AxiosResponse<string>} */
-      const { data: html, status } = await axios.get(url);
+      const res = await fetch(url);
+      const html = await res.text();
 
-      if (status === 200) {
+      if (res.status === 200) {
         const [, title] = html.match(/<meta property="og:title" content="([^"]+)"/) ?? [];
         if (title == null) return;
         if (/^[ -~]*? - Wikipedia$/.test(title)) return;
@@ -26,11 +25,11 @@ client.on(Events.MessageCreate, async message => {
         });
       }
       else {
-        console.log(status);
+        console.log('wikipediaTitle:', { status: res.status });
       }
     }
     catch (e) {
-      if (axios.isAxiosError(e)) {
+      if (e instanceof Error) {
         console.log(e.name, e.message);
       }
     }

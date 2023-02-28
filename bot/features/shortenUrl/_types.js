@@ -30,4 +30,3 @@
  */
 
 /** @typedef {XgdSuccessResponse | XgdFailureResponse} XgdResponse */
-/** @typedef {import('axios').AxiosResponse<XgdResponse, XgdRequest>} ShortenUrlResponse */

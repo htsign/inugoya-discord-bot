@@ -33,9 +33,16 @@ const peek = value => {
   return value;
 }
 
+/**
+ * @param {object} queries
+ * @returns {string}
+ */
+const toQueryString = queries => Object.entries(queries).map(([key, val]) => `${key}=${val}`).join('&');
+
 module.exports = {
   URL_REGEX_GLOBAL,
   getEnv,
   isUrl,
   peek,
+  toQueryString,
 };
