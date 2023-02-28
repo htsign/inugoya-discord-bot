@@ -24,7 +24,7 @@ client.on(Events.MessageCreate, async message => {
         });
       }
       else {
-        console.log(status);
+        console.log('wikipediaTitle:', { status: res.status });
       }
     }
     catch (e) {
