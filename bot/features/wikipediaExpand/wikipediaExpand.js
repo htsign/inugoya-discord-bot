@@ -25,7 +25,7 @@ client.on(Events.MessageCreate, async message => {
         });
       }
       else {
-        console.log('wikipediaTitle:', { status: res.status });
+        console.log('wikipediaExpand:', { status: res.status });
       }
     }
     catch (e) {
