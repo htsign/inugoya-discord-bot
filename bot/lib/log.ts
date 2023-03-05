@@ -12,12 +12,13 @@ const formatter = (value: unknown): string => {
       case 'boolean' : return String(value);
       case 'symbol'  : return value.description ?? '';
       case 'function': return `function (${value.name})`;
-      default /* object */:
+      default /* object */: {
         if (value instanceof Array) {
           return `[ ${value.map(x => core(x, true, depth + 1)).join(', ')} ]`;
         }
         const content = Object.entries(value).map(([key, val]) => '  '.repeat(depth) + `${key}: ${core(val, true, depth + 1)},`).join('\n');
         return `{\n${content}\n}`
+      }
     }
   };
   return core(value, false, 1);
