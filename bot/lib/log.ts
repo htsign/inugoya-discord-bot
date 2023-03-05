@@ -8,9 +8,9 @@ const formatter = (value: unknown): string => {
     switch (typeof value) {
       case 'string'  : return inner ? `'${value}'` : value;
       case 'number'  : return String(value);
-      case 'bigint'  : return String(value);
+      case 'bigint'  : return value + 'n';
       case 'boolean' : return String(value);
-      case 'symbol'  : return value.description ?? '';
+      case 'symbol'  : return `Symbol(${value.description ?? ''})`;
       case 'function': return `function (${value.name})`;
       default /* object */: {
         if (value instanceof Array) {
