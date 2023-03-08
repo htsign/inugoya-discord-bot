@@ -47,8 +47,8 @@ const getFavicon = async (url, index) => {
     return iconUrl;
   }
 
-  const urlObject = new URL(url);
-  return fetchIco(`${urlObject.protocol}//${urlObject.host}/favicon.ico`);
+  const { protocol, host } = new URL(url);
+  return fetchIco(`${protocol}//${host}/favicon.ico`);
 };
 
 /**
@@ -141,8 +141,8 @@ client.on(Events.MessageCreate, async message => {
         {
           let authorName = getAuthorName(document);
           if (authorName == null) {
-            const urlObject = new URL(url);
-            authorName = getAuthorName(await urlToDocument(`${urlObject.protocol}//${urlObject.host}/`));
+            const { protocol, host } = new URL(url);
+            authorName = getAuthorName(await urlToDocument(`${protocol}//${host}/`));
           }
 
           if (authorName != null) {
