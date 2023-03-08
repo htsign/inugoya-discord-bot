@@ -1,3 +1,6 @@
+import chardet from 'chardet';
+import { JSDOM } from 'jsdom';
+
 export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
 
 export const getEnv = (key: string, name: string = 'token'): string => {
@@ -15,6 +18,16 @@ export const urlsOfText = (text: string): Url[] => {
   const urls = text.match(URL_REGEX_GLOBAL) ?? [];
 
   return filterUrls(urls);
+};
+
+export const urlToDocument = async (url: string): Promise<Document> => {
+  const res = await fetch(url);
+  const buffer = await res.arrayBuffer();
+  const encoding = chardet.detect(new Uint8Array(buffer)) ?? 'utf-8';
+  const html = new TextDecoder(encoding).decode(buffer);
+  const { window: { document } } = new JSDOM(html);
+
+  return document;
 };
 
 export const peek = <T>(value: T): T => {
