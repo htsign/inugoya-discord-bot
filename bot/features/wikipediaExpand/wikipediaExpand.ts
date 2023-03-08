@@ -1,6 +1,6 @@
-import { JSDOM } from 'jsdom';
 import { APIEmbed, APIEmbedAuthor, Events } from 'discord.js';
 import client from 'bot/client';
+import { urlToDocument } from '@lib/util';
 
 client.on(Events.MessageCreate, async message => {
   if (message.author.bot) return;
@@ -12,32 +12,24 @@ client.on(Events.MessageCreate, async message => {
 
   for (const [url] of regExpIterator) {
     try {
-      const res = await fetch(url);
-      const html = await res.text();
+      const document = await urlToDocument(url);
 
-      if (res.status === 200) {
-        const { window: { document } } = new JSDOM(html);
+      const author: APIEmbedAuthor = {
+        name: 'Wikipedia',
+        url: 'https://ja.wikipedia.org/',
+        icon_url: 'https://upload.wikimedia.org/wikipedia/commons/6/63/Wikipedia-logo.png',
+      };
+      const title = document.querySelector('title')?.textContent;
+      const content = document.getElementById('bodyContent')?.querySelector('p:not([class*="empty"])')?.textContent?.trim();
 
-        const author: APIEmbedAuthor = {
-          name: 'Wikipedia',
-          url: 'https://ja.wikipedia.org/',
-          icon_url: 'https://upload.wikimedia.org/wikipedia/commons/6/63/Wikipedia-logo.png',
-        };
-        const title = document.querySelector('title')?.textContent;
-        const content = document.getElementById('bodyContent')?.querySelector('p:not([class*="empty"])')?.textContent?.trim();
+      if (title == null) return;
+      if (/^[ -~]*? - Wikipedia$/.test(title)) return;
 
-        if (title == null) return;
-        if (/^[ -~]*? - Wikipedia$/.test(title)) return;
-
-        if (content != null) {
-          embeds.push({ author, title, description: content, url });
-        }
-        else {
-          embeds.push({ author, title, url });
-        }
+      if (content != null) {
+        embeds.push({ author, title, description: content, url });
       }
       else {
-        console.log('wikipediaExpand:', { status: res.status });
+        embeds.push({ author, title, url });
       }
     }
     catch (e) {
