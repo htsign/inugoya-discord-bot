@@ -1,4 +1,6 @@
 const dotenv = require('dotenv');
+const chardet = require('chardet');
+const { JSDOM } = require('jsdom');
 
 const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
 const configOutput = dotenv.config();
@@ -35,6 +37,20 @@ const urlsOfText = text => {
 };
 
 /**
+ * @param {string} url
+ * @returns {Promise<Document>}
+ */
+const urlToDocument = async url => {
+  const res = await fetch(url);
+  const buffer = await res.arrayBuffer();
+  const encoding = chardet.detect(new Uint8Array(buffer)) ?? 'utf-8';
+  const html = new TextDecoder(encoding).decode(buffer);
+  const { window: { document } } = new JSDOM(html);
+
+  return document;
+};
+
+/**
  * for debug
  * @param {T} value
  * @returns {T}
@@ -56,6 +72,7 @@ module.exports = {
   getEnv,
   isUrl,
   urlsOfText,
+  urlToDocument,
   peek,
   toQueryString,
 };
