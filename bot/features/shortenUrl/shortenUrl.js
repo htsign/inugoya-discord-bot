@@ -1,6 +1,6 @@
 const { Events } = require('discord.js');
 const client = require('../../client');
-const { URL_REGEX_GLOBAL, getEnv, isUrl, toQueryString } = require('../../lib/util');
+const { getEnv, toQueryString, urlsOfText } = require('../../lib/util');
 
 const API_KEY = getEnv('XGD_API_KEY', 'X.gd API key');
 const API_ENTRYPOINT = 'https://xgd.io/V1/shorten';
@@ -63,13 +63,7 @@ const shortenUrl = async url => {
  * @param {string} content
  * @returns {Promise<(XgdSuccessMessage | XgdFailureMessage)[]>}
  */
-const shortenUrlsOfContent = content => {
-  /** @type {function(string[]): Url[]} */
-  const filterUrls = contents => contents.filter(isUrl);
-
-  const urls = content.match(URL_REGEX_GLOBAL) ?? [];
-  return shortenUrls(filterUrls(urls));
-};
+const shortenUrlsOfContent = content => shortenUrls(urlsOfText(content));
 
 /**
  * @param {Message<boolean>} message

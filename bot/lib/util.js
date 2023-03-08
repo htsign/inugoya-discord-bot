@@ -23,6 +23,18 @@ const getEnv = (key, name = 'token') => {
 const isUrl = content => /^https?:\/\/\S+$/.test(content);
 
 /**
+ * @param {string} text
+ * @returns {Url[]}
+ */
+const urlsOfText = text => {
+  /** @type {function(string[]): Url[]} */
+  const filterUrls = contents => contents.filter(isUrl);
+  const urls = text.match(URL_REGEX_GLOBAL) ?? [];
+
+  return filterUrls(urls);
+};
+
+/**
  * for debug
  * @param {T} value
  * @returns {T}
@@ -43,6 +55,7 @@ module.exports = {
   URL_REGEX_GLOBAL,
   getEnv,
   isUrl,
+  urlsOfText,
   peek,
   toQueryString,
 };
