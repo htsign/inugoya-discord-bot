@@ -2,9 +2,11 @@
   "main": "index.js",
   "dependencies": {
     "bun-types": "^0.5.7",
+    "chardet": "^1.5.1",
     "dayjs": "1.11.7",
     "discord.js": "^14.7.1",
     "fast-average-color-node": "^2.6.0",
+    "icojs": "^0.17.1",
     "jsdom": "^21.1.0",
     "mersenne-twister": "^1.1.0"
   },
