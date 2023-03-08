@@ -10,6 +10,13 @@ export const getEnv = (key: string, name: string = 'token'): string => {
 
 export const isUrl = (content: string): content is Url => /^https?:\/\/\S+$/.test(content);
 
+export const urlsOfText = (text: string): Url[] => {
+  const filterUrls = (contents: string[]): Url[] => contents.filter(isUrl);
+  const urls = text.match(URL_REGEX_GLOBAL) ?? [];
+
+  return filterUrls(urls);
+};
+
 export const peek = <T>(value: T): T => {
   console.log(value);
   return value;

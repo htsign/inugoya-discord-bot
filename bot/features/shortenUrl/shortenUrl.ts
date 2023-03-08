@@ -1,6 +1,6 @@
 import { Events, Message } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
-import { URL_REGEX_GLOBAL, getEnv, isUrl, toQueryString } from '@lib/util';
+import { getEnv, toQueryString, urlsOfText } from '@lib/util';
 import client from 'bot/client';
 import type { XgdFailureMessage, XgdRequest, XgdResponse, XgdSuccessMessage } from 'types/bot/features/shortenUrl';
 
@@ -48,12 +48,8 @@ export const shortenUrl = async (url: Url): Promise<XgdSuccessMessage | XgdFailu
   return shortens[0];
 };
 
-export const shortenUrlsOfContent = (content: string): Promise<(XgdSuccessMessage | XgdFailureMessage)[]> => {
-  const filterUrls = (contents: string[]): Url[] => contents.filter(isUrl);
-
-  const urls = content.match(URL_REGEX_GLOBAL) ?? [];
-  return shortenUrls(filterUrls(urls));
-};
+export const shortenUrlsOfContent = (content: string): Promise<(XgdSuccessMessage | XgdFailureMessage)[]> =>
+  shortenUrls(urlsOfText(content));
 
 export const shortenUrlsOfMessage = (message: Message): Promise<(XgdSuccessMessage | XgdFailureMessage)[]> =>
   shortenUrlsOfContent(message.content ?? '');
