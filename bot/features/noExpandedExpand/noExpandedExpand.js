@@ -93,6 +93,12 @@ const getAuthorName = document => document.querySelector('meta[property="og:site
  * @param {Document} document
  * @returns {string?}
  */
+const getUrl = document => document.querySelector('meta[property="og:url]')?.getAttribute('content') ?? null;
+
+/**
+ * @param {Document} document
+ * @returns {string?}
+ */
 const getImage = document => {
   return [
     'meta[property="og:image"]',
@@ -137,6 +143,13 @@ client.on(Events.MessageCreate, async message => {
           .setTitle(getTitle(document))
           .setDescription(getDescription(document))
           .setImage(getImage(document));
+
+        {
+          const pureUrl = getUrl(document);
+          if (pureUrl != null) {
+            embed.setURL(pureUrl);
+          }
+        }
 
         {
           let authorName = getAuthorName(document);
