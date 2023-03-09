@@ -1,3 +1,4 @@
+const { URL } = require('node:url');
 const dotenv = require('dotenv');
 const chardet = require('chardet');
 const { JSDOM } = require('jsdom');
@@ -16,6 +17,15 @@ const getEnv = (key, name = 'token') => {
     throw new Error(`${name} is empty`);
   }
   return token;
+};
+
+/**
+ * @param {string} url
+ * @returns {string}
+ */
+const getUrlDomain = url => {
+  const { protocol, host } = new URL(url);
+  return `${protocol}//${host}/`;
 };
 
 /**
@@ -70,6 +80,7 @@ const toQueryString = queries => Object.entries(queries).map(([key, val]) => `${
 module.exports = {
   URL_REGEX_GLOBAL,
   getEnv,
+  getUrlDomain,
   isUrl,
   urlsOfText,
   urlToDocument,
