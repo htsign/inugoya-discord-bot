@@ -66,27 +66,29 @@ const getDescription = (document: Document): string | null => {
     ) ?? null;
 };
 
-const getAuthorName = async (document: Document, url: Url): Promise<string | null> => {
-  const getName = async (document: Document): Promise<string | null> => {
-    const name = document.querySelector<HTMLMetaElement>('meta[property="og:site_name"]')?.content;
-    if (name != null) return name;
+const getAuthor = async (document: Document, url: Url): ReturnType<typeof getAuthorInner> => {
+  const getAuthorInner = async (url: string): Promise<[name: string, url: string] | null> => {
+    const document = await urlToDocument(url);
+
+    const name = document.querySelector('meta[property="og:site_name"]')?.getAttribute('content');
+    if (name != null) return [name, url];
 
     const part = document.title.split(' - ').at(-1);
-    return part ?? null;
+    return part != null ? [part.trim(), url] : null;
   };
 
   const name = document.querySelector('meta[property="og:site_name"]')?.getAttribute('content');
-  if (name != null) return name;
+  if (name != null) return [name, url];
 
-  /** @type {HTMLBaseElement?} */
-  const base = document.querySelector('base');
-  if (base != null) {
-    const { href } = new URL(base.href, getUrlDomain(url));
-    return await getName(await urlToDocument(href));
-  }
+  const base = document.querySelector<HTMLBaseElement>('base[href]');
+  if (base != null) return getAuthorInner(new URL(base.href, getUrlDomain(url)).href);
+
+  // https://***/path/to/~author/foo/bar
+  const [partRoot] = url.match(/.+\/~\w+\//) ?? [];
+  if (partRoot != null) return getAuthorInner(partRoot);
 
   const { protocol, host } = new URL(url);
-  return getName(await urlToDocument(`${protocol}//${host}/`));
+  return getAuthorInner(`${protocol}//${host}/`);
 };
 
 const getUrl = (document: Document): string | null =>
@@ -139,14 +141,10 @@ client.on(Events.MessageCreate, async message => {
         }
 
         {
-          const authorName = await getAuthorName(document, url);
+          const [authorName, authorUrl] = await getAuthor(document, url) ?? [];
 
-          if (authorName != null) {
-            const options: EmbedAuthorOptions = { name: authorName };
-
-            const base = document.querySelector<HTMLBaseElement>('base[href]');
-            const authorUrl = base?.href ?? getUrlDomain(url);
-            options.url = new URL(authorUrl, getUrlDomain(url)).href;
+          if (authorName != null && authorUrl != null) {
+            const options: EmbedAuthorOptions = { name: authorName, url: authorUrl };
 
             const icon = await getFavicon(url, index);
             if (typeof icon === 'string') {
