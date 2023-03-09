@@ -1,3 +1,4 @@
+import { URL } from 'node:url';
 import chardet from 'chardet';
 import { JSDOM } from 'jsdom';
 
@@ -9,6 +10,11 @@ export const getEnv = (key: string, name: string = 'token'): string => {
     throw new Error(`${name} is empty`);
   }
   return token;
+};
+
+export const getUrlDomain = (url: string): string => {
+  const { protocol, host } = new URL(url);
+  return `${protocol}//${host}/`;
 };
 
 export const isUrl = (content: string): content is Url => /^https?:\/\/\S+$/.test(content);
