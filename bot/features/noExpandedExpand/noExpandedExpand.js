@@ -4,7 +4,7 @@ const { AttachmentBuilder, Events, EmbedBuilder } = require("discord.js");
 const ico = require('icojs');
 const fastAvgColor = require('fast-average-color-node');
 const client = require("../../client");
-const { urlsOfText, urlToDocument } = require("../../lib/util");
+const { getUrlDomain, urlsOfText, urlToDocument } = require("../../lib/util");
 
 const THRESHOLD_DELAY = 5 * 1000;
 
@@ -32,17 +32,18 @@ const getFavicon = async (url, index) => {
       }
     }
     return null;
-  }
+  };
 
   const document = await urlToDocument(url);
 
-  /** @type {HTMLLinkElement | null} */
+  /** @type {HTMLLinkElement?} */
   const iconLink = document.querySelector('link[rel="icon"]');
   const iconUrl = iconLink?.href;
 
   if (iconUrl != null) {
     if (iconUrl.endsWith('.ico')) {
-      return fetchIco(iconUrl);
+      const { href } = new URL(iconUrl, getUrlDomain(url));
+      return fetchIco(href);
     }
     return iconUrl;
   }
@@ -85,9 +86,35 @@ const getDescription = document => {
 
 /**
  * @param {Document} document
- * @returns {string?}
+ * @param {Url} url
+ * @returns {Promise<string?>}
  */
-const getAuthorName = document => document.querySelector('meta[property="og:site_name"]')?.getAttribute('content') ?? null;
+const getAuthorName = async (document, url) => {
+  /**
+   * @param {Document} document
+   * @returns {Promise<string?>}
+   */
+  const getName = async document => {
+    const name = document.querySelector('meta[property="og:site_name"]')?.getAttribute('content');
+    if (name != null) return name;
+
+    const part = document.title.split(' - ').at(-1);
+    return part ?? null;
+  };
+
+  const name = document.querySelector('meta[property="og:site_name"]')?.getAttribute('content');
+  if (name != null) return name;
+
+  /** @type {HTMLBaseElement?} */
+  const base = document.querySelector('base');
+  if (base != null) {
+    const { href } = new URL(base.href, getUrlDomain(url));
+    return await getName(await urlToDocument(href));
+  }
+
+  const { protocol, host } = new URL(url);
+  return getName(await urlToDocument(`${protocol}//${host}/`));
+};
 
 /**
  * @param {Document} document
@@ -152,22 +179,19 @@ client.on(Events.MessageCreate, async message => {
         }
 
         {
-          let authorName = getAuthorName(document);
-          if (authorName == null) {
-            const { protocol, host } = new URL(url);
-            authorName = getAuthorName(await urlToDocument(`${protocol}//${host}/`));
-          }
+          const authorName = await getAuthorName(document, url);
 
           if (authorName != null) {
             /** @type {import('discord.js').EmbedAuthorOptions} */
             const options = { name: authorName };
 
-            /** @type {HTMLBaseElement | null} */
+            /** @type {HTMLBaseElement?} */
             const base = document.querySelector('base[href]');
             const authorUrl = base?.href;
 
             if (authorUrl != null) {
-              options.url = authorUrl;
+              const { href } = new URL(authorUrl, getUrlDomain(url));
+              options.url = href;
             }
 
             const icon = await getFavicon(url, index);
