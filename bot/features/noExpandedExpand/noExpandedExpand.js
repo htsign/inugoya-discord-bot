@@ -87,33 +87,36 @@ const getDescription = document => {
 /**
  * @param {Document} document
  * @param {Url} url
- * @returns {Promise<string?>}
+ * @returns {ReturnType<typeof getAuthorInner>}
  */
-const getAuthorName = async (document, url) => {
+const getAuthor = async (document, url) => {
   /**
-   * @param {Document} document
-   * @returns {Promise<string?>}
+   * @param {string} url
+   * @returns {Promise<[name: string, url: string]?>}
    */
-  const getName = async document => {
+  const getAuthorInner = async url => {
+    const document = await urlToDocument(url);
+
     const name = document.querySelector('meta[property="og:site_name"]')?.getAttribute('content');
-    if (name != null) return name;
+    if (name != null) return [name, url];
 
     const part = document.title.split(' - ').at(-1);
-    return part ?? null;
+    return part != null ? [part.trim(), url] : null;
   };
 
   const name = document.querySelector('meta[property="og:site_name"]')?.getAttribute('content');
-  if (name != null) return name;
+  if (name != null) return [name, url];
 
   /** @type {HTMLBaseElement?} */
-  const base = document.querySelector('base');
-  if (base != null) {
-    const { href } = new URL(base.href, getUrlDomain(url));
-    return await getName(await urlToDocument(href));
-  }
+  const base = document.querySelector('base[href]');
+  if (base != null) return getAuthorInner(new URL(base.href, getUrlDomain(url)).href);
+
+  // https://***/path/to/~author/foo/bar
+  const [partRoot] = url.match(/.+\/~\w+\//) ?? [];
+  if (partRoot != null) return getAuthorInner(partRoot);
 
   const { protocol, host } = new URL(url);
-  return getName(await urlToDocument(`${protocol}//${host}/`));
+  return getAuthorInner(`${protocol}//${host}/`);
 };
 
 /**
@@ -179,16 +182,11 @@ client.on(Events.MessageCreate, async message => {
         }
 
         {
-          const authorName = await getAuthorName(document, url);
+          const [authorName, authorUrl] = await getAuthor(document, url) ?? [];
 
-          if (authorName != null) {
+          if (authorName != null && authorUrl != null) {
             /** @type {import('discord.js').EmbedAuthorOptions} */
-            const options = { name: authorName };
-
-            /** @type {HTMLBaseElement?} */
-            const base = document.querySelector('base[href]');
-            const authorUrl = base?.href ?? getUrlDomain(url);
-            options.url = new URL(authorUrl, getUrlDomain(url)).href;
+            const options = { name: authorName, url: authorUrl };
 
             const icon = await getFavicon(url, index);
             if (typeof icon === 'string') {
