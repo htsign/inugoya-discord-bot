@@ -4,7 +4,7 @@ import { AttachmentBuilder, Events, EmbedBuilder, APIEmbed, EmbedAuthorOptions }
 import ico from 'icojs';
 import fastAvgColor from 'fast-average-color-node';
 import client from "bot/client";
-import { urlsOfText, urlToDocument } from "@lib/util";
+import { getUrlDomain, urlsOfText, urlToDocument } from "@lib/util";
 
 const THRESHOLD_DELAY = 5 * 1000;
 
@@ -23,7 +23,7 @@ const getFavicon = async (url: Url, index: number): Promise<string | ReturnType<
       }
     }
     return null;
-  }
+  };
 
   const document = await urlToDocument(url);
 
@@ -32,7 +32,8 @@ const getFavicon = async (url: Url, index: number): Promise<string | ReturnType<
 
   if (iconUrl != null) {
     if (iconUrl.endsWith('.ico')) {
-      return fetchIco(iconUrl);
+      const { href } = new URL(iconUrl, getUrlDomain(url));
+      return fetchIco(href);
     }
     return iconUrl;
   }
@@ -65,8 +66,28 @@ const getDescription = (document: Document): string | null => {
     ) ?? null;
 };
 
-const getAuthorName = (document: Document): string | null =>
-  document.querySelector<HTMLMetaElement>('meta[property="og:site_name"]')?.content ?? null;
+const getAuthorName = async (document: Document, url: Url): Promise<string | null> => {
+  const getName = async (document: Document): Promise<string | null> => {
+    const name = document.querySelector<HTMLMetaElement>('meta[property="og:site_name"]')?.content;
+    if (name != null) return name;
+
+    const part = document.title.split(' - ').at(-1);
+    return part ?? null;
+  };
+
+  const name = document.querySelector('meta[property="og:site_name"]')?.getAttribute('content');
+  if (name != null) return name;
+
+  /** @type {HTMLBaseElement?} */
+  const base = document.querySelector('base');
+  if (base != null) {
+    const { href } = new URL(base.href, getUrlDomain(url));
+    return await getName(await urlToDocument(href));
+  }
+
+  const { protocol, host } = new URL(url);
+  return getName(await urlToDocument(`${protocol}//${host}/`));
+};
 
 const getUrl = (document: Document): string | null =>
   document.querySelector<HTMLMetaElement>('meta[property="og:url]')?.content ?? null;
@@ -118,11 +139,7 @@ client.on(Events.MessageCreate, async message => {
         }
 
         {
-          let authorName = getAuthorName(document);
-          if (authorName == null) {
-            const { protocol, host } = new URL(url);
-            authorName = getAuthorName(await urlToDocument(`${protocol}//${host}/`));
-          }
+          const authorName = await getAuthorName(document, url);
 
           if (authorName != null) {
             const options: EmbedAuthorOptions = { name: authorName };
@@ -131,7 +148,8 @@ client.on(Events.MessageCreate, async message => {
             const authorUrl = base?.href;
 
             if (authorUrl != null) {
-              options.url = authorUrl;
+              const { href } = new URL(authorUrl, getUrlDomain(url));
+              options.url = href;
             }
 
             const icon = await getFavicon(url, index);
