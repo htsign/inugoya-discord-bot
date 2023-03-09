@@ -145,12 +145,8 @@ client.on(Events.MessageCreate, async message => {
             const options: EmbedAuthorOptions = { name: authorName };
 
             const base = document.querySelector<HTMLBaseElement>('base[href]');
-            const authorUrl = base?.href;
-
-            if (authorUrl != null) {
-              const { href } = new URL(authorUrl, getUrlDomain(url));
-              options.url = href;
-            }
+            const authorUrl = base?.href ?? getUrlDomain(url);
+            options.url = new URL(authorUrl, getUrlDomain(url)).href;
 
             const icon = await getFavicon(url, index);
             if (typeof icon === 'string') {
