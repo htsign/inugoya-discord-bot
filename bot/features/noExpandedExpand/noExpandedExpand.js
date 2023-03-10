@@ -92,7 +92,7 @@ const getDescription = document => {
 const getAuthor = async (document, url) => {
   /**
    * @param {string} url
-   * @returns {Promise<[name: string, url: string]?>}
+   * @returns {Promise<[name: string, url?: string]?>}
    */
   const getAuthorInner = async url => {
     const document = await urlToDocument(url);
@@ -105,7 +105,7 @@ const getAuthor = async (document, url) => {
   };
 
   const name = document.querySelector('meta[property="og:site_name"]')?.getAttribute('content');
-  if (name != null) return [name, url];
+  if (name != null) return [name];
 
   /** @type {HTMLBaseElement?} */
   const base = document.querySelector('base[href]');
@@ -184,9 +184,13 @@ client.on(Events.MessageCreate, async message => {
         {
           const [authorName, authorUrl] = await getAuthor(document, url) ?? [];
 
-          if (authorName != null && authorUrl != null) {
+          if (authorName != null) {
             /** @type {import('discord.js').EmbedAuthorOptions} */
-            const options = { name: authorName, url: authorUrl };
+            const options = { name: authorName };
+
+            if (authorUrl != null) {
+              options.url = authorUrl;
+            }
 
             const icon = await getFavicon(url, index);
             if (typeof icon === 'string') {
