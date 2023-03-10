@@ -67,7 +67,7 @@ const getDescription = (document: Document): string | null => {
 };
 
 const getAuthor = async (document: Document, url: Url): ReturnType<typeof getAuthorInner> => {
-  const getAuthorInner = async (url: string): Promise<[name: string, url: string] | null> => {
+  const getAuthorInner = async (url: string): Promise<[name: string, url?: string] | null> => {
     const document = await urlToDocument(url);
 
     const name = document.querySelector('meta[property="og:site_name"]')?.getAttribute('content');
@@ -78,7 +78,7 @@ const getAuthor = async (document: Document, url: Url): ReturnType<typeof getAut
   };
 
   const name = document.querySelector('meta[property="og:site_name"]')?.getAttribute('content');
-  if (name != null) return [name, url];
+  if (name != null) return [name];
 
   const base = document.querySelector<HTMLBaseElement>('base[href]');
   if (base != null) return getAuthorInner(new URL(base.href, getUrlDomain(url)).href);
@@ -143,8 +143,12 @@ client.on(Events.MessageCreate, async message => {
         {
           const [authorName, authorUrl] = await getAuthor(document, url) ?? [];
 
-          if (authorName != null && authorUrl != null) {
-            const options: EmbedAuthorOptions = { name: authorName, url: authorUrl };
+          if (authorName != null) {
+            const options: EmbedAuthorOptions = { name: authorName };
+
+            if (authorUrl != null) {
+              options.url = authorUrl;
+            }
 
             const icon = await getFavicon(url, index);
             if (typeof icon === 'string') {
