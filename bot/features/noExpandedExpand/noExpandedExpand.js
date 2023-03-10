@@ -105,7 +105,12 @@ const getAuthor = async (document, url) => {
   };
 
   const name = document.querySelector('meta[property="og:site_name"]')?.getAttribute('content');
-  if (name != null) return [name];
+  if (name != null) {
+    const homeRef = document.querySelector('[rel="home"][href]')?.getAttribute('href');
+    if (homeRef == null) return [name];
+
+    return [name, new URL(homeRef, getUrlDomain(url)).href];
+  }
 
   /** @type {HTMLBaseElement?} */
   const base = document.querySelector('base[href]');
