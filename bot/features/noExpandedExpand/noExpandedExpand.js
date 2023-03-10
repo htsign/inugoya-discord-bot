@@ -4,6 +4,7 @@ const { AttachmentBuilder, Events, EmbedBuilder } = require("discord.js");
 const ico = require('icojs');
 const fastAvgColor = require('fast-average-color-node');
 const client = require("../../client");
+const { log } = require('../../lib/log');
 const { getUrlDomain, urlsOfText, urlToDocument } = require("../../lib/util");
 
 const THRESHOLD_DELAY = 5 * 1000;
@@ -219,7 +220,7 @@ client.on(Events.MessageCreate, async message => {
       }
       catch (e) {
         if (e instanceof Error) {
-          console.log(e.name, e.message);
+          log('noExpandedExpand:', e.stack ?? `${e.name}: ${e.message}`);
         }
       }
     }

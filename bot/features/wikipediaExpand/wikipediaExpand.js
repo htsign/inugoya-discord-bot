@@ -1,5 +1,6 @@
 const { Events } = require("discord.js");
 const client = require("../../client");
+const { log } = require("../../lib/log");
 const { urlToDocument } = require('../../lib/util');
 
 client.on(Events.MessageCreate, async message => {
@@ -36,7 +37,7 @@ client.on(Events.MessageCreate, async message => {
     }
     catch (e) {
       if (e instanceof Error) {
-        console.log(e.name, e.message);
+        log('noExpandedExpand:', e.stack ?? `${e.name}: ${e.message}`);
       }
     }
   }
