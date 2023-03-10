@@ -1,5 +1,6 @@
 import { APIEmbed, APIEmbedAuthor, Events } from 'discord.js';
 import client from 'bot/client';
+import { log } from '@lib/log';
 import { urlToDocument } from '@lib/util';
 
 client.on(Events.MessageCreate, async message => {
@@ -34,7 +35,7 @@ client.on(Events.MessageCreate, async message => {
     }
     catch (e) {
       if (e instanceof Error) {
-        console.log(e.name, e.message);
+        log('noExpandedExpand:', e.stack ?? `${e.name}: ${e.message}`);
       }
     }
   }
