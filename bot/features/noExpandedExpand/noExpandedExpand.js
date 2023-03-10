@@ -21,15 +21,24 @@ const getFavicon = async (url, index) => {
    */
   const fetchIco = async iconUrl => {
     const res = await fetch(iconUrl);
+
     if (res.ok) {
       const buffer = await res.arrayBuffer();
-      const icons = await ico.parse(buffer, 'image/png');
 
-      // sort with image width descending
-      const icon = icons.sort((a, b) => b.width - a.width)[0]?.buffer;
+      try {
+        const icons = await ico.parse(buffer, 'image/png');
 
-      if (icon != null) {
-        return [`attachment://favicon${index}.png`, Buffer.from(icon)];
+        // sort with image width descending
+        const icon = icons.sort((a, b) => b.width - a.width)[0]?.buffer;
+
+        if (icon != null) {
+          return [`attachment://favicon${index}.png`, Buffer.from(icon)];
+        }
+      }
+      catch (e) {
+        if (e instanceof Error) {
+          log('noExpandedExpand#getFavicon#fetchIco:', e.stack ?? `${e.name}: ${e.message}`);
+        }
       }
     }
     return null;
@@ -151,8 +160,16 @@ const getImage = document => {
  * @returns {Promise<number>}
  */
 const getColorAsInt = async resource => {
-  const { value: [red, green, blue] } = await fastAvgColor.getAverageColor(resource, { silent: true });
-  return (red << 16) + (green << 8) + blue;
+  try {
+    const { value: [red, green, blue] } = await fastAvgColor.getAverageColor(resource, { silent: true });
+    return (red << 16) + (green << 8) + blue;
+  }
+  catch (e) {
+    if (e instanceof Error) {
+      log('noExpandedExpand#getColorAsInt:', e.stack ?? `${e.name}: ${e.message}`);
+    }
+    return 0x000000;
+  }
 };
 
 client.on(Events.MessageCreate, async message => {
