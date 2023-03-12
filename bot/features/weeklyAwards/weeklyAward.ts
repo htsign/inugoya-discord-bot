@@ -55,6 +55,8 @@ const tick = async (guildId: string, guildName: string, channelName: string): Pr
   const now = dayjs().tz();
 
   if (now.day() === SUNDAY && now.hour() === 12 && now.minute() === 0) {
+    log('WeeklyAward: report initiated');
+
     const guilds = await client.guilds.fetch();
     const guild = await guilds.find(guild => guild.name === guildName)?.fetch();
     const channel = guild?.channels?.cache?.find(channel => channel.name === channelName);
@@ -120,6 +122,8 @@ const tick = async (guildId: string, guildName: string, channelName: string): Pr
         await channel.send('【リアクション大賞】\n先週はリアクションが付いた投稿はありませんでした！！');
       }
     }
+
+    log('WeeklyAward: report finished');
 
     // run again almost next week.
     const timeout = setTimeout(() => tick(guildId, guildName, channelName), 86400 * 1000 * 6.9);
