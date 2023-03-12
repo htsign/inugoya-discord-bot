@@ -21,8 +21,8 @@ client.once(Events.ClientReady, async () => {
   log('weekly award is ready.');
 });
 client.on(Events.GuildDelete, async guild => {
-  stopAward(guild.id);
-  db.config.unregister(guild.id);
+  await stopAward(guild.id);
+  await db.config.unregister(guild.id);
 });
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
   const message = await reaction.message.fetch();
@@ -34,7 +34,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
   if (db.config.get(message.guildId) == null) return;
 
   const reactionsCount = reactions.cache.reduce((acc, reaction) => acc + reaction.count, 0);
-  db.set(message, reactionsCount);
+  await db.set(message, reactionsCount);
 });
 client.on(Events.MessageReactionRemove, async (reaction, user) => {
   const message = await reaction.message.fetch();
@@ -44,10 +44,10 @@ client.on(Events.MessageReactionRemove, async (reaction, user) => {
 
   const reactionsCount = reactions.cache.reduce((acc, reaction) => acc + reaction.count, 0);
   if (reactionsCount > 0) {
-    db.set(message, reactionsCount);
+    await db.set(message, reactionsCount);
   }
   else {
-    db.delete(message.guildId, message.channelId, message.id);
+    await db.delete(message.guildId, message.channelId, message.id);
   }
 });
 
@@ -69,7 +69,7 @@ const tick = async (guildId, guildName, channelName) => {
 
     if (channel?.type === ChannelType.GuildText) {
       // remove messages sent over a week ago
-      db.deleteOutdated(guildId, 7);
+      await db.deleteOutdated(guildId, 7);
       db.vacuum();
 
       if ([...db.iterate()].some(({ reactionsCount: count }) => count > 0)) {

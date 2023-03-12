@@ -39,7 +39,7 @@ const subCommands = {
       }
       log('register weeklyAward:', interaction.user.username, guildName);
 
-      db.config.register(guildId, guildName, channel.name);
+      await db.config.register(guildId, guildName, channel.name);
       await startAward(guildId);
 
       return channel;
@@ -59,8 +59,8 @@ const subCommands = {
       }
       log('unregister weeklyAward:', interaction.user.username, guildName);
 
-      stopAward(guildId);
-      db.config.unregister(guildId);
+      await stopAward(guildId);
+      await db.config.unregister(guildId);
 
       return null;
     },

@@ -1,3 +1,4 @@
+const { setTimeout } = require('node:timers/promises');
 const dayjs = require('../../lib/dayjsSetup');
 
 const db = require('better-sqlite3')('weeklyAward.db');
@@ -79,8 +80,9 @@ class WeeklyAwardDatabase {
   /**
    * @param {Message<true>} message
    * @param {number} reactionsCount
+   * @returns {Promise<void>}
    */
-  set(message, reactionsCount) {
+  async set(message, reactionsCount) {
     const stmt = db.prepare(`
       insert into ${TABLE} (
         guild_id,
@@ -118,18 +120,29 @@ class WeeklyAwardDatabase {
     const { channel } = message;
     const channelName = 'name' in channel ? channel.name : '';
 
-    stmt.run({
-      guildId: message.guildId,
-      channelId: message.channelId,
-      messageId: message.id,
-      guildName: message.guild?.name ?? '',
-      channelName,
-      content: message.content,
-      author: message.author?.username ?? '',
-      url: message.url,
-      reactionsCount,
-      timestamp: dayjs(message.createdTimestamp).utc().toISOString(),
-    });
+    try {
+      stmt.run({
+        guildId: message.guildId,
+        channelId: message.channelId,
+        messageId: message.id,
+        guildName: message.guild?.name ?? '',
+        channelName,
+        content: message.content,
+        author: message.author?.username ?? '',
+        url: message.url,
+        reactionsCount,
+        timestamp: dayjs(message.createdTimestamp).utc().toISOString(),
+      });
+    }
+    catch (e) {
+      if (e instanceof TypeError) {
+        if (e.message.includes('database connection is busy')) {
+          await setTimeout();
+          return this.set(message, reactionsCount);
+        }
+      }
+      throw e;
+    }
   }
 
   /**
@@ -159,21 +172,34 @@ class WeeklyAwardDatabase {
   /**
    * @param {T[]} values
    * @param {function(T): void} callback
+   * @returns {Promise<void>}
    * @template T
    */
-  transaction(values, callback) {
+  async transaction(values, callback) {
     /** @type {Transaction<(values: T[]) => void>} */
     const fn = db.transaction(values => values.forEach(callback));
 
-    fn(values);
+    try {
+      fn(values);
+    }
+    catch (e) {
+      if (e instanceof TypeError) {
+        if (e.message.includes('database connection is busy')) {
+          await setTimeout();
+          return this.transaction(values, callback);
+        }
+      }
+      throw e;
+    }
   }
 
   /**
    * @param {string} guildId
    * @param {string} channelId
    * @param {string} messageId
+   * @returns {Promise<void>}
    */
-  delete(guildId, channelId, messageId) {
+  async delete(guildId, channelId, messageId) {
     const stmt = db.prepare(`
       delete from ${TABLE}
       where
@@ -182,14 +208,26 @@ class WeeklyAwardDatabase {
         message_id = @messageId
     `);
 
-    stmt.run({ guildId, channelId, messageId });
+    try {
+      stmt.run({ guildId, channelId, messageId });
+    }
+    catch (e) {
+      if (e instanceof TypeError) {
+        if (e.message.includes('database connection is busy')) {
+          await setTimeout();
+          return this.delete(guildId, channelId, messageId);
+        }
+      }
+      throw e;
+    }
   }
 
   /**
    * @param {string} guildId
    * @param {number} days
+   * @returns {Promise<void>}
    */
-  deleteOutdated(guildId, days) {
+  async deleteOutdated(guildId, days) {
     const stmt = db.prepare(`
       delete from ${TABLE}
       where
@@ -197,7 +235,18 @@ class WeeklyAwardDatabase {
         julianday('now') - julianday(timestamp) > @days
     `);
 
-    stmt.run({ guildId, days });
+    try {
+      stmt.run({ guildId, days });
+    }
+    catch (e) {
+      if (e instanceof TypeError) {
+        if (e.message.includes('database connection is busy')) {
+          await setTimeout();
+          return this.deleteOutdated(guildId, days);
+        }
+      }
+      throw e;
+    }
   }
 
   vacuum() {
@@ -238,8 +287,9 @@ class WeeklyAwardDatabaseConfig {
    * @param {string} guildId
    * @param {string} guildName
    * @param {string} channelName
+   * @returns {Promise<void>}
    */
-  register(guildId, guildName, channelName) {
+  async register(guildId, guildName, channelName) {
     const stmt = db.prepare(`
       insert into ${this.#TABLE} (
         guild_id,
@@ -257,20 +307,43 @@ class WeeklyAwardDatabaseConfig {
           updated_at = datetime('now')
     `);
 
-    stmt.run({ guildId, guildName, channelName });
+    try {
+      stmt.run({ guildId, guildName, channelName });
+    }
+    catch (e) {
+      if (e instanceof TypeError) {
+        if (e.message.includes('database connection is busy')) {
+          await setTimeout();
+          return this.register(guildId, guildName, channelName);
+        }
+      }
+      throw e;
+    }
   }
 
   /**
    * @param {string} guildId
+   * @returns {Promise<void>}
    */
-  unregister(guildId) {
+  async unregister(guildId) {
     const stmt = db.prepare(`
       delete from ${this.#TABLE}
       where
         guild_id = ?
     `);
 
-    stmt.run(guildId);
+    try {
+      stmt.run(guildId);
+    }
+    catch (e) {
+      if (e instanceof TypeError) {
+        if (e.message.includes('database connection is busy')) {
+          await setTimeout();
+          return this.unregister(guildId);
+        }
+      }
+      throw e;
+    }
   }
 
   /**
