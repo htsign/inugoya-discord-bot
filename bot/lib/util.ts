@@ -19,6 +19,18 @@ export const getUrlDomain = (url: string): string => {
 
 export const isUrl = (content: string): content is Url => /^https?:\/\/\S+$/.test(content);
 
+export const retrieveRealUrl = async (url: Url): Promise<Url> => {
+  try {
+    const { url: realUrl } = await fetch(url, { method: 'HEAD' });
+    if (isUrl(realUrl)) {
+      return realUrl;
+    }
+  }
+  catch {}
+
+  return url;
+}
+
 export const urlsOfText = (text: string): Url[] => {
   const filterUrls = (contents: string[]): Url[] => contents.filter(isUrl);
   const urls = text.match(URL_REGEX_GLOBAL) ?? [];

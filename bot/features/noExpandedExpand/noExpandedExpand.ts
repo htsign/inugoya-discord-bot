@@ -5,7 +5,7 @@ import ico from 'icojs';
 import fastAvgColor from 'fast-average-color-node';
 import client from "bot/client";
 import { log } from '@lib/log';
-import { getUrlDomain, urlsOfText, urlToDocument } from "@lib/util";
+import { getUrlDomain, retrieveRealUrl, urlsOfText, urlToDocument } from "@lib/util";
 
 const THRESHOLD_DELAY = 5 * 1000;
 
@@ -149,9 +149,10 @@ client.on(Events.MessageCreate, async message => {
 
     for (const [index, url] of targetUrls.entries()) {
       try {
-        const document = await urlToDocument(url);
+        const realUrl = await retrieveRealUrl(url);
+        const document = await urlToDocument(realUrl);
 
-        const embed = new EmbedBuilder({ url })
+        const embed = new EmbedBuilder({ url: realUrl })
           .setTitle(getTitle(document))
           .setDescription(getDescription(document))
           .setImage(getImage(document));
@@ -164,7 +165,7 @@ client.on(Events.MessageCreate, async message => {
         }
 
         {
-          const [authorName, authorUrl] = await getAuthor(document, url) ?? [];
+          const [authorName, authorUrl] = await getAuthor(document, realUrl) ?? [];
 
           if (authorName != null) {
             const options: EmbedAuthorOptions = { name: authorName };
@@ -173,7 +174,7 @@ client.on(Events.MessageCreate, async message => {
               options.url = authorUrl;
             }
 
-            const icon = await getFavicon(url, index);
+            const icon = await getFavicon(realUrl, index);
             if (typeof icon === 'string') {
               options.iconURL = icon;
               embed.setColor(await getColorAsInt(icon));
