@@ -35,6 +35,22 @@ const getUrlDomain = url => {
 const isUrl = content => /^https?:\/\/\S+$/.test(content);
 
 /**
+ * @param {Url} url
+ * @returns {Promise<Url>}
+ */
+const retrieveRealUrl = async url => {
+  try {
+    const { url: realUrl } = await fetch(url, { method: 'HEAD' });
+    if (isUrl(realUrl)) {
+      return realUrl;
+    }
+  }
+  catch {}
+
+  return url;
+};
+
+/**
  * @param {string} text
  * @returns {Url[]}
  */
@@ -82,6 +98,7 @@ module.exports = {
   getEnv,
   getUrlDomain,
   isUrl,
+  retrieveRealUrl,
   urlsOfText,
   urlToDocument,
   peek,

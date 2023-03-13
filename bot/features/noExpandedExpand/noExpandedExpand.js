@@ -5,7 +5,7 @@ const ico = require('icojs');
 const fastAvgColor = require('fast-average-color-node');
 const client = require("../../client");
 const { log } = require('../../lib/log');
-const { getUrlDomain, urlsOfText, urlToDocument } = require("../../lib/util");
+const { getUrlDomain, retrieveRealUrl, urlsOfText, urlToDocument } = require("../../lib/util");
 
 const THRESHOLD_DELAY = 5 * 1000;
 
@@ -190,9 +190,10 @@ client.on(Events.MessageCreate, async message => {
 
     for (const [index, url] of targetUrls.entries()) {
       try {
-        const document = await urlToDocument(url);
+        const realUrl = await retrieveRealUrl(url);
+        const document = await urlToDocument(realUrl);
 
-        const embed = new EmbedBuilder({ url })
+        const embed = new EmbedBuilder({ url: realUrl })
           .setTitle(getTitle(document))
           .setDescription(getDescription(document))
           .setImage(getImage(document));
@@ -205,7 +206,7 @@ client.on(Events.MessageCreate, async message => {
         }
 
         {
-          const [authorName, authorUrl] = await getAuthor(document, url) ?? [];
+          const [authorName, authorUrl] = await getAuthor(document, realUrl) ?? [];
 
           if (authorName != null) {
             /** @type {import('discord.js').EmbedAuthorOptions} */
@@ -215,7 +216,7 @@ client.on(Events.MessageCreate, async message => {
               options.url = authorUrl;
             }
 
-            const icon = await getFavicon(url, index);
+            const icon = await getFavicon(realUrl, index);
             if (typeof icon === 'string') {
               options.iconURL = icon;
               embed.setColor(await getColorAsInt(icon));
