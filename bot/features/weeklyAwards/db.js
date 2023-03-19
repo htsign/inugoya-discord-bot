@@ -225,18 +225,27 @@ class WeeklyAwardDatabase {
   /**
    * @param {string} guildId
    * @param {number} days
-   * @returns {Promise<void>}
+   * @returns {AsyncGenerator<number | void>}
    */
-  async deleteOutdated(guildId, days) {
-    const stmt = db.prepare(`
-      delete from ${TABLE}
+  async *deleteOutdated(guildId, days) {
+    const whereStatement = `
       where
         guild_id = @guildId and
         julianday('now') - julianday(timestamp) > @days
-    `);
+    `;
+    const cntStmt = db.prepare(`select count(*) from ${TABLE} ${whereStatement}`);
+    const delStmt = db.prepare(`delete from ${TABLE} ${whereStatement}`);
 
     try {
-      stmt.run({ guildId, days });
+      // return outdated records count
+      /** @type {number} */
+      const count = cntStmt.get({ guildId, days });
+      yield count;
+
+      if (count > 0) {
+        delStmt.run({ guildId, days });
+        yield;
+      }
     }
     catch (e) {
       if (e instanceof TypeError) {
