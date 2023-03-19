@@ -35,6 +35,7 @@ class WeeklyAwardDatabase {
   }
 
   constructor() {
+    db.run('pragma auto_vacuum = incremental');
     db.run(`
       create table if not exists ${TABLE} (
         guild_id text not null,
@@ -252,6 +253,10 @@ class WeeklyAwardDatabase {
       }
       throw e;
     }
+  }
+
+  vacuum() {
+    db.run('pragma incremental_vacuum');
   }
 }
 

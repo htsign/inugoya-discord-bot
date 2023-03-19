@@ -68,6 +68,7 @@ const tick = async (guildId: string, guildName: string, channelName: string): Pr
           log(`WeeklyAward: outdated records [${count}]`);
         }
         else {
+          db.vacuum();
           log(`WeeklyAward: ${count} records deleted`);
         }
       }
