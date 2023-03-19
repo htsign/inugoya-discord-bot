@@ -63,7 +63,14 @@ const tick = async (guildId: string, guildName: string, channelName: string): Pr
 
     if (channel?.type === ChannelType.GuildText) {
       // remove messages sent over a week ago
-      await db.deleteOutdated(guildId, 7);
+      for await (const count of db.deleteOutdated(guildId, 7)) {
+        if (typeof count === 'number') {
+          log(`WeeklyAward: outdated records [${count}]`);
+        }
+        else {
+          log(`WeeklyAward: ${count} records deleted`);
+        }
+      }
 
       if ([...db.iterate()].some(({ reactionsCount: count }) => count > 0)) {
         const messages: { message: Message<true>, reactionsCount: number }[] = [];

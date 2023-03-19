@@ -220,16 +220,28 @@ class WeeklyAwardDatabase {
     }
   }
 
-  async deleteOutdated(guildId: string, days: number): Promise<void> {
-    const stmt = db.prepare(`
-      delete from ${TABLE}
+  async *deleteOutdated(guildId: string, days: number): AsyncGenerator<number | void> {
+    const whereStatement = `
       where
         guild_id = @guildId and
         julianday('now') - julianday(timestamp) > @days
-    `);
+    `;
+    const cntStmt = db.prepare(`select count(*) from ${TABLE} ${whereStatement}`);
+    const delStmt = db.prepare(`delete from ${TABLE} ${whereStatement}`);
 
     try {
-      stmt.run({ guildId, days });
+      const count = cntStmt.get({ guildId, days });
+      if (typeof count === 'number') {
+        yield count;
+      }
+      else {
+        throw new TypeError('count must be a number');
+      }
+
+      if (count > 0) {
+        delStmt.run({ guildId, days });
+        yield;
+      }
     }
     catch (e) {
       if (e instanceof TypeError) {
