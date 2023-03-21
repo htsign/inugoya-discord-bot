@@ -64,7 +64,7 @@ const getFavicon = async (url, index) => {
 
 /**
  * @param {Document} document
- * @returns {string}
+ * @returns {string?}
  */
 const getTitle = document => {
   return [
@@ -74,7 +74,7 @@ const getTitle = document => {
     .reduce(
       (/** @type {string?} */ acc, selector) => acc ?? document.querySelector(selector)?.getAttribute('content') ?? null,
       null,
-    ) ?? document.title;
+    ) ?? (document.title || null);
 };
 
 /**
