@@ -52,7 +52,7 @@ const getFavicon = async (url: Url, index: number): Promise<string | ReturnType<
   return fetchIco(`${protocol}//${host}/favicon.ico`);
 };
 
-const getTitle = (document: Document): string => {
+const getTitle = (document: Document): string | null => {
   return [
     'meta[property="og:title"]',
     'meta[name="twitter:title"]',
@@ -60,7 +60,7 @@ const getTitle = (document: Document): string => {
     .reduce<string | null>(
       (acc, selector) => acc ?? document.querySelector<HTMLMetaElement>(selector)?.content ?? null,
       null,
-    ) ?? document.title;
+    ) ?? (document.title || null);
 };
 
 const getDescription = (document: Document): string | null => {
