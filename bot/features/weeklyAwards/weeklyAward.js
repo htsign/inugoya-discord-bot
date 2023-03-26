@@ -81,7 +81,7 @@ const tick = async (guildId, guildName, channelName) => {
         }
       }
 
-      if ([...db.iterate()].some(({ reactionsCount: count }) => count > 0)) {
+      if (db.all().some(({ reactionsCount: count }) => count > 0)) {
         /** @type {{ message: Message<true>, reactionsCount: number }[]} */
         const messages = [];
 

@@ -145,6 +145,26 @@ class WeeklyAwardDatabase {
     }
   }
 
+  /** @returns {WeeklyAwardRecord[]} */
+  all() {
+    const stmt = db.prepare(`select * from ${TABLE}`);
+
+    return stmt.all().map(row => ({
+      guildId: row.guild_id,
+      channelId: row.channel_id,
+      messageId: row.message_id,
+      guildName: row.guild_name,
+      channelName: row.channel_name,
+      content: row.content,
+      author: row.author,
+      url: row.url,
+      reactionsCount: row.reactions_count,
+      timestamp: dayjs(row.timestamp).tz(),
+      createdAt: dayjs(row.created_at).tz(),
+      updatedAt: dayjs(row.updated_at).tz(),
+    }));
+  }
+
   /**
    * @returns {Generator<WeeklyAwardRecord>}
    */
