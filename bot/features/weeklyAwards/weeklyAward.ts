@@ -69,7 +69,7 @@ const tick = async (guildId: string, guildName: string, channelName: string): Pr
         }
         else {
           db.vacuum();
-          log(`WeeklyAward: ${count} records deleted`);
+          log(`WeeklyAward: records deleted`);
         }
       }
 
