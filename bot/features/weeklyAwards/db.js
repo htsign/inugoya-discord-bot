@@ -233,7 +233,7 @@ class WeeklyAwardDatabase {
         guild_id = @guildId and
         julianday('now') - julianday(timestamp) > @days
     `;
-    const cntStmt = db.prepare(`select count(*) from ${TABLE} ${whereStatement}`);
+    const cntStmt = db.prepare(`select count(*) from ${TABLE} ${whereStatement}`).pluck();
     const delStmt = db.prepare(`delete from ${TABLE} ${whereStatement}`);
 
     try {
