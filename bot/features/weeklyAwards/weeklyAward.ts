@@ -73,7 +73,7 @@ const tick = async (guildId: string, guildName: string, channelName: string): Pr
         }
       }
 
-      if ([...db.iterate()].some(({ reactionsCount: count }) => count > 0)) {
+      if (db.all().some(({ reactionsCount: count }) => count > 0)) {
         const messages: { message: Message<true>, reactionsCount: number }[] = [];
 
         // collect messages posted in current guild
