@@ -67,14 +67,16 @@ const getFavicon = async (url, index) => {
  * @returns {string?}
  */
 const getTitle = document => {
-  return [
+  const title = [
     'meta[property="og:title"]',
     'meta[name="twitter:title"]',
   ]
     .reduce(
-      (/** @type {string?} */ acc, selector) => acc ?? document.querySelector(selector)?.getAttribute('content') ?? null,
+      (/** @type {string | null | undefined} */ acc, selector) => acc || document.querySelector(selector)?.getAttribute('content'),
       null,
-    ) ?? (document.title || null);
+    );
+
+  return title || document.title || null;
 };
 
 /**
@@ -82,16 +84,18 @@ const getTitle = document => {
  * @returns {string?}
  */
 const getDescription = document => {
-  return [
+  const desc = [
     'meta[property="og:description"]',
     'meta[name="twitter:description"]',
     'meta[property="description"]',
     'meta[name="description"]',
   ]
     .reduce(
-      (/** @type {string?} */ acc, selector) => acc ?? document.querySelector(selector)?.getAttribute('content') ?? null,
+      (/** @type {string | null | undefined} */ acc, selector) => acc || document.querySelector(selector)?.getAttribute('content'),
       null,
-    ) ?? null;
+    );
+
+  return desc || null;
 };
 
 /**
