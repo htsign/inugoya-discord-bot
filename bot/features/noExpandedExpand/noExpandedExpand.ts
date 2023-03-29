@@ -53,27 +53,31 @@ const getFavicon = async (url: Url, index: number): Promise<string | ReturnType<
 };
 
 const getTitle = (document: Document): string | null => {
-  return [
+  const title = [
     'meta[property="og:title"]',
     'meta[name="twitter:title"]',
   ]
-    .reduce<string | null>(
-      (acc, selector) => acc ?? document.querySelector<HTMLMetaElement>(selector)?.content ?? null,
-      null,
-    ) ?? (document.title || null);
+    .reduce<string | undefined>(
+      (acc, selector) => acc || document.querySelector<HTMLMetaElement>(selector)?.content,
+      undefined,
+    );
+
+  return title || document.title || null;
 };
 
 const getDescription = (document: Document): string | null => {
-  return [
+  const desc = [
     'meta[property="og:description"]',
     'meta[name="twitter:description"]',
     'meta[property="description"]',
     'meta[name="description"]',
   ]
-    .reduce<string | null>(
-      (acc, selector) => acc ?? document.querySelector<HTMLMetaElement>(selector)?.content ?? null,
-      null,
-    ) ?? null;
+    .reduce<string | undefined>(
+      (acc, selector) => acc || document.querySelector<HTMLMetaElement>(selector)?.content,
+      undefined,
+    );
+
+  return desc || null;
 };
 
 const getAuthor = async (document: Document, url: Url): ReturnType<typeof getAuthorInner> => {
