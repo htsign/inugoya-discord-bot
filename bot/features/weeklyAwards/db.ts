@@ -276,7 +276,7 @@ class WeeklyAwardDatabase {
       if (e instanceof TypeError) {
         if (e.message.includes('database connection is busy')) {
           await setTimeout();
-          return this.deleteOutdated(guildId, days);
+          return yield* this.deleteOutdated(guildId, days);
         }
       }
       throw e;
