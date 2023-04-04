@@ -35,7 +35,7 @@ client.on(Events.MessageCreate, async message => {
     }
     catch (e) {
       if (e instanceof Error) {
-        log('noExpandedExpand:', e.stack ?? `${e.name}: ${e.message}`);
+        log('wikipediaExpand:', e.stack ?? `${e.name}: ${e.message}`);
       }
     }
   }

@@ -18,10 +18,10 @@ export const fetchMessageByIds = async (guildId: string, channelId: string, mess
       const argDetails = `guildId: ${guildId}, channelId: ${channelId}, messageId: ${messageId}`;
       if (e.stack != null) {
         const [firstLine, ...rest] = e.stack.split('\n');
-        log([`${firstLine} [${argDetails}]`, ...rest].join('\n'));
+        log(`${fetchMessageByIds.name}:`, [`${firstLine} [${argDetails}]`, ...rest].join('\n'));
       }
       else {
-        log(`${e.name}: ${e.message} [${argDetails}]`);
+        log(`${fetchMessageByIds.name}:`, `${e.name}: ${e.message} [${argDetails}]`);
       }
       return null;
     }
