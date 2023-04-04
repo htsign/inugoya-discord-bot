@@ -71,7 +71,7 @@ const urlToDocument = async url => {
   const buffer = await res.arrayBuffer();
   const encoding = chardet.detect(new Uint8Array(buffer)) ?? 'utf-8';
   const html = new TextDecoder(encoding).decode(buffer);
-  const { window: { document } } = new JSDOM(html);
+  const { window: { document } } = new JSDOM(html, { url });
 
   return document;
 };
