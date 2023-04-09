@@ -137,6 +137,63 @@ const getColorAsInt = async (resource: string | Buffer): Promise<number> => {
   }
 };
 
+const core = async (url: Url, index: number): Promise<{ embeds: APIEmbed[], attachment: AttachmentBuilder | null }> => {
+  try {
+    let attachment: AttachmentBuilder | null = null;
+
+    const realUrl = await retrieveRealUrl(url);
+    const document = await urlToDocument(realUrl);
+
+    const embed = new EmbedBuilder({ url: realUrl })
+      .setTitle(getTitle(document))
+      .setDescription(getDescription(document))
+      .setImage(getImage(document));
+
+    {
+      const pureUrl = getUrl(document);
+      if (pureUrl != null) {
+        embed.setURL(pureUrl);
+      }
+    }
+
+    {
+      const [authorName, authorUrl] = await getAuthor(document, realUrl) ?? [];
+
+      if (authorName != null) {
+        const options: EmbedAuthorOptions = { name: authorName };
+
+        if (authorUrl != null) {
+          options.url = authorUrl;
+        }
+
+        const icon = await getFavicon(realUrl, index);
+        if (typeof icon === 'string') {
+          options.iconURL = icon;
+          embed.setColor(await getColorAsInt(icon));
+        }
+        else if (icon != null) {
+          const [url, buffer] = icon;
+          options.iconURL = url;
+          embed.setColor(await getColorAsInt(buffer));
+
+          attachment = new AttachmentBuilder(buffer, { name: `favicon${index}.png` });
+        }
+
+        embed.setAuthor(options);
+      }
+    }
+
+    return { embeds: [embed.toJSON()], attachment };
+  }
+  catch (e) {
+    if (e instanceof Error) {
+      log('noExpandedExpand:', e.stack ?? `${e.name}: ${e.message}`);
+      return { embeds: [], attachment: null };
+    }
+    throw e;
+  }
+};
+
 client.on(Events.MessageCreate, async message => {
   await setTimeout(THRESHOLD_DELAY);
 
@@ -147,63 +204,17 @@ client.on(Events.MessageCreate, async message => {
       .filter((url: string | null): url is string => url != null);
     const targetUrls = urls.filter(url => !embedUrls.includes(url));
 
-    const embeds: APIEmbed[] = [];
-
-    const files: AttachmentBuilder[] = [];
+    const expandingPromises: ReturnType<typeof core>[] = [];
 
     for (const [index, url] of targetUrls.entries()) {
-      try {
-        const realUrl = await retrieveRealUrl(url);
-        const document = await urlToDocument(realUrl);
-
-        const embed = new EmbedBuilder({ url: realUrl })
-          .setTitle(getTitle(document))
-          .setDescription(getDescription(document))
-          .setImage(getImage(document));
-
-        {
-          const pureUrl = getUrl(document);
-          if (pureUrl != null) {
-            embed.setURL(pureUrl);
-          }
-        }
-
-        {
-          const [authorName, authorUrl] = await getAuthor(document, realUrl) ?? [];
-
-          if (authorName != null) {
-            const options: EmbedAuthorOptions = { name: authorName };
-
-            if (authorUrl != null) {
-              options.url = authorUrl;
-            }
-
-            const icon = await getFavicon(realUrl, index);
-            if (typeof icon === 'string') {
-              options.iconURL = icon;
-              embed.setColor(await getColorAsInt(icon));
-            }
-            else if (icon != null) {
-              const [url, buffer] = icon;
-              options.iconURL = url;
-              embed.setColor(await getColorAsInt(buffer));
-
-              const attachment = new AttachmentBuilder(buffer, { name: `favicon${index}.png` });
-              files.push(attachment);
-            }
-
-            embed.setAuthor(options);
-          }
-        }
-
-        embeds.push(embed.toJSON());
-      }
-      catch (e) {
-        if (e instanceof Error) {
-          log('noExpandedExpand:', e.stack ?? `${e.name}: ${e.message}`);
-        }
-      }
+      expandingPromises.push(core(url, index));
     }
+
+    const results = await Promise.all(expandingPromises);
+
+    const embeds = results.flatMap(res => res.embeds);
+    const files = results.map(res => res.attachment)
+      .filter((x: AttachmentBuilder | null): x is AttachmentBuilder => x != null);
 
     if (embeds.length > 0) {
       const content = 'URL が展開されてないみたいだからこっちで付けとくね';
