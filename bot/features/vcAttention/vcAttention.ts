@@ -1,9 +1,11 @@
-import { Events, ChannelType, Snowflake, Channel } from 'discord.js';
+import { Events, ChannelType, Snowflake, Channel, VoiceState } from 'discord.js';
 import { log } from '@lib/log';
 import client from 'bot/client';
 import { db } from './db';
 
-const thrivingVoiceChannels = new Set<Snowflake>();
+const thrivingVoiceChannels = new Set<`${Snowflake},${Snowflake}`>();
+
+const getId = (state: VoiceState): `${Snowflake},${Snowflake}` => `${state.guild.id},${state.channelId}`;
 
 client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
   const configRecord = db.get(newState.guild.id);
@@ -22,11 +24,11 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
     if (membersCount >= configRecord.threshold) {
       const isTargetChannel = (channel: Channel): boolean => channel.type === ChannelType.GuildText && channel.name === configRecord.channelName;
 
-      if (!thrivingVoiceChannels.has(newChannelId)) {
+      if (!thrivingVoiceChannels.has(getId(newState))) {
         const targetChannel = await client.channels.cache.find(isTargetChannel)?.fetch();
 
         if (targetChannel?.type === ChannelType.GuildText && newChannel?.name != null) {
-          thrivingVoiceChannels.add(newChannelId);
+          thrivingVoiceChannels.add(getId(newState));
           await targetChannel.send(`@here <#${newChannelId}> が盛り上がっているみたい！`);
         }
       }
@@ -40,7 +42,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
     log(oldState.guild.name, 'member left:', oldChannel?.name, { membersCount });
 
     if (membersCount < configRecord.threshold) {
-      thrivingVoiceChannels.delete(oldChannelId);
+      thrivingVoiceChannels.delete(getId(oldState));
     }
   }
 });
