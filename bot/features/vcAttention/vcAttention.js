@@ -1,13 +1,15 @@
 const { Events, ChannelType } = require('discord.js');
 const client = require('../../client');
 const { log } = require('../../lib/log');
-
-const THRIVING_THRESHOLD = 3;
+const { db } = require('./db');
 
 /** @type {Set<Snowflake>} */
 const thrivingVoiceChannels = new Set();
 
 client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
+  const configRecord = db.get(newState.guild.id);
+  if (configRecord == null) return;
+
   const { channelId: oldChannelId } = oldState;
   const { channelId: newChannelId } = newState;
 
@@ -18,16 +20,16 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 
     log(newState.guild.name, 'member joined:', newChannel?.name, { membersCount });
 
-    if (membersCount >= THRIVING_THRESHOLD) {
+    if (membersCount >= configRecord.threshold) {
       /** @type {function(Channel): boolean} */
-      const isVcChat = channel => channel.type === ChannelType.GuildText && channel.name === 'vc-chat';
+      const isTargetChannel = channel => channel.type === ChannelType.GuildText && channel.name === configRecord.channelName;
 
       if (!thrivingVoiceChannels.has(newChannelId)) {
-        const vcChat = await client.channels.cache.find(isVcChat)?.fetch();
+        const targetChannel = await client.channels.cache.find(isTargetChannel)?.fetch();
 
-        if (vcChat?.type === ChannelType.GuildText && newChannel?.name != null) {
+        if (targetChannel?.type === ChannelType.GuildText && newChannel?.name != null) {
           thrivingVoiceChannels.add(newChannelId);
-          await vcChat.send(`@here <#${newChannelId}> が盛り上がっているみたい！`);
+          await targetChannel.send(`@here <#${newChannelId}> が盛り上がっているみたい！`);
         }
       }
     }
@@ -39,7 +41,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 
     log(oldState.guild.name, 'member left:', oldChannel?.name, { membersCount });
 
-    if (membersCount < THRIVING_THRESHOLD) {
+    if (membersCount < configRecord.threshold) {
       thrivingVoiceChannels.delete(oldChannelId);
     }
   }

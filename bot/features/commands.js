@@ -9,6 +9,7 @@ const commands = {
   ...require('./shortenUrl/commands'),
   ...require('./weeklyAwards/commands'),
   ...require('./regionalIndicators/commands'),
+  ...require('./vcAttention/commands'),
 };
 
 client.on(Events.InteractionCreate, async interaction => {
