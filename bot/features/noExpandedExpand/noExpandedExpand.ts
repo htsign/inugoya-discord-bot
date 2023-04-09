@@ -1,11 +1,11 @@
 import { URL } from 'node:url';
 import { setTimeout } from 'node:timers/promises';
-import { AttachmentBuilder, Events, EmbedBuilder, APIEmbed, EmbedAuthorOptions } from "discord.js";
+import { AttachmentBuilder, Events, EmbedBuilder, APIEmbed, EmbedAuthorOptions } from 'discord.js';
 import ico from 'icojs';
 import fastAvgColor from 'fast-average-color-node';
-import client from "bot/client";
+import client from 'bot/client';
 import { log } from '@lib/log';
-import { getUrlDomain, retrieveRealUrl, urlsOfText, urlToDocument } from "@lib/util";
+import { getUrlDomain, retrieveRealUrl, urlsOfText, urlToDocument } from '@lib/util';
 
 const THRESHOLD_DELAY = 5 * 1000;
 
