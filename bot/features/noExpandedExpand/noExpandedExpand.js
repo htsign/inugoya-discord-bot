@@ -176,6 +176,70 @@ const getColorAsInt = async resource => {
   }
 };
 
+/**
+ * @param {Url} url
+ * @param {number} index
+ * @returns {Promise<{ embeds: APIEmbed[], attachment: import('discord.js').AttachmentBuilder? }>}
+ */
+const core = async (url, index) => {
+  try {
+    /** @type {import('discord.js').AttachmentBuilder?} */
+    let attachment = null;
+
+    const realUrl = await retrieveRealUrl(url);
+    const document = await urlToDocument(realUrl);
+
+    const embed = new EmbedBuilder({ url: realUrl })
+      .setTitle(getTitle(document))
+      .setDescription(getDescription(document))
+      .setImage(getImage(document));
+
+    {
+      const pureUrl = getUrl(document);
+      if (pureUrl != null) {
+        embed.setURL(pureUrl);
+      }
+    }
+
+    {
+      const [authorName, authorUrl] = await getAuthor(document, realUrl) ?? [];
+
+      if (authorName != null) {
+        /** @type {import('discord.js').EmbedAuthorOptions} */
+        const options = { name: authorName };
+
+        if (authorUrl != null) {
+          options.url = authorUrl;
+        }
+
+        const icon = await getFavicon(realUrl, index);
+        if (typeof icon === 'string') {
+          options.iconURL = icon;
+          embed.setColor(await getColorAsInt(icon));
+        }
+        else if (icon != null) {
+          const [url, buffer] = icon;
+          options.iconURL = url;
+          embed.setColor(await getColorAsInt(buffer));
+
+          attachment = new AttachmentBuilder(buffer, { name: `favicon${index}.png` });
+        }
+
+        embed.setAuthor(options);
+      }
+    }
+
+    return { embeds: [embed.toJSON()], attachment };
+  }
+  catch (e) {
+    if (e instanceof Error) {
+      log('noExpandedExpand:', e.stack ?? `${e.name}: ${e.message}`);
+      return { embeds: [], attachment: null };
+    }
+    throw e;
+  }
+};
+
 client.on(Events.MessageCreate, async message => {
   await setTimeout(THRESHOLD_DELAY);
 
@@ -186,66 +250,18 @@ client.on(Events.MessageCreate, async message => {
       .filter(/** @type {(url: string?) => url is string} */ url => url != null);
     const targetUrls = urls.filter(url => !embedUrls.includes(url));
 
-    /** @type {APIEmbed[]} */
-    const embeds = [];
-
-    /** @type {import('discord.js').AttachmentBuilder[]} */
-    const files = [];
+    /** @type {ReturnType<typeof core>[]} */
+    const expandingPromises = [];
 
     for (const [index, url] of targetUrls.entries()) {
-      try {
-        const realUrl = await retrieveRealUrl(url);
-        const document = await urlToDocument(realUrl);
-
-        const embed = new EmbedBuilder({ url: realUrl })
-          .setTitle(getTitle(document))
-          .setDescription(getDescription(document))
-          .setImage(getImage(document));
-
-        {
-          const pureUrl = getUrl(document);
-          if (pureUrl != null) {
-            embed.setURL(pureUrl);
-          }
-        }
-
-        {
-          const [authorName, authorUrl] = await getAuthor(document, realUrl) ?? [];
-
-          if (authorName != null) {
-            /** @type {import('discord.js').EmbedAuthorOptions} */
-            const options = { name: authorName };
-
-            if (authorUrl != null) {
-              options.url = authorUrl;
-            }
-
-            const icon = await getFavicon(realUrl, index);
-            if (typeof icon === 'string') {
-              options.iconURL = icon;
-              embed.setColor(await getColorAsInt(icon));
-            }
-            else if (icon != null) {
-              const [url, buffer] = icon;
-              options.iconURL = url;
-              embed.setColor(await getColorAsInt(buffer));
-
-              const attachment = new AttachmentBuilder(buffer, { name: `favicon${index}.png` });
-              files.push(attachment);
-            }
-
-            embed.setAuthor(options);
-          }
-        }
-
-        embeds.push(embed.toJSON());
-      }
-      catch (e) {
-        if (e instanceof Error) {
-          log('noExpandedExpand:', e.stack ?? `${e.name}: ${e.message}`);
-        }
-      }
+      expandingPromises.push(core(url, index));
     }
+
+    const results = await Promise.all(expandingPromises);
+
+    const embeds = results.flatMap(res => res.embeds);
+    const files = results.map(res => res.attachment)
+      .filter(/** @type {(x: import('discord.js').AttachmentBuilder?) => x is AttachmentBuilder} */ x => x != null);
 
     if (embeds.length > 0) {
       const content = 'URL が展開されてないみたいだからこっちで付けとくね';
