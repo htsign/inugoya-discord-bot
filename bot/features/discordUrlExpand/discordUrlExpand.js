@@ -10,6 +10,9 @@ client.on(Events.MessageCreate, async message => {
 
   const regExpIterator = message.content.matchAll(/https:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)\b/g) ?? [];
 
+  /** @type {APIEmbed[]} */
+  const embeds = [];
+
   for (const [, guildId, channelId, messageId] of regExpIterator) {
     if (guildId == null || channelId == null || messageId == null) {
       throw new Error('invalid url');
@@ -19,10 +22,10 @@ client.on(Events.MessageCreate, async message => {
       const referredMessage = await fetchMessageByIds(guildId, channelId, messageId);
 
       if (referredMessage != null) {
-        const embeds = await messageToEmbeds(referredMessage);
+        const messageEmbeds = await messageToEmbeds(referredMessage);
 
-        if (embeds.length > 0) {
-          await message.channel.send({ embeds });
+        if (messageEmbeds.length > 0) {
+          embeds.push(...messageEmbeds);
           break;
         }
       }
@@ -30,5 +33,9 @@ client.on(Events.MessageCreate, async message => {
         log('discordUrlExpand:', 'fetches failed', tryCount + 1, guildId, channelId, messageId);
       }
     }
+  }
+
+  if (embeds.length > 0) {
+    message.channel.send({ embeds });
   }
 });
