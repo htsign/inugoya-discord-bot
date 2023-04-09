@@ -5,7 +5,7 @@ import ico from 'icojs';
 import fastAvgColor from 'fast-average-color-node';
 import client from 'bot/client';
 import { log } from '@lib/log';
-import { getUrlDomain, retrieveRealUrl, urlsOfText, urlToDocument } from '@lib/util';
+import { getUrlDomain, isUrl, retrieveRealUrl, urlsOfText, urlToDocument } from '@lib/util';
 
 const THRESHOLD_DELAY = 5 * 1000;
 
@@ -110,11 +110,14 @@ const getAuthor = async (document: Document, url: Url): ReturnType<typeof getAut
   return getAuthorInner(`${protocol}//${host}/`);
 };
 
-const getUrl = (document: Document): string | null =>
-  document.querySelector<HTMLMetaElement>('meta[property="og:url]')?.content ?? null;
+const getUrl = (document: Document): string | null => {
+  const url = document.querySelector<HTMLMetaElement>('meta[property="og:url]')?.content ?? null;
+
+  return url != null && isUrl(url) ? url : null;
+};
 
 const getImage = (document: Document): string | null => {
-  return [
+  const imageUrl = [
     'meta[property="og:image"]',
     'meta[name="twitter:image:src"]',
   ]
@@ -122,6 +125,8 @@ const getImage = (document: Document): string | null => {
       (acc, selector) => acc ?? document.querySelector<HTMLMetaElement>(selector)?.content ?? null,
       null,
     ) ?? null;
+
+  return imageUrl != null && isUrl(imageUrl) ? imageUrl : null;
 };
 
 const getColorAsInt = async (resource: string | Buffer): Promise<number> => {
@@ -202,7 +207,9 @@ client.on(Events.MessageCreate, async message => {
     const embedUrls = message.embeds
       .map(embed => embed.url)
       .filter((url: string | null): url is string => url != null);
-    const targetUrls = urls.filter(url => !embedUrls.includes(url));
+    const targetUrls = urls
+      .filter(url => !embedUrls.includes(url))
+      .filter(url => !url.startsWith('https://discord.com/channels/')); // ignore discord message url
 
     const expandingPromises: ReturnType<typeof core>[] = [];
 
