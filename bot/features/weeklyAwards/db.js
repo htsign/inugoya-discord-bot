@@ -1,5 +1,6 @@
 const { setTimeout } = require('node:timers/promises');
 const dayjs = require('../../lib/dayjsSetup');
+const { isUrl } = require('../../lib/util');
 
 const db = require('better-sqlite3')('weeklyAward.db');
 
@@ -7,6 +8,26 @@ const TABLE = 'reacted_messages';
 
 class WeeklyAwardDatabase {
   #config = new WeeklyAwardDatabaseConfig();
+
+  /** @type {(row: unknown) => row is WeeklyAwardDatabaseRow} */
+  static #isRow(row) {
+    if (row == null || typeof row !== 'object') return false;
+
+    if (!('guild_id' in row && typeof row.guild_id === 'string')) return false;
+    if (!('channel_id' in row && typeof row.channel_id === 'string')) return false;
+    if (!('message_id' in row && typeof row.message_id === 'string')) return false;
+    if (!('guild_name' in row && typeof row.guild_name === 'string')) return false;
+    if (!('channel_name' in row && typeof row.channel_name === 'string')) return false;
+    if (!('content' in row && typeof row.content === 'string')) return false;
+    if (!('author' in row && typeof row.author === 'string')) return false;
+    if (!('url' in row && typeof row.url === 'string' && isUrl(row.url))) return false;
+    if (!('reactions_count' in row && typeof row.reactions_count === 'number')) return false;
+    if (!('timestamp' in row && typeof row.timestamp === 'string')) return false;
+    if (!('created_at' in row && typeof row.created_at === 'string')) return false;
+    if (!('updated_at' in row && typeof row.updated_at === 'string')) return false;
+
+    return true;
+  }
 
   get config() {
     return this.#config;
@@ -59,7 +80,7 @@ class WeeklyAwardDatabase {
     `);
 
     const row = stmt.get({ guildId, channelId, messageId });
-    if (row == null) return null;
+    if (!WeeklyAwardDatabase.#isRow(row)) return null;
 
     return {
       guildId,
@@ -149,20 +170,22 @@ class WeeklyAwardDatabase {
   all() {
     const stmt = db.prepare(`select * from ${TABLE}`);
 
-    return stmt.all().map(row => ({
-      guildId: row.guild_id,
-      channelId: row.channel_id,
-      messageId: row.message_id,
-      guildName: row.guild_name,
-      channelName: row.channel_name,
-      content: row.content,
-      author: row.author,
-      url: row.url,
-      reactionsCount: row.reactions_count,
-      timestamp: dayjs(row.timestamp).tz(),
-      createdAt: dayjs(row.created_at).tz(),
-      updatedAt: dayjs(row.updated_at).tz(),
-    }));
+    return stmt.all()
+      .filter(WeeklyAwardDatabase.#isRow)
+      .map(row => ({
+        guildId: row.guild_id,
+        channelId: row.channel_id,
+        messageId: row.message_id,
+        guildName: row.guild_name,
+        channelName: row.channel_name,
+        content: row.content,
+        author: row.author,
+        url: row.url,
+        reactionsCount: row.reactions_count,
+        timestamp: dayjs(row.timestamp).tz(),
+        createdAt: dayjs(row.created_at).tz(),
+        updatedAt: dayjs(row.updated_at).tz(),
+      }));
   }
 
   /**
@@ -172,6 +195,8 @@ class WeeklyAwardDatabase {
     const stmt = db.prepare(`select * from ${TABLE}`);
 
     for (const row of stmt.iterate()) {
+      if (!WeeklyAwardDatabase.#isRow(row)) continue;
+
       yield {
         guildId: row.guild_id,
         channelId: row.channel_id,
@@ -258,9 +283,14 @@ class WeeklyAwardDatabase {
 
     try {
       // return outdated records count
-      /** @type {number} */
       const count = cntStmt.get({ guildId, days });
-      yield count;
+
+      if (typeof count === 'number') {
+        yield count;
+      }
+      else {
+        throw new TypeError('count must be a number');
+      }
 
       if (count > 0) {
         delStmt.run({ guildId, days });
@@ -286,18 +316,33 @@ class WeeklyAwardDatabase {
 class WeeklyAwardDatabaseConfig {
   #TABLE = 'post_target';
 
+  /** @type {(row: unknown) => row is WeeklyAwardConfigRow} */
+  static #isRow(row) {
+    if (row == null || typeof row !== 'object') return false;
+
+    if (!('guild_id' in row && typeof row.guild_id === 'string')) return false;
+    if (!('guild_name' in row && typeof row.guild_name === 'string')) return false;
+    if (!('channel_name' in row && typeof row.channel_name === 'string')) return false;
+    if (!('created_at' in row && typeof row.created_at === 'string')) return false;
+    if (!('updated_at' in row && typeof row.updated_at === 'string')) return false;
+
+    return true;
+  }
+
   /** @type {WeeklyAwardConfigRecord[]} */
   get records() {
     const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
     const rows = stmt.all();
-    return rows.map(row => ({
-      guildId: row.guild_id,
-      guildName: row.guild_name,
-      channelName: row.channel_name,
-      createdAt: dayjs(row.created_at).tz(),
-      updatedAt: dayjs(row.updated_at).tz(),
-    }));
+    return rows
+      .filter(WeeklyAwardDatabaseConfig.#isRow)
+      .map(row => ({
+        guildId: row.guild_id,
+        guildName: row.guild_name,
+        channelName: row.channel_name,
+        createdAt: dayjs(row.created_at).tz(),
+        updatedAt: dayjs(row.updated_at).tz(),
+      }));
   }
 
   constructor() {
@@ -388,7 +433,7 @@ class WeeklyAwardDatabaseConfig {
     `);
 
     const row = stmt.get(guildId);
-    if (row == null) return null;
+    if (!WeeklyAwardDatabaseConfig.#isRow(row)) return null;
 
     return {
       guildId: row.guild_id,
