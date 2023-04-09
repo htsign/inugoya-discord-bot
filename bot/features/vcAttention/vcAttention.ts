@@ -7,6 +7,9 @@ const thrivingVoiceChannels = new Set<`${Snowflake},${Snowflake}`>();
 
 const getId = (state: VoiceState): `${Snowflake},${Snowflake}` => `${state.guild.id},${state.channelId}`;
 
+client.on(Events.GuildDelete, guild => {
+  db.unregister(guild.id);
+});
 client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
   const configRecord = db.get(newState.guild.id);
   if (configRecord == null) return;
