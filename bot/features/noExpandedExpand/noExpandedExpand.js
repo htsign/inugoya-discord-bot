@@ -5,7 +5,7 @@ const ico = require('icojs');
 const fastAvgColor = require('fast-average-color-node');
 const client = require('../../client');
 const { log } = require('../../lib/log');
-const { getUrlDomain, retrieveRealUrl, urlsOfText, urlToDocument } = require('../../lib/util');
+const { getUrlDomain, isUrl, retrieveRealUrl, urlsOfText, urlToDocument } = require('../../lib/util');
 
 const THRESHOLD_DELAY = 5 * 1000;
 
@@ -142,14 +142,18 @@ const getAuthor = async (document, url) => {
  * @param {Document} document
  * @returns {string?}
  */
-const getUrl = document => document.querySelector('meta[property="og:url]')?.getAttribute('content') ?? null;
+const getUrl = document => {
+  const url = document.querySelector('meta[property="og:url]')?.getAttribute('content') ?? null;
+
+  return url != null && isUrl(url) ? url : null;
+};
 
 /**
  * @param {Document} document
  * @returns {string?}
  */
 const getImage = document => {
-  return [
+  const imageUrl = [
     'meta[property="og:image"]',
     'meta[name="twitter:image:src"]',
   ]
@@ -157,6 +161,8 @@ const getImage = document => {
       (/** @type {string?} */ acc, selector) => acc ?? document.querySelector(selector)?.getAttribute('content') ?? null,
       null,
     ) ?? null;
+
+  return imageUrl != null && isUrl(imageUrl) ? imageUrl : null;
 };
 
 /**
@@ -248,7 +254,9 @@ client.on(Events.MessageCreate, async message => {
     const embedUrls = message.embeds
       .map(embed => embed.url)
       .filter(/** @type {(url: string?) => url is string} */ url => url != null);
-    const targetUrls = urls.filter(url => !embedUrls.includes(url));
+    const targetUrls = urls
+      .filter(url => !embedUrls.includes(url))
+      .filter(url => !url.startsWith('https://discord.com/channels/')); // ignore discord message url
 
     /** @type {ReturnType<typeof core>[]} */
     const expandingPromises = [];
