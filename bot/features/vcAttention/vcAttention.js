@@ -1,6 +1,6 @@
-const { Events, ChannelType } = require("discord.js");
-const client = require("../../client");
-const { log } = require("../../lib/log");
+const { Events, ChannelType } = require('discord.js');
+const client = require('../../client');
+const { log } = require('../../lib/log');
 
 const THRIVING_THRESHOLD = 3;
 

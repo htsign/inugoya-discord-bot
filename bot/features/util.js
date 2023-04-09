@@ -1,7 +1,7 @@
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder } = require('discord.js');
 const fastAvgColor = require('fast-average-color-node');
-const client = require("../client");
-const { log } = require("../lib/log");
+const client = require('../client');
+const { log } = require('../lib/log');
 
 /**
  * @param {string} guildId

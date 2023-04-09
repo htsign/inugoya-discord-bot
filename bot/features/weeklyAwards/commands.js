@@ -1,7 +1,7 @@
-const { ApplicationCommandType, PermissionFlagsBits, ApplicationCommandOptionType, ChannelType } = require("discord.js");
-const { log } = require("../../lib/log");
-const { startAward, stopAward } = require(".");
-const { db } = require("./db");
+const { ApplicationCommandType, PermissionFlagsBits, ApplicationCommandOptionType, ChannelType } = require('discord.js');
+const { log } = require('../../lib/log');
+const { startAward, stopAward } = require('.');
+const { db } = require('./db');
 
 /** @type {ChatInputCommand<Channel?, { resultMessage: (channel: Channel?) => string }, 'cached' | 'raw'>} */
 const subCommands = {

@@ -1,7 +1,7 @@
-const { Events } = require("discord.js");
-const client = require("../../client");
-const { log } = require("../../lib/log");
-const { fetchMessageByIds, messageToEmbeds } = require("../util");
+const { Events } = require('discord.js');
+const client = require('../../client');
+const { log } = require('../../lib/log');
+const { fetchMessageByIds, messageToEmbeds } = require('../util');
 
 const TRY_COUNT_THRESHOLD = 3;
 

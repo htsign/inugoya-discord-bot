@@ -1,11 +1,11 @@
 const { URL } = require('node:url');
 const { setTimeout } = require('node:timers/promises');
-const { AttachmentBuilder, Events, EmbedBuilder } = require("discord.js");
+const { AttachmentBuilder, Events, EmbedBuilder } = require('discord.js');
 const ico = require('icojs');
 const fastAvgColor = require('fast-average-color-node');
-const client = require("../../client");
+const client = require('../../client');
 const { log } = require('../../lib/log');
-const { getUrlDomain, retrieveRealUrl, urlsOfText, urlToDocument } = require("../../lib/util");
+const { getUrlDomain, retrieveRealUrl, urlsOfText, urlToDocument } = require('../../lib/util');
 
 const THRESHOLD_DELAY = 5 * 1000;
 

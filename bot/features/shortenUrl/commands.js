@@ -1,5 +1,5 @@
-const { ApplicationCommandOptionType } = require("discord.js");
-const { shortenUrlsOfContent } = require("./shortenUrl");
+const { ApplicationCommandOptionType } = require('discord.js');
+const { shortenUrlsOfContent } = require('./shortenUrl');
 
 /** @type {ChatInputCommand<void>} */
 module.exports = {
