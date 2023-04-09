@@ -3,8 +3,11 @@ const client = require('../../client');
 const { log } = require('../../lib/log');
 const { db } = require('./db');
 
-/** @type {Set<Snowflake>} */
+/** @type {Set<`${Snowflake},${Snowflake}`>} */
 const thrivingVoiceChannels = new Set();
+
+/** @type {(state: VoiceState) => `${Snowflake},${Snowflake}`} */
+const getId = state => `${state.guild.id},${state.channelId}`;
 
 client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
   const configRecord = db.get(newState.guild.id);
@@ -24,11 +27,11 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
       /** @type {function(Channel): boolean} */
       const isTargetChannel = channel => channel.type === ChannelType.GuildText && channel.name === configRecord.channelName;
 
-      if (!thrivingVoiceChannels.has(newChannelId)) {
+      if (!thrivingVoiceChannels.has(getId(newState))) {
         const targetChannel = await client.channels.cache.find(isTargetChannel)?.fetch();
 
         if (targetChannel?.type === ChannelType.GuildText && newChannel?.name != null) {
-          thrivingVoiceChannels.add(newChannelId);
+          thrivingVoiceChannels.add(getId(newState));
           await targetChannel.send(`@here <#${newChannelId}> が盛り上がっているみたい！`);
         }
       }
@@ -42,7 +45,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
     log(oldState.guild.name, 'member left:', oldChannel?.name, { membersCount });
 
     if (membersCount < configRecord.threshold) {
-      thrivingVoiceChannels.delete(oldChannelId);
+      thrivingVoiceChannels.delete(getId(oldState));
     }
   }
 });
