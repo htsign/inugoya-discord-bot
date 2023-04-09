@@ -50,10 +50,9 @@ const subCommands: ChatInputCommandCollection<Channel | null, { resultMessage: (
     async func(interaction: ChatInputCommandInteraction<'cached' | 'raw'>) {
       const guildId = interaction.guildId;
       const guildName = interaction.guild?.name;
-      const channelName = interaction.channel?.name;
 
-      if (guildName == null || channelName == null) {
-        await interaction.reply({ content: '登録解除したいチャンネルの中で実行してください。', ephemeral: true });
+      if (guildName == null) {
+        await interaction.reply({ content: '登録解除したいサーバーの中で実行してください。', ephemeral: true });
         return null;
       }
       log('unregister weeklyAward:', interaction.user.username, guildName);
