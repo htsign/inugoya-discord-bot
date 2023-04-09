@@ -82,16 +82,25 @@ const tick = async (guildId, guildName, channelName) => {
       }
 
       if (db.all().some(({ reactionsCount: count }) => count > 0)) {
-        /** @type {{ message: Message<true>, reactionsCount: number }[]} */
-        const messages = [];
+        /**
+         * @param {WeeklyAwardRecord} record
+         * @returns {Promise<MessageAndReactions?>}
+         */
+        const fetchesMessage = async record => {
+          if (record.guildId !== guildId) return null;
+
+          const message = await fetchMessageByIds(guildId, record.channelId, record.messageId);
+          return message != null ? { message, reactionsCount: record.reactionsCount } : null;
+        };
+        const fetchingPromises = [];
 
         // collect messages posted in current guild
         for (const record of db.iterate()) {
-          if (record.guildId !== guildId) continue;
-
-          const message = await fetchMessageByIds(guildId, record.channelId, record.messageId);
-          if (message != null) messages.push({ message, reactionsCount: record.reactionsCount });
+          fetchingPromises.push(fetchesMessage(record));
         }
+
+        const messages = (await Promise.all(fetchingPromises))
+          .filter(/** @type {(x: MessageAndReactions?) => x is MessageAndReactions} */ x => x != null);
 
         // tally messages by reactions count
         const talliedMessages = messages
@@ -113,7 +122,7 @@ const tick = async (guildId, guildName, channelName) => {
             const embeds = [];
 
             for (const message of messages) {
-                  embeds.push(...await messageToEmbeds(message, false));
+              embeds.push(...await messageToEmbeds(message, false));
             }
             contents.push({
               title: `**先週${rankText}リアクションが多かった投稿${messages.length >= 2 ? 'たち' : ''}です！！** [${count}個]`,

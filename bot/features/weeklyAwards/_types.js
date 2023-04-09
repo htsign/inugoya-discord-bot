@@ -1,4 +1,10 @@
 /**
+ * @typedef MessageAndReactions
+ * @property {Message<true>} message
+ * @property {number} reactionsCount
+ */
+
+/**
  * @typedef WeeklyAwardRecord
  * @property {string} guildId
  * @property {string} channelId
