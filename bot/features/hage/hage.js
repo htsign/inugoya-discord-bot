@@ -25,7 +25,7 @@ const rareTemplate = `.        (~)
     ( :::： ::: )
 　  し―Ｊ`;
 
-/** @type {Set<string>} */
+/** @type {Set<`${Snowflake},${Snowflake},${Snowflake}`>} */
 const reactedMessageIds = new Set();
 /** @type {Set<Timeout<boolean>>} */
 const timeouts = new Set();
@@ -33,12 +33,12 @@ const timeouts = new Set();
 const mtSeed = dayjs().tz();
 const mtRnd = new MersenneTwister(mtSeed.unix());
 
-/** @type {function(Message<boolean>): string} */
-const getId = message => [message.channelId, message.guildId, message.id].join();
+/** @type {function(Message<boolean>): `${Snowflake},${Snowflake},${Snowflake}`} */
+const getId = message => `${message.channelId},${message.guildId},${message.id}`;
 
 /**
  * @param {(text: string) => Promise<Message<boolean>>} messageHandler
- * @param {string} id
+ * @param {`${Snowflake},${Snowflake},${Snowflake}`} id
  */
 const replyToHage = (messageHandler, id) => {
   reactedMessageIds.add(id);
