@@ -63,7 +63,7 @@ const tick = async (guildId, guildName, channelName) => {
   const now = dayjs().tz();
 
   if (now.day() === SUNDAY && now.hour() === 12 && now.minute() === 0) {
-    log('WeeklyAward: report initiated');
+    log(guildName, 'WeeklyAward: report initiated');
 
     const guilds = await client.guilds.fetch();
     const guild = await guilds.find(guild => guild.name === guildName)?.fetch();
@@ -73,11 +73,11 @@ const tick = async (guildId, guildName, channelName) => {
       // remove messages sent over a week ago
       for await (const count of db.deleteOutdated(guildId, 7)) {
         if (typeof count === 'number') {
-          log(`WeeklyAward: outdated records [${count}]`);
+          log(guildName, `WeeklyAward: outdated records [${count}]`);
         }
         else {
           db.vacuum();
-          log(`WeeklyAward: records deleted`);
+          log(guildName, `WeeklyAward: records deleted`);
         }
       }
 
@@ -141,7 +141,7 @@ const tick = async (guildId, guildName, channelName) => {
       }
     }
 
-    log('WeeklyAward: report finished');
+    log(guildName, 'WeeklyAward: report finished');
 
     // run again almost next week.
     const timeout = setTimeout(() => tick(guildId, guildName, channelName), 86400 * 1000 * 6.9);

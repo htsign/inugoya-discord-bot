@@ -4,10 +4,11 @@ const { log } = require("../../lib/log");
 const { urlToDocument } = require('../../lib/util');
 
 client.on(Events.MessageCreate, async message => {
-  if (message.author.bot) return;
+  const { author, content, guild, channel } = message;
+  if (author.bot) return;
 
   const re = /https:\/\/ja\.wikipedia\.org\/(?:wiki\/\S+|\?[\w=&]*curid=\d+)/g;
-  const regExpIterator = message.content.matchAll(re);
+  const regExpIterator = content.matchAll(re);
 
   /** @type {APIEmbed[]} */
   const embeds = [];
@@ -37,7 +38,8 @@ client.on(Events.MessageCreate, async message => {
     }
     catch (e) {
       if (e instanceof Error) {
-        log('wikipediaExpand:', e.stack ?? `${e.name}: ${e.message}`);
+        const insideOf = [...(guild != null ? [guild.name] : []), ...('name' in channel ? [channel.name] : [])];
+        log(...insideOf, 'wikipediaExpand:', e.stack ?? `${e.name}: ${e.message}`);
       }
     }
   }
