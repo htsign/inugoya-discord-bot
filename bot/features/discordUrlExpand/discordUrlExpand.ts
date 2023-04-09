@@ -30,7 +30,8 @@ client.on(Events.MessageCreate, async message => {
         }
       }
       else {
-        log('discordUrlExpand:', 'fetches failed', tryCount + 1, guildId, channelId, messageId);
+        const insideOf = message.guild != null ? message.guild.name : message.author.username;
+        log(`messageUrlExpand: ${insideOf}`, 'fetches failed', tryCount + 1, guildId, channelId, messageId);
       }
     }
   }

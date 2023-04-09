@@ -60,12 +60,13 @@ client.once(Events.ClientReady, () => {
   log('random generator initialized by', mtSeed.format('YYYY/MM/DD HH:mm:ss'), mtSeed.unix());
 });
 client.on(Events.MessageCreate, message => {
-  const { content, author, channel } = message;
+  const { content, author, guild, channel } = message;
   const id = getId(message);
 
-  if (author.bot || channel.isVoiceBased()) return;
+  if (author.bot || guild == null || channel.isVoiceBased() || !('name' in channel)) return;
 
-  log('message incoming: ', author.username, content);
+  log([guild.name, channel.name].join('/'), 'message incoming:', author.username, content);
+
   if (keywords.some(keyword => content.includes(keyword))) {
     replyToHage(text => channel.send(text), id);
   }
@@ -76,11 +77,14 @@ client.on(Events.MessageDelete, message => {
 });
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
   const message = await reaction.message.fetch();
+  const { author, guild, channel } = message;
+
   const id = getId(message);
 
-  if (message.author.bot) return;
+  if (author.bot || guild == null || !('name' in channel)) return;
 
-  log('reaction incoming: ', user.username, reaction.emoji.name);
+  log([guild.name, channel.name].join('/'), 'reaction incoming:', user.username, reaction.emoji.name);
+
   if (!reactedMessageIds.has(id) && keywordReactions.includes(reaction.emoji.name ?? '')) {
     replyToHage(text => message.reply(text), id);
   }

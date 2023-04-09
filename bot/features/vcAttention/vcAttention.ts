@@ -15,7 +15,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
     const newChannel = newState.channel;
     const membersCount = newChannel?.members.size ?? 0;
 
-    log('member joined', newChannel?.name, { membersCount });
+    log(newState.guild.name, 'member joined:', newChannel?.name, { membersCount });
 
     if (membersCount >= THRIVING_THRESHOLD) {
       const isVcChat = (channel: Channel): boolean => channel.type === ChannelType.GuildText && channel.name === 'vc-chat';
@@ -35,7 +35,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
     const oldChannel = oldState.channel;
     const membersCount = oldChannel?.members.size ?? 0;
 
-    log('member left', oldChannel?.name, { membersCount });
+    log(oldState.guild.name, 'member left:', oldChannel?.name, { membersCount });
 
     if (membersCount < THRIVING_THRESHOLD) {
       thrivingVoiceChannels.delete(oldChannelId);

@@ -16,9 +16,10 @@ const commands: ChatInputCommandCollection<any, {}> = {
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
-  const { user, commandName } = interaction;
+  const { guild, user, commandName } = interaction;
 
-  log(user.username, 'command kicked:', commandName);
+  const insideOf = guild != null ? [guild.name, user.username] : [user.username];
+  log(...insideOf, 'command kicked:', commandName);
 
   const command = commands[commandName];
   if (command == null) {
