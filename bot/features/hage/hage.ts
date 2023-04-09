@@ -1,4 +1,4 @@
-import { Events, Message, PartialMessage } from 'discord.js';
+import { Events, Message, PartialMessage, Snowflake } from 'discord.js';
 import MersenneTwister from 'mersenne-twister';
 import { dayjs } from '@lib/dayjsSetup';
 import { Timeout } from '@lib/timeout';
@@ -25,15 +25,15 @@ const rareTemplate = `.        (~)
     ( :::： ::: )
 　  し―Ｊ`;
 
-const reactedMessageIds = new Set<string>();
+const reactedMessageIds = new Set<`${Snowflake},${Snowflake},${Snowflake}`>();
 const timeouts = new Set<Timeout<boolean>>();
 
 const mtSeed = dayjs().tz();
 const mtRnd = new MersenneTwister(mtSeed.unix());
 
-const getId = (message: Message | PartialMessage): string => [message.channelId, message.guildId, message.id].join();
+const getId = (message: Message | PartialMessage): `${Snowflake},${Snowflake},${Snowflake}` => `${message.channelId},${message.guildId},${message.id}`;
 
-const replyToHage = (messageHandler: (text: string) => Promise<Message>, id: string): void => {
+const replyToHage = (messageHandler: (text: string) => Promise<Message>, id: `${Snowflake},${Snowflake},${Snowflake}`) => {
   reactedMessageIds.add(id);
 
   // register an object that removes itself in 10 minutes
