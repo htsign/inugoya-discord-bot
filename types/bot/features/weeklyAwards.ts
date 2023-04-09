@@ -1,4 +1,10 @@
+import { Message } from 'discord.js';
 import type { Dayjs } from 'dayjs';
+
+export interface MessageAndReactions {
+  message: Message<true>;
+  reactionsCount: number;
+}
 
 export interface WeeklyAwardRecord {
   guildId: string;

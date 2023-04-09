@@ -5,6 +5,7 @@ import { log } from '@lib/log';
 import client from 'bot/client';
 import { fetchMessageByIds, messageToEmbeds } from '../util';
 import { db } from './db';
+import type { MessageAndReactions, WeeklyAwardRecord } from 'types/bot/features/weeklyAwards';
 
 const SUNDAY = 0;
 
@@ -74,15 +75,21 @@ const tick = async (guildId: string, guildName: string, channelName: string): Pr
       }
 
       if (db.all().some(({ reactionsCount: count }) => count > 0)) {
-        const messages: { message: Message<true>, reactionsCount: number }[] = [];
+        const fetchesMessage = async (record: WeeklyAwardRecord): Promise<MessageAndReactions | null> => {
+          if (record.guildId !== guildId) return null;
+
+          const message = await fetchMessageByIds(guildId, record.channelId, record.messageId);
+          return message != null ? { message, reactionsCount: record.reactionsCount } : null;
+        };
+        const fetchingPromises = [];
 
         // collect messages posted in current guild
         for (const record of db.iterate()) {
-          if (record.guildId !== guildId) continue;
-
-          const message = await fetchMessageByIds(guildId, record.channelId, record.messageId);
-          if (message != null) messages.push({ message, reactionsCount: record.reactionsCount });
+          fetchingPromises.push(fetchesMessage(record));
         }
+
+        const messages = (await Promise.all(fetchingPromises))
+          .filter((x: MessageAndReactions | null): x is MessageAndReactions => x != null);
 
         // tally messages by reactions count
         const talliedMessages = messages
@@ -103,7 +110,7 @@ const tick = async (guildId: string, guildName: string, channelName: string): Pr
             const embeds: APIEmbed[] = [];
 
             for (const message of messages) {
-                  embeds.push(...await messageToEmbeds(message, false));
+              embeds.push(...await messageToEmbeds(message, false));
             }
             contents.push({
               title: `**先週${rankText}リアクションが多かった投稿${messages.length >= 2 ? 'たち' : ''}です！！** [${count}個]`,
