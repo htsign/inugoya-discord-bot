@@ -1,7 +1,7 @@
 {
   "main": "index.js",
   "dependencies": {
-    "better-sqlite3": "^8.2.0",
+    "better-sqlite3": "^8.3.0",
     "chardet": "^1.5.1",
     "dayjs": "1.11.7",
     "discord.js": "^14.9.0",
