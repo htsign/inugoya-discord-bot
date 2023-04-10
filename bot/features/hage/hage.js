@@ -34,7 +34,7 @@ const mtSeed = dayjs().tz();
 const mtRnd = new MersenneTwister(mtSeed.unix());
 
 /** @type {function(Message<boolean>): `${Snowflake},${Snowflake},${Snowflake}`} */
-const getId = message => `${message.channelId},${message.guildId},${message.id}`;
+const getId = message => `${message.guildId},${message.channelId},${message.id}`;
 
 /**
  * @param {(text: string) => Promise<Message<boolean>>} messageHandler
