@@ -14,7 +14,7 @@ const core = async (message: Message, guildId: string, channelId: string, messag
     }
     else {
       const insideOf = message.guild != null ? message.guild.name : message.author.username;
-      log(`messageUrlExpand: ${insideOf}`, 'fetches failed', tryCount, guildId, channelId, messageId);
+      log(`messageUrlExpand: ${insideOf}`, 'fetches failed', tryCount + 1, guildId, channelId, messageId);
     }
   }
 
