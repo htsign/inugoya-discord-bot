@@ -40,7 +40,16 @@ const isUrl = content => /^https?:\/\/\S+$/.test(content);
  */
 const retrieveRealUrl = async url => {
   try {
-    const { url: realUrl } = await fetch(url, { method: 'HEAD' });
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 2000);
+
+    const { url: realUrl } = await fetch(url, { method: 'HEAD', signal: controller.signal })
+      .catch(async e => {
+        if (e instanceof DOMException && e.name === 'AbortError') {
+          return await fetch(url);
+        }
+        return { url };
+      });
     if (isUrl(realUrl)) {
       return realUrl;
     }
