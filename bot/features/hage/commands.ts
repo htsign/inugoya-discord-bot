@@ -159,7 +159,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
       const guildName = guild?.name;
 
       if (guildName == null) {
-        interaction.reply({ content: '登録解除したいサーバーの中で実行してください。', ephemeral: true });
+        interaction.reply({ content: '確認したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       log('peek status hage:', user.username, guildName);
@@ -183,7 +183,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
         embed.setDescription('未登録');
       }
       response.edit({ embeds: [embed] });
-    }
+    },
   },
 };
 
