@@ -1,5 +1,6 @@
 const { ApplicationCommandType, PermissionFlagsBits, ApplicationCommandOptionType, ChannelType, EmbedBuilder } = require('discord.js');
 const { log } = require('../../lib/log');
+const { DATETIME_FORMAT } = require('../../lib/util');
 const { db } = require('./db');
 
 const DEFAULT_THRESHOLD = 5;
@@ -90,6 +91,9 @@ const subCommands = {
         embed.addFields(
           { name: '報告チャンネル', value: `<#${configRecord.channelId}>`, inline: true },
           { name: '閾値', value: `${configRecord.threshold} 人`, inline: true },
+          { name: ' ', value: '----------------' },
+          { name: '初回設定日時', value: configRecord.createdAt.format(DATETIME_FORMAT), inline: true },
+          { name: '最終更新日時', value: configRecord.updatedAt.format(DATETIME_FORMAT), inline: true },
         );
       }
       else {

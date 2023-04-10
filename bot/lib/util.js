@@ -4,6 +4,7 @@ const chardet = require('chardet');
 const { JSDOM } = require('jsdom');
 
 const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
+const DATETIME_FORMAT = 'YYYY/MM/DD HH:mm:ss';
 const configOutput = dotenv.config();
 
 /**
@@ -104,6 +105,7 @@ const toQueryString = queries => Object.entries(queries).map(([key, val]) => `${
 
 module.exports = {
   URL_REGEX_GLOBAL,
+  DATETIME_FORMAT,
   getEnv,
   getUrlDomain,
   isUrl,

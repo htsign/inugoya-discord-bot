@@ -1,5 +1,6 @@
 const { ApplicationCommandType, PermissionFlagsBits, ApplicationCommandOptionType, ChannelType, EmbedBuilder } = require('discord.js');
 const { log } = require('../../lib/log');
+const { DATETIME_FORMAT } = require('../../lib/util');
 const { startAward, stopAward } = require('.');
 const { db } = require('./db');
 
@@ -82,7 +83,12 @@ const subCommands = {
 
       if (configRecord != null) {
         embed.setDescription('登録済み');
-        embed.addFields({ name: '報告チャンネル', value: `<#${configRecord.channelId}>` });
+        embed.addFields(
+          { name: '報告チャンネル', value: `<#${configRecord.channelId}>` },
+          { name: ' ', value: '----------------' },
+          { name: '初回設定日時', value: configRecord.createdAt.format(DATETIME_FORMAT), inline: true },
+          { name: '最終更新日時', value: configRecord.updatedAt.format(DATETIME_FORMAT), inline: true },
+        );
       }
       else {
         embed.setDescription('未登録');

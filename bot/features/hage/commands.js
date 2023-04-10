@@ -1,5 +1,6 @@
 const { ApplicationCommandType, PermissionFlagsBits, ApplicationCommandOptionType, EmbedBuilder } = require('discord.js');
 const { log } = require('../../lib/log');
+const { DATETIME_FORMAT } = require('../../lib/util');
 const { db } = require('./db');
 
 const TEMPLATE = ` 彡⌒ミ
@@ -166,6 +167,8 @@ const subCommands = {
 
       const response = await interaction.deferReply();
 
+      const { isNonEmpty } = await import('ts-array-length');
+
       const configRecord = db.get(guildId);
       const embed = new EmbedBuilder({ title: '登録状況' });
 
@@ -177,14 +180,31 @@ const subCommands = {
           { name: 'レアテンプレート', value: configRecord.rareTemplate },
           { name: 'タイムアウト', value: `${configRecord.timeout} 分`, inline: true },
           { name: '累積反応数', value: `${configRecord.stackSize} 回`, inline: true },
+          { name: ' ', value: '----------------' },
+          { name: '初回設定日時', value: configRecord.createdAt.format(DATETIME_FORMAT), inline: true },
+          { name: '最終更新日時', value: configRecord.updatedAt.format(DATETIME_FORMAT), inline: true },
         );
 
-        const keywords = db.keywords.getRecords(guildId).map(record => `「${record.keyword}」`);
-        const reactions = db.reactionKeywords.getRecords(guildId).map(record => record.reaction);
+        const keywords = db.keywords.getRecords(guildId);
+        const reactions = db.reactionKeywords.getRecords(guildId);
         embed.addFields(
-          { name: '登録されたキーワード', value: keywords.join('') },
-          { name: '登録されたリアクションキーワード', value: reactions.join(' ') },
+          { name: ' ', value: '----------------' },
+          { name: '登録されたキーワード', value: keywords.map(record => `「${record.keyword}」`).join('') },
+          { name: '登録されたリアクションキーワード', value: reactions.map(record => record.reaction).join(' ') },
         );
+
+        if (isNonEmpty(keywords)) {
+          const [latest] = [...keywords].sort((a, b) => b.updatedAt.unix() - a.updatedAt.unix());
+          if (latest == null) throw new Error('invalid state');
+
+          embed.addFields({ name: 'キーワード最終更新日時', value: latest.updatedAt.format(DATETIME_FORMAT), inline: true });
+        }
+        if (isNonEmpty(reactions)) {
+          const [latest] = [...reactions].sort((a, b) => b.updatedAt.unix() - a.updatedAt.unix());
+          if (latest == null) throw new Error('invalid state');
+
+          embed.addFields({ name: 'リアクション最終更新日時', value: latest.updatedAt.format(DATETIME_FORMAT), inline: true });
+        }
       }
       else {
         embed.setDescription('未登録');
