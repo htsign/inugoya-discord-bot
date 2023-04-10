@@ -3,12 +3,14 @@ import { log } from '@lib/log';
 import client from '../client';
 import type { ChatInputCommandCollection } from 'types/bot'
 
+import { commands as hageCommands } from './hage/commands';
 import { commands as shortenUrlCommands } from './shortenUrl/commands';
 import { commands as weeklyAwardsCommands } from './weeklyAwards/commands';
 import { commands as regionalIndicatorsCommands } from './regionalIndicators/commands';
 import { commands as vcAttentionCommands } from './vcAttention/commands';
 
 const commands: ChatInputCommandCollection<any, {}> = {
+  ...hageCommands,
   ...shortenUrlCommands,
   ...weeklyAwardsCommands,
   ...regionalIndicatorsCommands,
