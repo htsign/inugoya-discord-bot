@@ -148,11 +148,9 @@ class WeeklyAwardDatabase {
       });
     }
     catch (e) {
-      if (e instanceof TypeError) {
-        if (e.message.includes('database connection is busy')) {
-          await setTimeout();
-          return this.set(message, reactionsCount);
-        }
+      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+        await setTimeout();
+        return this.set(message, reactionsCount);
       }
       throw e;
     }
@@ -209,11 +207,9 @@ class WeeklyAwardDatabase {
       fn(values);
     }
     catch (e) {
-      if (e instanceof TypeError) {
-        if (e.message.includes('database connection is busy')) {
-          await setTimeout();
-          return this.transaction(values, callback);
-        }
+      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+        await setTimeout();
+        return this.transaction(values, callback);
       }
       throw e;
     }
@@ -236,11 +232,9 @@ class WeeklyAwardDatabase {
       });
     }
     catch (e) {
-      if (e instanceof TypeError) {
-        if (e.message.includes('database connection is busy')) {
-          await setTimeout();
-          return this.delete(guildId, channelId, messageId);
-        }
+      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+        await setTimeout();
+        return this.delete(guildId, channelId, messageId);
       }
       throw e;
     }
@@ -277,11 +271,9 @@ class WeeklyAwardDatabase {
       }
     }
     catch (e) {
-      if (e instanceof TypeError) {
-        if (e.message.includes('database connection is busy')) {
-          await setTimeout();
-          return yield* this.deleteOutdated(guildId, days);
-        }
+      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+        await setTimeout();
+        return yield* this.deleteOutdated(guildId, days);
       }
       throw e;
     }
@@ -367,11 +359,9 @@ class WeeklyAwardDatabaseConfig {
       });
     }
     catch (e) {
-      if (e instanceof TypeError) {
-        if (e.message.includes('database connection is busy')) {
-          await setTimeout();
-          return this.register(guildId, guildName, channelId, channelName);
-        }
+      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+        await setTimeout();
+        return this.register(guildId, guildName, channelId, channelName);
       }
       throw e;
     }
@@ -388,11 +378,9 @@ class WeeklyAwardDatabaseConfig {
       stmt.run(guildId);
     }
     catch (e) {
-      if (e instanceof TypeError) {
-        if (e.message.includes('database connection is busy')) {
-          await setTimeout();
-          return this.unregister(guildId);
-        }
+      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+        await setTimeout();
+        return this.unregister(guildId);
       }
       throw e;
     }

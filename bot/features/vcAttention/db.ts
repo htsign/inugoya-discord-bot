@@ -87,11 +87,9 @@ class VCAttentionDatabaseConfig {
       });
     }
     catch (e) {
-      if (e instanceof TypeError) {
-        if (e.message.includes('database connection is busy')) {
-          await setTimeout();
-          return this.register(guildId, guildName, channelId, channelName, threshold);
-        }
+      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+        await setTimeout();
+        return this.register(guildId, guildName, channelId, channelName, threshold);
       }
       throw e;
     }
@@ -108,11 +106,9 @@ class VCAttentionDatabaseConfig {
       stmt.run(guildId);
     }
     catch (e) {
-      if (e instanceof TypeError) {
-        if (e.message.includes('database connection is busy')) {
-          await setTimeout();
-          return this.unregister(guildId);
-        }
+      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+        await setTimeout();
+        return this.unregister(guildId);
       }
       throw e;
     }
