@@ -24,6 +24,7 @@
  * @typedef WeeklyAwardConfigRecord
  * @property {string} guildId
  * @property {string} guildName
+ * @property {string} channelId
  * @property {string} channelName
  * @property {Dayjs} createdAt
  * @property {Dayjs} updatedAt
@@ -49,6 +50,7 @@
  * @typedef WeeklyAwardConfigRow
  * @property {string} guild_id
  * @property {string} guild_name
+ * @property {string} channel_id
  * @property {string} channel_name
  * @property {string} created_at
  * @property {string} updated_at

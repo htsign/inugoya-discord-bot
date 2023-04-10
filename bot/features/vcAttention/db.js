@@ -12,6 +12,7 @@ class VCAttentionDatabaseConfig {
 
     if (!('guild_id' in row && typeof row.guild_id === 'string')) return false;
     if (!('guild_name' in row && typeof row.guild_name === 'string')) return false;
+    if (!('channel_id' in row && typeof row.channel_id === 'string')) return false;
     if (!('channel_name' in row && typeof row.channel_name === 'string')) return false;
     if (!('threshold' in row && typeof row.threshold === 'number')) return false;
     if (!('created_at' in row && typeof row.created_at === 'string')) return false;
@@ -30,6 +31,7 @@ class VCAttentionDatabaseConfig {
       .map(row => ({
         guildId: row.guild_id,
         guildName: row.guild_name,
+        channelId: row.channel_id,
         channelName: row.channel_name,
         threshold: row.threshold,
         createdAt: dayjs(row.created_at).tz(),
@@ -42,6 +44,7 @@ class VCAttentionDatabaseConfig {
       create table if not exists ${this.#TABLE} (
         guild_id text not null primary key,
         guild_name text not null,
+        channel_id text not null,
         channel_name text not null,
         threshold integer not null,
         created_at text not null default (datetime('now')),
@@ -53,39 +56,43 @@ class VCAttentionDatabaseConfig {
   /**
    * @param {string} guildId
    * @param {string} guildName
+   * @param {string} channelId
    * @param {string} channelName
    * @param {number} threshold
    * @returns {Promise<void>}
    */
-  async register(guildId, guildName, channelName, threshold) {
+  async register(guildId, guildName, channelId, channelName, threshold) {
     const stmt = db.prepare(`
       insert into ${this.#TABLE} (
         guild_id,
         guild_name,
+        channel_id,
         channel_name,
         threshold
       ) values (
         @guildId,
         @guildName,
+        @channelId,
         @channelName,
         @threshold
       )
       on conflict (guild_id) do
         update set
           guild_name = @guildName,
+          channel_id = @channelId,
           channel_name = @channelName,
           threshold = @threshold,
           updated_at = datetime('now')
     `);
 
     try {
-      stmt.run({ guildId, guildName, channelName, threshold });
+      stmt.run({ guildId, guildName, channelId, channelName, threshold });
     }
     catch (e) {
       if (e instanceof TypeError) {
         if (e.message.includes('database connection is busy')) {
           await setTimeout();
-          return this.register(guildId, guildName, channelName, threshold);
+          return this.register(guildId, guildName, channelId, channelName, threshold);
         }
       }
       throw e;
@@ -135,6 +142,7 @@ class VCAttentionDatabaseConfig {
     return {
       guildId: row.guild_id,
       guildName: row.guild_name,
+      channelId: row.channel_id,
       channelName: row.channel_name,
       threshold: row.threshold,
       createdAt: dayjs(row.created_at).tz(),

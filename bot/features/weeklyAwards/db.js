@@ -322,6 +322,7 @@ class WeeklyAwardDatabaseConfig {
 
     if (!('guild_id' in row && typeof row.guild_id === 'string')) return false;
     if (!('guild_name' in row && typeof row.guild_name === 'string')) return false;
+    if (!('channel_id' in row && typeof row.channel_id === 'string')) return false;
     if (!('channel_name' in row && typeof row.channel_name === 'string')) return false;
     if (!('created_at' in row && typeof row.created_at === 'string')) return false;
     if (!('updated_at' in row && typeof row.updated_at === 'string')) return false;
@@ -339,6 +340,7 @@ class WeeklyAwardDatabaseConfig {
       .map(row => ({
         guildId: row.guild_id,
         guildName: row.guild_name,
+        channelId: row.channel_id,
         channelName: row.channel_name,
         createdAt: dayjs(row.created_at).tz(),
         updatedAt: dayjs(row.updated_at).tz(),
@@ -350,6 +352,7 @@ class WeeklyAwardDatabaseConfig {
       create table if not exists ${this.#TABLE} (
         guild_id text not null primary key,
         guild_name text not null,
+        channel_id text not null,
         channel_name text not null,
         created_at text not null default (datetime('now')),
         updated_at text not null default (datetime('now'))
@@ -360,35 +363,39 @@ class WeeklyAwardDatabaseConfig {
   /**
    * @param {string} guildId
    * @param {string} guildName
+   * @param {string} channelId
    * @param {string} channelName
    * @returns {Promise<void>}
    */
-  async register(guildId, guildName, channelName) {
+  async register(guildId, guildName, channelId, channelName) {
     const stmt = db.prepare(`
       insert into ${this.#TABLE} (
         guild_id,
         guild_name,
+        channel_id,
         channel_name
       ) values (
         @guildId,
         @guildName,
+        @channelId,
         @channelName
       )
       on conflict (guild_id) do
         update set
           guild_name = @guildName,
+          channel_id = @channelId,
           channel_name = @channelName,
           updated_at = datetime('now')
     `);
 
     try {
-      stmt.run({ guildId, guildName, channelName });
+      stmt.run({ guildId, guildName, channelId, channelName });
     }
     catch (e) {
       if (e instanceof TypeError) {
         if (e.message.includes('database connection is busy')) {
           await setTimeout();
-          return this.register(guildId, guildName, channelName);
+          return this.register(guildId, guildName, channelId, channelName);
         }
       }
       throw e;
@@ -438,6 +445,7 @@ class WeeklyAwardDatabaseConfig {
     return {
       guildId: row.guild_id,
       guildName: row.guild_name,
+      channelId: row.channel_id,
       channelName: row.channel_name,
       createdAt: dayjs(row.created_at).tz(),
       updatedAt: dayjs(row.updated_at).tz(),
