@@ -1,5 +1,6 @@
 import { Message } from 'discord.js';
 import type { Dayjs } from 'dayjs';
+import type { Url } from 'types';
 
 export interface MessageAndReactions {
   message: Message<true>;

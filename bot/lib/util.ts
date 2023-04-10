@@ -1,6 +1,7 @@
 import { URL } from 'node:url';
 import chardet from 'chardet';
 import { JSDOM } from 'jsdom';
+import type { Url } from 'types';
 
 export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
 

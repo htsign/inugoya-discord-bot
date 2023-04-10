@@ -1,3 +1,5 @@
+import type { Url } from 'types';
+
 export type XgdUrl = `https://x.gd/${string}`;
 export type XgdSuccessMessage = `\`${Url}\`: <${XgdUrl}>`;
 export type XgdFailureMessage = `error occurred [${XgdFailureStatus | number}]: ${string}`;

@@ -6,6 +6,7 @@ import fastAvgColor from 'fast-average-color-node';
 import client from 'bot/client';
 import { log } from '@lib/log';
 import { getUrlDomain, isUrl, retrieveRealUrl, urlsOfText, urlToDocument } from '@lib/util';
+import type { Url } from 'types';
 
 const THRESHOLD_DELAY = 5 * 1000;
 

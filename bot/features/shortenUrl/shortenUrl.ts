@@ -2,6 +2,7 @@ import { Events, Message } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
 import { getEnv, toQueryString, urlsOfText } from '@lib/util';
 import client from 'bot/client';
+import type { Url } from 'types';
 import type { XgdFailureMessage, XgdRequest, XgdResponse, XgdSuccessMessage } from 'types/bot/features/shortenUrl';
 
 const API_KEY = getEnv('XGD_API_KEY', 'X.gd API key');
