@@ -1,4 +1,4 @@
-const { ApplicationCommandType, PermissionFlagsBits, ApplicationCommandOptionType, ChannelType, EmbedBuilder } = require('discord.js');
+const { ApplicationCommandType, PermissionFlagsBits, ApplicationCommandOptionType, EmbedBuilder } = require('discord.js');
 const { log } = require('../../lib/log');
 const { db } = require('./db');
 
@@ -159,7 +159,7 @@ const subCommands = {
       const guildName = guild?.name;
 
       if (guildName == null) {
-        interaction.reply({ content: '登録解除したいサーバーの中で実行してください。', ephemeral: true });
+        interaction.reply({ content: '確認したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       log('peek status hage:', user.username, guildName);
@@ -183,7 +183,7 @@ const subCommands = {
         embed.setDescription('未登録');
       }
       response.edit({ embeds: [embed] });
-    }
+    },
   },
 };
 
