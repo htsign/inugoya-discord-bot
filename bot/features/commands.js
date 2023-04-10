@@ -6,6 +6,7 @@ const { log } = require('../lib/log');
  * @type {ChatInputCommand<any>}
  */
 const commands = {
+  ...require('./hage/commands'),
   ...require('./shortenUrl/commands'),
   ...require('./weeklyAwards/commands'),
   ...require('./regionalIndicators/commands'),
