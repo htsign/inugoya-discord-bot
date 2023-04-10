@@ -178,11 +178,142 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
           { name: 'タイムアウト', value: `${configRecord.timeout} 分`, inline: true },
           { name: '累積反応数', value: `${configRecord.stackSize} 回`, inline: true },
         );
+
+        const keywords = db.keywords.getRecords(guildId).map(record => `「${record.keyword}」`);
+        const reactions = db.reactionKeywords.getRecords(guildId).map(record => record.reaction);
+        embed.addFields(
+          { name: '登録されたキーワード', value: keywords.join('') },
+          { name: '登録されたリアクションキーワード', value: reactions.join(' ') },
+        );
       }
       else {
         embed.setDescription('未登録');
       }
       response.edit({ embeds: [embed] });
+    },
+  },
+  addkeyword: {
+    description: '新しくキーワードを追加します。',
+    options: [
+      {
+        name: 'keyword',
+        description: '登録したいキーワード',
+        type: ApplicationCommandOptionType.String,
+      },
+    ],
+    async func(interaction: ChatInputCommandInteraction<'cached' | 'raw'>): Promise<void> {
+      const { guildId, guild, user } = interaction;
+      const guildName = guild?.name;
+      const keyword = interaction.options.getString('keyword', true);
+
+      if (guildName == null) {
+        interaction.reply({ content: 'キーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
+        return;
+      }
+      if (db.keywords.get(guildId, keyword) != null) {
+        interaction.reply({ content: 'そのキーワードは登録済みです。', ephemeral: true });
+        return;
+      }
+      log('add keyword for hage:', user.username, guildName);
+
+      const response = await interaction.deferReply();
+
+      await db.keywords.add(guildId, keyword);
+
+      response.edit(`キーワードに「 ${keyword} 」を登録しました。`);
+    },
+  },
+  removekeyword: {
+    description: 'キーワードを削除します。',
+    options: [
+      {
+        name: 'keyword',
+        description: '削除したいキーワード',
+        type: ApplicationCommandOptionType.String,
+      },
+    ],
+    async func(interaction: ChatInputCommandInteraction<'cached' | 'raw'>): Promise<void> {
+      const { guildId, guild, user } = interaction;
+      const guildName = guild?.name;
+      const keyword = interaction.options.getString('keyword', true);
+
+      if (guildName == null) {
+        interaction.reply({ content: 'キーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
+        return;
+      }
+      if (db.keywords.get(guildId, keyword) == null) {
+        interaction.reply({ content: 'そのキーワードは登録されていません。', ephemeral: true });
+        return;
+      }
+      log('remove keyword for hage:', user.username, guildName);
+
+      const response = await interaction.deferReply();
+
+      await db.keywords.remove(guildId, keyword);
+
+      response.edit(`「 ${keyword} 」をキーワードから削除しました。`);
+    },
+  },
+  addreaction: {
+    description: '新しくリアクションキーワードを追加します。',
+    options: [
+      {
+        name: 'reaction',
+        description: '登録したいリアクションキーワード',
+        type: ApplicationCommandOptionType.String,
+      },
+    ],
+    async func(interaction: ChatInputCommandInteraction<'cached' | 'raw'>): Promise<void> {
+      const { guildId, guild, user } = interaction;
+      const guildName = guild?.name;
+      const reaction = interaction.options.getString('reaction', true);
+
+      if (guildName == null) {
+        interaction.reply({ content: 'リアクションキーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
+        return;
+      }
+      if (db.keywords.get(guildId, reaction) != null) {
+        interaction.reply({ content: 'そのリアクションキーワードは登録済みです。', ephemeral: true });
+        return;
+      }
+      log('add reaction keyword for hage:', user.username, guildName);
+
+      const response = await interaction.deferReply();
+
+      await db.reactionKeywords.add(guildId, reaction);
+
+      response.edit(`リアクションキーワードに「 ${reaction} 」を登録しました。`);
+    },
+  },
+  removereaction: {
+    description: 'リアクションキーワードを削除します。',
+    options: [
+      {
+        name: 'keyword',
+        description: '削除したいリアクションキーワード',
+        type: ApplicationCommandOptionType.String,
+      },
+    ],
+    async func(interaction: ChatInputCommandInteraction<'cached' | 'raw'>): Promise<void> {
+      const { guildId, guild, user } = interaction;
+      const guildName = guild?.name;
+      const reaction = interaction.options.getString('keyword', true);
+
+      if (guildName == null) {
+        interaction.reply({ content: 'リアクションキーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
+        return;
+      }
+      if (db.reactionKeywords.get(guildId, reaction) == null) {
+        interaction.reply({ content: 'そのリアクションキーワードは登録されていません。', ephemeral: true });
+        return;
+      }
+      log('remove reaction keyword for hage:', user.username, guildName);
+
+      const response = await interaction.deferReply();
+
+      await db.reactionKeywords.remove(guildId, reaction);
+
+      response.edit(`「 ${reaction} 」をリアクションキーワードから削除しました。`);
     },
   },
 };

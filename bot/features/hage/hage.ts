@@ -91,7 +91,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
 
   log([guild.name, channel.name].join('/'), 'reaction incoming:', user.username, reaction.emoji.name);
 
-  if (!reactedMessageIds.has(id) && reactionKeywords.includes(reaction.emoji.name ?? '')) {
+  if (!reactedMessageIds.has(id) && reactionKeywords.includes(reaction.emoji.toString())) {
     replyToHage(guild.id, text => message.reply(text), id);
   }
 });
