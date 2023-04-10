@@ -21,7 +21,16 @@ export const isUrl = (content: string): content is Url => /^https?:\/\/\S+$/.tes
 
 export const retrieveRealUrl = async (url: Url): Promise<Url> => {
   try {
-    const { url: realUrl } = await fetch(url, { method: 'HEAD' });
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 2000);
+
+    const { url: realUrl } = await fetch(url, { method: 'HEAD', signal: controller.signal })
+      .catch(async e => {
+        if (e instanceof DOMException && e.name === 'AbortError') {
+          return await fetch(url);
+        }
+        return { url };
+      });
     if (isUrl(realUrl)) {
       return realUrl;
     }
