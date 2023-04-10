@@ -1,5 +1,6 @@
 import { ApplicationCommandOptionType, ChannelType, ChatInputCommandInteraction, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { log } from '@lib/log';
+import { DATETIME_FORMAT } from '@lib/util';
 import { db } from './db';
 import { ChatInputCommandCollection } from "types/bot";
 
@@ -90,6 +91,9 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
         embed.addFields(
           { name: '報告チャンネル', value: `<#${configRecord.channelId}>`, inline: true },
           { name: '閾値', value: `${configRecord.threshold} 人`, inline: true },
+          { name: ' ', value: '----------------' },
+          { name: '初回設定日時', value: configRecord.createdAt.format(DATETIME_FORMAT), inline: true },
+          { name: '最終更新日時', value: configRecord.updatedAt.format(DATETIME_FORMAT), inline: true },
         );
       }
       else {
