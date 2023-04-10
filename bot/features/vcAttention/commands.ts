@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, Channel, ChannelType, ChatInputCommandInteraction, PermissionFlagsBits } from 'discord.js';
+import { ApplicationCommandOptionType, ChannelType, ChatInputCommandInteraction, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { log } from '@lib/log';
 import { db } from './db';
 import { ChatInputCommandCollection } from "types/bot";
@@ -44,7 +44,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
 
       const response = await interaction.deferReply();
 
-      await db.register(guildId, guildName, channel.name, threshold);
+      await db.register(guildId, guildName, channel.id, channel.name, threshold);
 
       response.edit(`VC盛り上がり通知の巡回対象にこのサーバーを登録し、VCの参加人数が ${threshold} 以上の場合に ${channel} に通知するよう設定しました。`);
     },
@@ -67,6 +67,36 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
 
       response.edit('VC盛り上がり通知の巡回対象からこのサーバーを削除しました。');
     },
+  },
+  status: {
+    description: '現在のこのサーバーの登録状況を確認します。',
+    async func(interaction) {
+      const { guildId, guild } = interaction;
+      const guildName = guild?.name;
+
+      if (guildName == null) {
+        interaction.reply({ content: '登録解除したいサーバーの中で実行してください。', ephemeral: true });
+        return;
+      }
+      log('peek status vcAttention:', interaction.user.username, guildName);
+
+      const response = await interaction.deferReply();
+
+      const configRecord = db.get(guildId);
+      const embed = new EmbedBuilder({ title: '登録状況' });
+
+      if (configRecord != null) {
+        embed.setDescription('登録済み');
+        embed.addFields(
+          { name: '報告チャンネル', value: `<#${configRecord.channelId}>`, inline: true },
+          { name: '閾値', value: `${configRecord.threshold} 人`, inline: true },
+        );
+      }
+      else {
+        embed.setDescription('未登録');
+      }
+      response.edit({ embeds: [embed] });
+    }
   },
 };
 

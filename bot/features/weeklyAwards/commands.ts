@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, ChannelType, ChatInputCommandInteraction, PermissionFlagsBits } from 'discord.js';
+import { ApplicationCommandOptionType, ChannelType, ChatInputCommandInteraction, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { log } from '@lib/log';
 import { startAward, stopAward } from '.';
 import { db } from './db';
@@ -37,7 +37,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
 
       const response = await interaction.deferReply();
 
-      await db.config.register(guildId, guildName, channel.name);
+      await db.config.register(guildId, guildName, channel.id, channel.name);
       await startAward(guildId);
 
       response.edit(`リアクション大賞の巡回対象にこのサーバーを登録し、週の報告を ${channel} で行うよう設定しました。`);
@@ -62,6 +62,33 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
 
       response.edit('リアクション大賞の巡回対象からこのサーバーを削除しました。');
     },
+  },
+  status: {
+    description: '現在のこのサーバーの登録状況を確認します。',
+    async func(interaction) {
+      const { guildId, guild } = interaction;
+      const guildName = guild?.name;
+
+      if (guildName == null) {
+        interaction.reply({ content: '登録解除したいサーバーの中で実行してください。', ephemeral: true });
+        return;
+      }
+      log('peek status weeklyAward:', interaction.user.username, guildName);
+
+      const response = await interaction.deferReply();
+
+      const configRecord = db.config.get(guildId);
+      const embed = new EmbedBuilder({ title: '登録状況' });
+
+      if (configRecord != null) {
+        embed.setDescription('登録済み');
+        embed.addFields({ name: '報告チャンネル', value: `<#${configRecord.channelId}>` });
+      }
+      else {
+        embed.setDescription('未登録');
+      }
+      response.edit({ embeds: [embed] });
+    }
   },
 };
 
