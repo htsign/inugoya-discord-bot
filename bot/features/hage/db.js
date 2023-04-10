@@ -44,8 +44,8 @@ class HageConfig {
         rareTemplate: row.rare_template,
         timeout: row.timeout,
         stackSize: row.stack_size,
-        createdAt: dayjs(row.created_at).tz(),
-        updatedAt: dayjs(row.updated_at).tz(),
+        createdAt: dayjs.utc(row.created_at).tz(),
+        updatedAt: dayjs.utc(row.updated_at).tz(),
       }));
   }
 
@@ -166,8 +166,8 @@ class HageConfig {
       rareTemplate: row.rare_template,
       timeout: row.timeout,
       stackSize: row.stack_size,
-      createdAt: dayjs(row.created_at).tz(),
-      updatedAt: dayjs(row.updated_at).tz(),
+      createdAt: dayjs.utc(row.created_at).tz(),
+      updatedAt: dayjs.utc(row.updated_at).tz(),
     };
   }
 }
@@ -218,8 +218,8 @@ class HageKeyword {
         id: row.id,
         guildId: row.guild_id,
         keyword: row.keyword,
-        createdAt: dayjs(row.created_at).tz(),
-        updatedAt: dayjs(row.updated_at).tz(),
+        createdAt: dayjs.utc(row.created_at).tz(),
+        updatedAt: dayjs.utc(row.updated_at).tz(),
       }));
   }
 
@@ -308,8 +308,8 @@ class HageKeyword {
       id: row.id,
       guildId,
       keyword,
-      createdAt: dayjs(row.created_at).tz(),
-      updatedAt: dayjs(row.updated_at).tz(),
+      createdAt: dayjs.utc(row.created_at).tz(),
+      updatedAt: dayjs.utc(row.updated_at).tz(),
     }
   }
 }
@@ -360,8 +360,8 @@ class HageReactionKeyword {
         id: row.id,
         guildId: row.guild_id,
         reaction: row.reaction,
-        createdAt: dayjs(row.created_at).tz(),
-        updatedAt: dayjs(row.updated_at).tz(),
+        createdAt: dayjs.utc(row.created_at).tz(),
+        updatedAt: dayjs.utc(row.updated_at).tz(),
       }));
   }
 
@@ -450,8 +450,8 @@ class HageReactionKeyword {
       id: row.id,
       guildId,
       reaction,
-      createdAt: dayjs(row.created_at).tz(),
-      updatedAt: dayjs(row.updated_at).tz(),
+      createdAt: dayjs.utc(row.created_at).tz(),
+      updatedAt: dayjs.utc(row.updated_at).tz(),
     }
   }
 }

@@ -34,8 +34,8 @@ class VCAttentionDatabaseConfig {
         channelId: row.channel_id,
         channelName: row.channel_name,
         threshold: row.threshold,
-        createdAt: dayjs(row.created_at).tz(),
-        updatedAt: dayjs(row.updated_at).tz(),
+        createdAt: dayjs.utc(row.created_at).tz(),
+        updatedAt: dayjs.utc(row.updated_at).tz(),
       }));
   }
 
@@ -141,8 +141,8 @@ class VCAttentionDatabaseConfig {
       channelId: row.channel_id,
       channelName: row.channel_name,
       threshold: row.threshold,
-      createdAt: dayjs(row.created_at).tz(),
-      updatedAt: dayjs(row.updated_at).tz(),
+      createdAt: dayjs.utc(row.created_at).tz(),
+      updatedAt: dayjs.utc(row.updated_at).tz(),
     };
   }
 }

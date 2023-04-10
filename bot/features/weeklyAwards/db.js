@@ -92,9 +92,9 @@ class WeeklyAwardDatabase {
       author: row.author,
       url: row.url,
       reactionsCount: row.reactions_count,
-      timestamp: dayjs(row.timestamp).tz(),
-      createdAt: dayjs(row.created_at).tz(),
-      updatedAt: dayjs(row.updated_at).tz(),
+      timestamp: dayjs.utc(row.timestamp).tz(),
+      createdAt: dayjs.utc(row.created_at).tz(),
+      updatedAt: dayjs.utc(row.updated_at).tz(),
     };
   }
 
@@ -180,9 +180,9 @@ class WeeklyAwardDatabase {
         author: row.author,
         url: row.url,
         reactionsCount: row.reactions_count,
-        timestamp: dayjs(row.timestamp).tz(),
-        createdAt: dayjs(row.created_at).tz(),
-        updatedAt: dayjs(row.updated_at).tz(),
+        timestamp: dayjs.utc(row.timestamp).tz(),
+        createdAt: dayjs.utc(row.created_at).tz(),
+        updatedAt: dayjs.utc(row.updated_at).tz(),
       }));
   }
 
@@ -205,9 +205,9 @@ class WeeklyAwardDatabase {
         author: row.author,
         url: row.url,
         reactionsCount: row.reactions_count,
-        timestamp: dayjs(row.timestamp).tz(),
-        createdAt: dayjs(row.created_at).tz(),
-        updatedAt: dayjs(row.updated_at).tz(),
+        timestamp: dayjs.utc(row.timestamp).tz(),
+        createdAt: dayjs.utc(row.created_at).tz(),
+        updatedAt: dayjs.utc(row.updated_at).tz(),
       };
     }
   }
@@ -334,8 +334,8 @@ class WeeklyAwardDatabaseConfig {
         guildName: row.guild_name,
         channelId: row.channel_id,
         channelName: row.channel_name,
-        createdAt: dayjs(row.created_at).tz(),
-        updatedAt: dayjs(row.updated_at).tz(),
+        createdAt: dayjs.utc(row.created_at).tz(),
+        updatedAt: dayjs.utc(row.updated_at).tz(),
       }));
   }
 
@@ -435,8 +435,8 @@ class WeeklyAwardDatabaseConfig {
       guildName: row.guild_name,
       channelId: row.channel_id,
       channelName: row.channel_name,
-      createdAt: dayjs(row.created_at).tz(),
-      updatedAt: dayjs(row.updated_at).tz(),
+      createdAt: dayjs.utc(row.created_at).tz(),
+      updatedAt: dayjs.utc(row.updated_at).tz(),
     };
   }
 }
