@@ -31,7 +31,7 @@ const timeouts = new Set<Timeout<boolean>>();
 const mtSeed = dayjs().tz();
 const mtRnd = new MersenneTwister(mtSeed.unix());
 
-const getId = (message: Message | PartialMessage): `${Snowflake},${Snowflake},${Snowflake}` => `${message.channelId},${message.guildId},${message.id}`;
+const getId = (message: Message | PartialMessage): `${Snowflake},${Snowflake},${Snowflake}` => `${message.guildId},${message.channelId},${message.id}`;
 
 const replyToHage = (messageHandler: (text: string) => Promise<Message>, id: `${Snowflake},${Snowflake},${Snowflake}`) => {
   reactedMessageIds.add(id);
