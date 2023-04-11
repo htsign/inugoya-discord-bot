@@ -1,4 +1,4 @@
-const { ApplicationCommandType, PermissionFlagsBits, ApplicationCommandOptionType, EmbedBuilder } = require('discord.js');
+const { ApplicationCommandOptionType, ApplicationCommandType, Colors, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const { log } = require('../../lib/log');
 const { DATETIME_FORMAT, emojiRegex, graphemeSplitter } = require('../../lib/util');
 const { db } = require('./db');
@@ -179,7 +179,7 @@ const subCommands = {
       const embed = new EmbedBuilder({ title: '登録状況' });
 
       if (configRecord != null) {
-        embed.setDescription('登録済み');
+        embed.setDescription('登録済み').setColor(Colors.Green);
         embed.addFields(
           { name: 'テンプレート', value: configRecord.template },
           { name: 'しつこいテンプレート', value: configRecord.moreTemplate },
@@ -213,7 +213,7 @@ const subCommands = {
         }
       }
       else {
-        embed.setDescription('未登録');
+        embed.setDescription('未登録').setColor(Colors.Red);
       }
       response.edit({ embeds: [embed] });
     },
