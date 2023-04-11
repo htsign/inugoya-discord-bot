@@ -1,10 +1,15 @@
 import { URL } from 'node:url';
 import chardet from 'chardet';
 import { JSDOM } from 'jsdom';
+import _emojiRegex from 'emoji-regex';
+import GraphemeSplitter from 'grapheme-splitter';
 import type { Url } from 'types';
 
 export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
 export const DATETIME_FORMAT = 'YYYY/MM/DD HH:mm:ss';
+
+export const emojiRegex = _emojiRegex();
+export const graphemeSplitter = new GraphemeSplitter();
 
 export const getEnv = (key: string, name: string = 'token'): string => {
   const token = process.env[key];

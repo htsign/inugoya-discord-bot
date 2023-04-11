@@ -1,7 +1,7 @@
 import { ApplicationCommandOptionType, ApplicationCommandType, ChatInputCommandInteraction, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
 import { log } from '@lib/log';
-import { DATETIME_FORMAT } from '../../lib/util';
+import { DATETIME_FORMAT, emojiRegex, graphemeSplitter } from '../../lib/util';
 import { db } from './db';
 import type { ChatInputCommandCollection } from 'types/bot';
 
@@ -24,6 +24,9 @@ const RARE_TEMPLATE = `.        (~)
 const HAGE_TIMEOUT = 10;
 
 const STACK_SIZE = 5;
+
+const isSingleEmoji = (s: string): boolean =>
+  /^<:\w+?:[0-9]+?>$/.test(s) || (graphemeSplitter.countGraphemes(s) === 1 && emojiRegex.test(s));
 
 const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
   register: {
@@ -291,6 +294,10 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
         interaction.reply({ content: 'リアクションキーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
+      if (!isSingleEmoji(reaction)) {
+        interaction.reply({ content: 'reaction には一つの絵文字のみ指定してください。', ephemeral: true });
+        return;
+      }
       if (db.keywords.get(guildId, reaction) != null) {
         interaction.reply({ content: 'そのリアクションキーワードは登録済みです。', ephemeral: true });
         return;
@@ -320,6 +327,10 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
 
       if (guildName == null) {
         interaction.reply({ content: 'リアクションキーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
+        return;
+      }
+      if (!isSingleEmoji(reaction)) {
+        interaction.reply({ content: 'reaction には一つの絵文字のみ指定してください。', ephemeral: true });
         return;
       }
       if (db.reactionKeywords.get(guildId, reaction) == null) {
