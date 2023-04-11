@@ -1,6 +1,6 @@
 const { ApplicationCommandType, PermissionFlagsBits, ApplicationCommandOptionType, EmbedBuilder } = require('discord.js');
 const { log } = require('../../lib/log');
-const { DATETIME_FORMAT } = require('../../lib/util');
+const { DATETIME_FORMAT, emojiRegex, graphemeSplitter } = require('../../lib/util');
 const { db } = require('./db');
 
 const TEMPLATE = ` 彡⌒ミ
@@ -22,6 +22,12 @@ const RARE_TEMPLATE = `.        (~)
 const HAGE_TIMEOUT = 10;
 
 const STACK_SIZE = 5;
+
+/**
+ * @param {string} s
+ * @returns {boolean}
+ */
+const isSingleEmoji = s => /^<:\w+?:[0-9]+?>$/.test(s) || (graphemeSplitter.countGraphemes(s) === 1 && emojiRegex.test(s));
 
 /** @type {ChatInputCommand<void, {}, 'cached' | 'raw'>} */
 const subCommands = {
@@ -292,6 +298,10 @@ const subCommands = {
         interaction.reply({ content: 'リアクションキーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
+      if (!isSingleEmoji(reaction)) {
+        interaction.reply({ content: 'reaction には一つの絵文字のみ指定してください。', ephemeral: true });
+        return;
+      }
       if (db.keywords.get(guildId, reaction) != null) {
         interaction.reply({ content: 'そのリアクションキーワードは登録済みです。', ephemeral: true });
         return;
@@ -321,6 +331,10 @@ const subCommands = {
 
       if (guildName == null) {
         interaction.reply({ content: 'リアクションキーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
+        return;
+      }
+      if (!isSingleEmoji(reaction)) {
+        interaction.reply({ content: 'reaction には一つの絵文字のみ指定してください。', ephemeral: true });
         return;
       }
       if (db.reactionKeywords.get(guildId, reaction) == null) {

@@ -2,6 +2,8 @@ const { URL } = require('node:url');
 const dotenv = require('dotenv');
 const chardet = require('chardet');
 const { JSDOM } = require('jsdom');
+const emojiRegex = require('emoji-regex');
+const GraphemeSplitter = require('grapheme-splitter');
 
 const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
 const DATETIME_FORMAT = 'YYYY/MM/DD HH:mm:ss';
@@ -107,6 +109,10 @@ module.exports = {
   URL_REGEX_GLOBAL,
   DATETIME_FORMAT,
   getEnv,
+  /** @type {RegExp} */
+  // @ts-ignore
+  emojiRegex: emojiRegex(),
+  graphemeSplitter: new GraphemeSplitter(),
   getUrlDomain,
   isUrl,
   retrieveRealUrl,
