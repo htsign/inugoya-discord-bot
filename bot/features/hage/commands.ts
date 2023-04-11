@@ -214,6 +214,31 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
       response.edit({ embeds: [embed] });
     },
   },
+  initkeywords: {
+    description: '予め用意されたキーワード群を追加します。',
+    async func(interaction: ChatInputCommandInteraction<'cached' | 'raw'>): Promise<void> {
+      const { guildId, guild, user } = interaction;
+      const guildName = guild?.name;
+
+      if (guildName == null) {
+        interaction.reply({ content: 'キーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
+        return;
+      }
+      log('initialize keywords for hage:', user.username, guildName);
+
+      const response = await interaction.deferReply();
+
+      const addKeywordPromises: Promise<void>[] = [];
+
+      const newKeywords = (await import('./keywords.json')).filter(keyword => db.keywords.get(guildId, keyword) == null);
+      for (const keyword of newKeywords) {
+        addKeywordPromises.push(db.keywords.add(guildId, keyword));
+      }
+      await Promise.all(addKeywordPromises);
+
+      response.edit(`キーワードに${newKeywords.map(keyword => `「 ${keyword} 」`).join('')}を登録しました。`);
+    },
+  },
   addkeyword: {
     description: '新しくキーワードを追加します。',
     options: [
@@ -274,6 +299,31 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
       await db.keywords.remove(guildId, keyword);
 
       response.edit(`「 ${keyword} 」をキーワードから削除しました。`);
+    },
+  },
+  initreactions: {
+    description: '予め用意されたリアクションキーワード群を追加します。',
+    async func(interaction: ChatInputCommandInteraction<'cached' | 'raw'>): Promise<void> {
+      const { guildId, guild, user } = interaction;
+      const guildName = guild?.name;
+
+      if (guildName == null) {
+        interaction.reply({ content: 'リアクションキーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
+        return;
+      }
+      log('initialize reaction keywords for hage:', user.username, guildName);
+
+      const response = await interaction.deferReply();
+
+      const addReactionPromises: Promise<void>[] = [];
+
+      const newReactions = (await import('./keywordReactions.json')).filter(reaction => db.keywords.get(guildId, reaction) == null);
+      for (const reaction of newReactions) {
+        addReactionPromises.push(db.reactionKeywords.add(guildId, reaction));
+      }
+      await Promise.all(addReactionPromises);
+
+      response.edit(`リアクションキーワードに${newReactions.map(reaction => `「 ${reaction} 」`).join('')}を登録しました。`);
     },
   },
   addreaction: {
