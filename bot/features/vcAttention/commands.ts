@@ -1,8 +1,8 @@
-import { ApplicationCommandOptionType, ChannelType, ChatInputCommandInteraction, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import { ApplicationCommandOptionType, ChannelType, ChatInputCommandInteraction, Colors, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { log } from '@lib/log';
 import { DATETIME_FORMAT } from '@lib/util';
 import { db } from './db';
-import { ChatInputCommandCollection } from "types/bot";
+import { ChatInputCommandCollection } from 'types/bot';
 
 const DEFAULT_THRESHOLD = 5;
 
@@ -87,7 +87,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
       const embed = new EmbedBuilder({ title: '登録状況' });
 
       if (configRecord != null) {
-        embed.setDescription('登録済み');
+        embed.setDescription('登録済み').setColor(Colors.Green);
         embed.addFields(
           { name: '報告チャンネル', value: `<#${configRecord.channelId}>`, inline: true },
           { name: '閾値', value: `${configRecord.threshold} 人`, inline: true },
@@ -97,7 +97,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
         );
       }
       else {
-        embed.setDescription('未登録');
+        embed.setDescription('未登録').setColor(Colors.Red);
       }
       response.edit({ embeds: [embed] });
     },

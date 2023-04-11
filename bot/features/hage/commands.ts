@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, ApplicationCommandType, ChatInputCommandInteraction, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import { ApplicationCommandOptionType, ApplicationCommandType, ChatInputCommandInteraction, Colors, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
 import { log } from '@lib/log';
 import { DATETIME_FORMAT, emojiRegex, graphemeSplitter } from '../../lib/util';
@@ -175,7 +175,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
       const embed = new EmbedBuilder({ title: '登録状況' });
 
       if (configRecord != null) {
-        embed.setDescription('登録済み');
+        embed.setDescription('登録済み').setColor(Colors.Green);
         embed.addFields(
           { name: 'テンプレート', value: configRecord.template },
           { name: 'しつこいテンプレート', value: configRecord.moreTemplate },
@@ -209,7 +209,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
         }
       }
       else {
-        embed.setDescription('未登録');
+        embed.setDescription('未登録').setColor(Colors.Red);
       }
       response.edit({ embeds: [embed] });
     },
