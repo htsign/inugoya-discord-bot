@@ -301,7 +301,7 @@ const subCommands = {
 
       const response = await interaction.deferReply();
 
-      await db.keywords.remove(guildId, keyword);
+      await db.keywords.delete(guildId, keyword);
 
       response.edit(`「 ${keyword} 」をキーワードから削除しました。`);
     },
@@ -397,7 +397,7 @@ const subCommands = {
 
       const response = await interaction.deferReply();
 
-      await db.reactionKeywords.remove(guildId, reaction);
+      await db.reactionKeywords.delete(guildId, reaction);
 
       response.edit(`「 ${reaction} 」をリアクションキーワードから削除しました。`);
     },

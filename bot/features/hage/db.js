@@ -8,9 +8,9 @@ class HageConfig {
   #TABLE = 'config';
 
   /** @type {HageKeyword} */
-  keywords;
+  #keywords;
   /** @type {HageReactionKeyword} */
-  reactionKeywords;
+  #reactionKeywords;
 
   /** @type {(row: unknown) => row is HageConfigRow} */
   static #isRow(row) {
@@ -49,6 +49,14 @@ class HageConfig {
       }));
   }
 
+  get keywords() {
+    return this.#keywords;
+  }
+
+  get reactionKeywords() {
+    return this.#reactionKeywords;
+  }
+
   constructor() {
     db.prepare(`
       create table if not exists ${this.#TABLE} (
@@ -64,8 +72,8 @@ class HageConfig {
       )
     `).run();
 
-    this.keywords = new HageKeyword();
-    this.reactionKeywords = new HageReactionKeyword();
+    this.#keywords = new HageKeyword();
+    this.#reactionKeywords = new HageReactionKeyword();
   }
 
   /**
@@ -260,9 +268,9 @@ class HageKeyword {
    * @param {string} keyword
    * @returns {Promise<void>}
    */
-  async remove(guildId, keyword) {
+  async delete(guildId, keyword) {
     if (this.get(guildId, keyword) == null) {
-      return log('HageKeyword#remove:', 'not found', guildId, keyword);
+      return log('HageKeyword#delete:', 'not found', guildId, keyword);
     }
 
     const stmt = db.prepare(`
@@ -278,7 +286,7 @@ class HageKeyword {
     catch (e) {
       if (e instanceof TypeError && e.message.includes('database connection is busy')) {
         await setTimeout();
-        return this.remove(guildId, keyword);
+        return this.delete(guildId, keyword);
       }
       throw e;
     }
@@ -402,9 +410,9 @@ class HageReactionKeyword {
    * @param {string} reaction
    * @returns {Promise<void>}
    */
-  async remove(guildId, reaction) {
+  async delete(guildId, reaction) {
     if (this.get(guildId, reaction) == null) {
-      return log('HageReactionKeyword#remove:', 'not found', guildId, reaction);
+      return log('HageReactionKeyword#delete:', 'not found', guildId, reaction);
     }
 
     const stmt = db.prepare(`
@@ -420,7 +428,7 @@ class HageReactionKeyword {
     catch (e) {
       if (e instanceof TypeError && e.message.includes('database connection is busy')) {
         await setTimeout();
-        return this.remove(guildId, reaction);
+        return this.delete(guildId, reaction);
       }
       throw e;
     }

@@ -4,10 +4,11 @@ const { isUrl } = require('../../lib/util');
 
 const db = require('better-sqlite3')('weeklyAward.db');
 
-const TABLE = 'reacted_messages';
+class WeeklyAward {
+  #TABLE = 'reacted_messages';
 
-class WeeklyAwardDatabase {
-  #config = new WeeklyAwardDatabaseConfig();
+  /** @type {WeeklyAwardConfig} */
+  #config;
 
   /** @type {(row: unknown) => row is WeeklyAwardDatabaseRow} */
   static #isRow(row) {
@@ -36,7 +37,7 @@ class WeeklyAwardDatabase {
   constructor() {
     db.pragma('auto_vacuum = incremental');
     db.prepare(`
-      create table if not exists ${TABLE} (
+      create table if not exists ${this.#TABLE} (
         guild_id text not null,
         channel_id text not null,
         message_id text not null,
@@ -52,6 +53,8 @@ class WeeklyAwardDatabase {
         primary key (guild_id, channel_id, message_id)
       )
     `).run();
+
+    this.#config = new WeeklyAwardConfig();
   }
 
   /**
@@ -72,7 +75,7 @@ class WeeklyAwardDatabase {
         timestamp,
         created_at,
         updated_at
-      from ${TABLE}
+      from ${this.#TABLE}
       where
         guild_id   = @guildId   and
         channel_id = @channelId and
@@ -80,7 +83,7 @@ class WeeklyAwardDatabase {
     `);
 
     const row = stmt.get({ guildId, channelId, messageId });
-    if (!WeeklyAwardDatabase.#isRow(row)) return null;
+    if (!WeeklyAward.#isRow(row)) return null;
 
     return {
       guildId,
@@ -105,7 +108,7 @@ class WeeklyAwardDatabase {
    */
   async set(message, reactionsCount) {
     const stmt = db.prepare(`
-      insert into ${TABLE} (
+      insert into ${this.#TABLE} (
         guild_id,
         channel_id,
         message_id,
@@ -166,10 +169,10 @@ class WeeklyAwardDatabase {
 
   /** @returns {WeeklyAwardRecord[]} */
   all() {
-    const stmt = db.prepare(`select * from ${TABLE}`);
+    const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
     return stmt.all()
-      .filter(WeeklyAwardDatabase.#isRow)
+      .filter(WeeklyAward.#isRow)
       .map(row => ({
         guildId: row.guild_id,
         channelId: row.channel_id,
@@ -190,10 +193,10 @@ class WeeklyAwardDatabase {
    * @returns {Generator<WeeklyAwardRecord>}
    */
   *iterate() {
-    const stmt = db.prepare(`select * from ${TABLE}`);
+    const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
     for (const row of stmt.iterate()) {
-      if (!WeeklyAwardDatabase.#isRow(row)) continue;
+      if (!WeeklyAward.#isRow(row)) continue;
 
       yield {
         guildId: row.guild_id,
@@ -242,7 +245,7 @@ class WeeklyAwardDatabase {
    */
   async delete(guildId, channelId, messageId) {
     const stmt = db.prepare(`
-      delete from ${TABLE}
+      delete from ${this.#TABLE}
       where
         guild_id   = @guildId   and
         channel_id = @channelId and
@@ -272,8 +275,8 @@ class WeeklyAwardDatabase {
         guild_id = @guildId and
         julianday('now') - julianday(timestamp) > @days
     `;
-    const cntStmt = db.prepare(`select count(*) from ${TABLE} ${whereStatement}`).pluck();
-    const delStmt = db.prepare(`delete from ${TABLE} ${whereStatement}`);
+    const cntStmt = db.prepare(`select count(*) from ${this.#TABLE} ${whereStatement}`).pluck();
+    const delStmt = db.prepare(`delete from ${this.#TABLE} ${whereStatement}`);
 
     try {
       // return outdated records count
@@ -305,7 +308,7 @@ class WeeklyAwardDatabase {
   }
 }
 
-class WeeklyAwardDatabaseConfig {
+class WeeklyAwardConfig {
   #TABLE = 'post_target';
 
   /** @type {(row: unknown) => row is WeeklyAwardConfigRow} */
@@ -328,7 +331,7 @@ class WeeklyAwardDatabaseConfig {
 
     const rows = stmt.all();
     return rows
-      .filter(WeeklyAwardDatabaseConfig.#isRow)
+      .filter(WeeklyAwardConfig.#isRow)
       .map(row => ({
         guildId: row.guild_id,
         guildName: row.guild_name,
@@ -428,7 +431,7 @@ class WeeklyAwardDatabaseConfig {
     `);
 
     const row = stmt.get(guildId);
-    if (!WeeklyAwardDatabaseConfig.#isRow(row)) return null;
+    if (!WeeklyAwardConfig.#isRow(row)) return null;
 
     return {
       guildId: row.guild_id,
@@ -441,4 +444,4 @@ class WeeklyAwardDatabaseConfig {
   }
 }
 
-exports.db = new WeeklyAwardDatabase();
+exports.db = new WeeklyAward();
