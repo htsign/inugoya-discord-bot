@@ -183,6 +183,9 @@ const startAward = async guildId => {
     updatedAt: updatedAt.toISOString(),
   });
 
+  if (instances.has(guildId)) {
+    await stopAward(guildId);
+  }
   return tick(guildId, guildName, channelName, weekday, hour, minute);
 };
 
