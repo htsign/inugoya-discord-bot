@@ -1,6 +1,7 @@
 const { setTimeout } = require('node:timers/promises');
 const dayjs = require('../../lib/dayjsSetup');
 const { isUrl } = require('../../lib/util');
+const { fromNumber } = require('./weekday');
 
 const db = require('better-sqlite3')('weeklyAward.db');
 
@@ -9,6 +10,8 @@ class WeeklyAward {
 
   /** @type {WeeklyAwardConfig} */
   #config;
+  /** @type {WeeklyAwardTime} */
+  #times;
 
   /** @type {(row: unknown) => row is WeeklyAwardDatabaseRow} */
   static #isRow(row) {
@@ -34,6 +37,10 @@ class WeeklyAward {
     return this.#config;
   }
 
+  get times() {
+    return this.#times;
+  }
+
   constructor() {
     db.pragma('auto_vacuum = incremental');
     db.prepare(`
@@ -55,6 +62,7 @@ class WeeklyAward {
     `).run();
 
     this.#config = new WeeklyAwardConfig();
+    this.#times = new WeeklyAwardTime();
   }
 
   /**
@@ -438,6 +446,125 @@ class WeeklyAwardConfig {
       guildName: row.guild_name,
       channelId: row.channel_id,
       channelName: row.channel_name,
+      createdAt: dayjs.utc(row.created_at).tz(),
+      updatedAt: dayjs.utc(row.updated_at).tz(),
+    };
+  }
+}
+
+class WeeklyAwardTime {
+  #TABLE = 'times';
+
+  /** @type {(row: unknown) => row is WeeklyAwardTimeRow} */
+  static #isRow(row) {
+    if (row == null || typeof row !== 'object') return false;
+
+    if (!('guild_id' in row && typeof row.guild_id === 'string')) return false;
+    if (!('weekday' in row && typeof row.weekday === 'number')) return false;
+    if (!('hour' in row && typeof row.hour === 'number')) return false;
+    if (!('minute' in row && typeof row.minute === 'number')) return false;
+    if (!('created_at' in row && typeof row.created_at === 'string')) return false;
+    if (!('updated_at' in row && typeof row.updated_at === 'string')) return false;
+
+    return true;
+  }
+
+  constructor() {
+    db.prepare(`
+      create table if not exists ${this.#TABLE} (
+        guild_id text not null primary key,
+        weekday integer not null,
+        hour integer not null,
+        minute integer not null,
+        created_at text not null default (datetime('now')),
+        updated_at text not null default (datetime('now'))
+      )
+    `).run();
+  }
+
+  /**
+   * @param {string} guildId
+   * @param {Weekday} weekday
+   * @param {number} hour
+   * @param {number} minute
+   * @returns {Promise<void>}
+   */
+  async set(guildId, weekday, hour, minute) {
+    const stmt = db.prepare(`
+      insert into ${this.#TABLE} (
+        guild_id,
+        weekday,
+        hour,
+        minute
+      ) values (
+        @guildId,
+        @weekday,
+        @hour,
+        @minute
+      )
+      on conflict (guild_id) do
+        update set
+          weekday = @weekday,
+          hour = @hour,
+          minute = @minute,
+          updated_at = datetime('now')
+    `);
+
+    try {
+      stmt.run({ guildId, weekday, hour, minute });
+    }
+    catch (e) {
+      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+        await setTimeout();
+        return this.set(guildId, weekday, hour, minute);
+      }
+      throw e;
+    }
+  }
+
+  /**
+   * @param {string} guildId
+   * @returns {Promise<void>}
+   */
+  async delete(guildId) {
+    const stmt = db.prepare(`
+      delete from ${this.#TABLE}
+      where
+        guild_id = ?
+    `);
+
+    try {
+      stmt.run(guildId);
+    }
+    catch (e) {
+      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+        await setTimeout();
+        return this.delete(guildId);
+      }
+      throw e;
+    }
+  }
+
+  /**
+   * @param {string} guildId
+   * @returns {WeeklyAwardTimeRecord?}
+   */
+  get(guildId) {
+    const stmt = db.prepare(`
+      select *
+      from ${this.#TABLE}
+      where
+        guild_id = ?
+    `);
+
+    const row = stmt.get(guildId);
+    if (!WeeklyAwardTime.#isRow(row)) return null;
+
+    return {
+      guildId: row.guild_id,
+      weekday: fromNumber(row.weekday),
+      hour: row.hour,
+      minute: row.minute,
       createdAt: dayjs.utc(row.created_at).tz(),
       updatedAt: dayjs.utc(row.updated_at).tz(),
     };

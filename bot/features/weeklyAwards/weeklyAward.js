@@ -5,8 +5,6 @@ const { log } = require('../../lib/log');
 const { fetchMessageByIds, messageToEmbeds } = require('../util');
 const { db } = require('./db');
 
-const SUNDAY = 0;
-
 /**
  * @type {Map<string, NodeJS.Timeout>}
  * key is Guild ID, value is Timeout ID
@@ -55,14 +53,17 @@ client.on(Events.MessageReactionRemove, async (reaction, user) => {
  * @param {string} guildId
  * @param {string} guildName
  * @param {string} channelName
+ * @param {Weekday} weekday
+ * @param {number} hour
+ * @param {number} minute
  * @returns {Promise<void>}
  */
-const tick = async (guildId, guildName, channelName) => {
+const tick = async (guildId, guildName, channelName, weekday, hour, minute) => {
   const { isNonEmpty } = await import('ts-array-length');
 
   const now = dayjs().tz();
 
-  if (now.day() === SUNDAY && now.hour() === 12 && now.minute() === 0) {
+  if (now.day() === weekday && now.hour() === hour && now.minute() === minute) {
     log(guildName, 'WeeklyAward: report initiated');
 
     const guilds = await client.guilds.fetch();
@@ -153,12 +154,12 @@ const tick = async (guildId, guildName, channelName) => {
     log(guildName, 'WeeklyAward: report finished');
 
     // run again almost next week.
-    const timeout = setTimeout(() => tick(guildId, guildName, channelName), 86400 * 1000 * 6.9);
+    const timeout = setTimeout(() => tick(guildId, guildName, channelName, weekday, hour, minute), 86400 * 1000 * 6.9);
     instances.set(guildId, timeout);
   }
   // or else, after 1 sec.
   else {
-    const timeout = setTimeout(() => tick(guildId, guildName, channelName), 1000);
+    const timeout = setTimeout(() => tick(guildId, guildName, channelName, weekday, hour, minute), 1000);
     instances.set(guildId, timeout);
   }
 };
@@ -169,18 +170,20 @@ const tick = async (guildId, guildName, channelName) => {
  */
 const startAward = async guildId => {
   const configRecord = db.config.get(guildId);
-  if (configRecord == null) {
+  const timeRecord = db.times.get(guildId);
+  if (configRecord == null || timeRecord == null) {
     return log(`startAward: ${{ guildId }} is not registered.`);
   }
 
   const { guildName, channelName, createdAt, updatedAt } = configRecord;
+  const { weekday, hour, minute } = timeRecord;
   log('startAward:', {
     ...configRecord,
     createdAt: createdAt.toISOString(),
     updatedAt: updatedAt.toISOString(),
   });
 
-  return tick(guildId, guildName, channelName);
+  return tick(guildId, guildName, channelName, weekday, hour, minute);
 };
 
 /**

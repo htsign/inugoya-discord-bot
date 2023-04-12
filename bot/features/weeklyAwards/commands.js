@@ -3,6 +3,11 @@ const { log } = require('../../lib/log');
 const { DATETIME_FORMAT } = require('../../lib/util');
 const { startAward, stopAward } = require('.');
 const { db } = require('./db');
+const { SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, fromNumber, jpString } = require('./weekday');
+
+const DEFAULT_WEEKDAY = SUNDAY;
+const DEFAULT_HOUR = 12;
+const DEFAULT_MINUTE = 0;
 
 /** @type {ChatInputCommand<void, {}, 'cached' | 'raw'>} */
 const subCommands = {
@@ -15,7 +20,29 @@ const subCommands = {
         type: ApplicationCommandOptionType.Channel,
         channelTypes: [ChannelType.GuildAnnouncement, ChannelType.GuildText],
         required: true,
-      }
+      },
+      {
+        name: 'weekday',
+        description: `報告する週（デフォルト: ${jpString(DEFAULT_WEEKDAY)}）`,
+        type: ApplicationCommandOptionType.Integer,
+        choices: [SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY].map(n => ({ name: jpString(n), value: n })),
+        minValue: SUNDAY,
+        maxValue: SATURDAY,
+      },
+      {
+        name: 'hour',
+        description: `報告する時間（デフォルト: ${DEFAULT_HOUR}）`,
+        type: ApplicationCommandOptionType.Integer,
+        minValue: 0,
+        maxValue: 23,
+      },
+      {
+        name: 'minute',
+        description: `報告する分（デフォルト: ${DEFAULT_MINUTE}）`,
+        type: ApplicationCommandOptionType.Integer,
+        minValue: 0,
+        maxValue: 59,
+      },
     ],
     async func(interaction) {
       const guildId = interaction.guildId;
@@ -27,6 +54,9 @@ const subCommands = {
       }
 
       const channel = interaction.options.getChannel('channel', true);
+      const weekday = fromNumber(interaction.options.getInteger('weekday') ?? DEFAULT_WEEKDAY);
+      const hour = interaction.options.getInteger('hour') ?? DEFAULT_HOUR;
+      const minute = interaction.options.getInteger('minute') ?? DEFAULT_MINUTE;
 
       if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || 'permissions' in channel) {
         interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
@@ -41,9 +71,15 @@ const subCommands = {
       const response = await interaction.deferReply();
 
       await db.config.register(guildId, guildName, channel.id, channel.name);
+      await db.times.set(guildId, weekday, hour, minute);
       await startAward(guildId);
 
-      response.edit(`リアクション大賞の巡回対象にこのサーバーを登録し、週の報告を ${channel} で行うよう設定しました。`);
+      const hourString = String(hour).padStart(2, '0');
+      const minuteString = String(minute).padStart(2, '0');
+      response.edit([
+        'リアクション大賞の巡回対象にこのサーバーを登録し、',
+        `週の報告を ${jpString(weekday)}の ${hourString}:${minuteString} に ${channel} で行うよう設定しました。`,
+      ].join(''));
     },
   },
   unregister: {
@@ -61,6 +97,7 @@ const subCommands = {
       const response = await interaction.deferReply();
 
       await stopAward(guildId);
+      await db.times.delete(guildId);
       await db.config.unregister(guildId);
 
       response.edit('リアクション大賞の巡回対象からこのサーバーを削除しました。');
@@ -74,7 +111,29 @@ const subCommands = {
         description: '報告させたいチャンネル',
         type: ApplicationCommandOptionType.Channel,
         channelTypes: [ChannelType.GuildAnnouncement, ChannelType.GuildText],
-      }
+      },
+      {
+        name: 'weekday',
+        description: '報告する週',
+        type: ApplicationCommandOptionType.Integer,
+        choices: [SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY].map(n => ({ name: jpString(n), value: n })),
+        minValue: SUNDAY,
+        maxValue: SATURDAY,
+      },
+      {
+        name: 'hour',
+        description: '報告する時間',
+        type: ApplicationCommandOptionType.Integer,
+        minValue: 0,
+        maxValue: 23,
+      },
+      {
+        name: 'minute',
+        description: '報告する分',
+        type: ApplicationCommandOptionType.Integer,
+        minValue: 0,
+        maxValue: 59,
+      },
     ],
     async func(interaction) {
       const { guildId, guild, user } = interaction;
@@ -86,12 +145,16 @@ const subCommands = {
       }
 
       const configRecord = db.config.get(guildId);
-      if (configRecord == null) {
+      const timeRecord = db.times.get(guildId);
+      if (configRecord == null || timeRecord == null) {
         interaction.reply({ content: 'このサーバーはまだ登録されていません。', ephemeral: true });
         return;
       }
 
       const channel = interaction.options.getChannel('channel') ?? await guild.channels.fetch(configRecord.channelId);
+      const weekday = fromNumber(interaction.options.getInteger('weekday') ?? timeRecord.weekday);
+      const hour = interaction.options.getInteger('hour') ?? timeRecord.hour;
+      const minute = interaction.options.getInteger('minute') ?? timeRecord.minute;
 
       if (channel == null) {
         interaction.reply({ content: '指定されたチャンネルは見つかりません。', ephemeral: true });
@@ -110,8 +173,13 @@ const subCommands = {
       const response = await interaction.deferReply();
 
       await db.config.register(guildId, guildName, channel.id, channel.name);
+      await db.times.set(guildId, weekday, hour, minute);
+      await stopAward(guildId);
+      await startAward(guildId);
 
-      response.edit(`週の報告を ${channel} で行うよう設定しました。`);
+      const hourString = String(hour).padStart(2, '0');
+      const minuteString = String(minute).padStart(2, '0');
+      response.edit(`週の報告を ${jpString(weekday)}の ${hourString}:${minuteString} に ${channel} で行うよう設定しました。`);
     },
   },
   status: {
@@ -129,12 +197,23 @@ const subCommands = {
       const response = await interaction.deferReply();
 
       const configRecord = db.config.get(guildId);
+      const timeRecord = db.times.get(guildId);
       const embed = new EmbedBuilder({ title: '登録状況' });
 
       if (configRecord != null) {
+        if (timeRecord == null) {
+          interaction.reply({ content: 'DBデータ不整合です。 `/weeklyaward register` し直してください。', ephemeral: true });
+          return;
+        }
+
+        const { weekday, hour, minute } = timeRecord;
+        const hourString = String(hour).padStart(2, '0');
+        const minuteString = String(minute).padStart(2, '0');
+
         embed.setDescription('登録済み').setColor(Colors.Green);
         embed.addFields(
-          { name: '報告チャンネル', value: `<#${configRecord.channelId}>` },
+          { name: '報告チャンネル', value: `<#${configRecord.channelId}>`, inline: true },
+          { name: '報告時間', value: `${jpString(weekday)}の ${hourString}:${minuteString}`, inline: true },
           { name: ' ', value: '----------------' },
           { name: '初回設定日時', value: configRecord.createdAt.format(DATETIME_FORMAT), inline: true },
           { name: '最終更新日時', value: configRecord.updatedAt.format(DATETIME_FORMAT), inline: true },

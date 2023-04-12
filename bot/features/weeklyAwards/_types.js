@@ -1,3 +1,5 @@
+/** @typedef {0 | 1 | 2 | 3 | 4 | 5 | 6} Weekday */
+
 /**
  * @typedef MessageAndReactions
  * @property {Message<true>} message
@@ -31,6 +33,16 @@
  */
 
 /**
+ * @typedef WeeklyAwardTimeRecord
+ * @property {string} guildId
+ * @property {Weekday} weekday
+ * @property {number} hour
+ * @property {number} minute
+ * @property {Dayjs} createdAt
+ * @property {Dayjs} updatedAt
+ */
+
+/**
  * @typedef WeeklyAwardDatabaseRow
  * @property {string} guild_id
  * @property {string} channel_id
@@ -52,6 +64,16 @@
  * @property {string} guild_name
  * @property {string} channel_id
  * @property {string} channel_name
+ * @property {string} created_at
+ * @property {string} updated_at
+ */
+
+/**
+ * @typedef WeeklyAwardTimeRow
+ * @property {string} guild_id
+ * @property {number} weekday
+ * @property {number} hour
+ * @property {number} minute
  * @property {string} created_at
  * @property {string} updated_at
  */
