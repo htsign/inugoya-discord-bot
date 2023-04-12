@@ -3,7 +3,15 @@ import { Message } from 'discord.js';
 import { Database } from 'bun:sqlite';
 import { dayjs } from '@lib/dayjsSetup';
 import { isUrl } from '@lib/util';
-import type { WeeklyAwardConfigRecord, WeeklyAwardConfigRow, WeeklyAwardDatabaseRow, WeeklyAwardRecord } from 'types/bot/features/weeklyAwards';
+import { fromNumber } from './weekday';
+import type {
+  WeeklyAwardConfigRecord,
+  WeeklyAwardConfigRow,
+  WeeklyAwardDatabaseRow,
+  WeeklyAwardRecord,
+  WeeklyAwardTimeRecord,
+  WeeklyAwardTimeRow,
+} from 'types/bot/features/weeklyAwards';
 
 const db = new Database('weeklyAward.db', { readwrite: true, create: true });
 
@@ -11,6 +19,7 @@ class WeeklyAward {
   #TABLE = 'reacted_messages';
 
   #config: WeeklyAwardConfig;
+  #times: WeeklyAwardTime;
 
   static #isRow(row: unknown): row is WeeklyAwardDatabaseRow {
     if (row == null || typeof row !== 'object') return false;
@@ -35,6 +44,10 @@ class WeeklyAward {
     return this.#config;
   }
 
+  get times(): WeeklyAwardTime {
+    return this.#times;
+  }
+
   constructor() {
     db.run('pragma auto_vacuum = incremental');
     db.run(`
@@ -56,6 +69,7 @@ class WeeklyAward {
     `);
 
     this.#config = new WeeklyAwardConfig();
+    this.#times = new WeeklyAwardTime();
   }
 
   get(guildId: string, channelId: string, messageId: string): WeeklyAwardRecord | null {
@@ -405,6 +419,109 @@ class WeeklyAwardConfig {
       guildName: row.guild_name,
       channelId: row.channel_id,
       channelName: row.channel_name,
+      createdAt: dayjs.utc(row.created_at).tz(),
+      updatedAt: dayjs.utc(row.updated_at).tz(),
+    };
+  }
+}
+
+class WeeklyAwardTime {
+  #TABLE = 'times';
+
+  static #isRow(row: unknown): row is WeeklyAwardTimeRow {
+    if (row == null || typeof row !== 'object') return false;
+
+    if (!('guild_id' in row && typeof row.guild_id === 'string')) return false;
+    if (!('weekday' in row && typeof row.weekday === 'number')) return false;
+    if (!('hour' in row && typeof row.hour === 'number')) return false;
+    if (!('minute' in row && typeof row.minute === 'number')) return false;
+    if (!('created_at' in row && typeof row.created_at === 'string')) return false;
+    if (!('updated_at' in row && typeof row.updated_at === 'string')) return false;
+
+    return true;
+  }
+
+  constructor() {
+    db.prepare(`
+      create table if not exists ${this.#TABLE} (
+        guild_id text not null primary key,
+        weekday integer not null,
+        hour integer not null,
+        minute integer not null,
+        created_at text not null default (datetime('now')),
+        updated_at text not null default (datetime('now'))
+      )
+    `).run();
+  }
+
+  async set(guildId: string, weekday: number, hour: number, minute: number): Promise<void> {
+    const stmt = db.prepare(`
+      insert into ${this.#TABLE} (
+        guild_id,
+        weekday,
+        hour,
+        minute
+      ) values (
+        @guildId,
+        @weekday,
+        @hour,
+        @minute
+      )
+      on conflict (guild_id) do
+        update set
+          weekday = @weekday,
+          hour = @hour,
+          minute = @minute,
+          updated_at = datetime('now')
+    `);
+
+    try {
+      stmt.run({ guildId, weekday, hour, minute });
+    }
+    catch (e) {
+      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+        await setTimeout();
+        return this.set(guildId, weekday, hour, minute);
+      }
+      throw e;
+    }
+  }
+
+  async delete(guildId: string): Promise<void> {
+    const stmt = db.prepare(`
+      delete from ${this.#TABLE}
+      where
+        guild_id = ?
+    `);
+
+    try {
+      stmt.run(guildId);
+    }
+    catch (e) {
+      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+        await setTimeout();
+        return this.delete(guildId);
+      }
+      throw e;
+    }
+  }
+
+  get(guildId: string): WeeklyAwardTimeRecord | null {
+    const stmt = db.prepare(`
+      select *
+      from ${this.#TABLE}
+      where
+        guild_id = ?
+    `);
+
+    const row = stmt.get(guildId);
+    if (!WeeklyAwardTime.#isRow(row)) return null;
+
+    return {
+      guildId: row.guild_id,
+      weekday: fromNumber(row.weekday),
+      hour: row.hour,
+      minute: row.minute,
       createdAt: dayjs.utc(row.created_at).tz(),
       updatedAt: dayjs.utc(row.updated_at).tz(),
     };
