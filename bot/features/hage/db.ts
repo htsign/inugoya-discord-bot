@@ -9,8 +9,8 @@ const db = new Database('hage.db', { readwrite: true, create: true });
 class HageConfig {
   #TABLE = 'config';
 
-  keywords: HageKeyword;
-  reactionKeywords: HageReactionKeyword;
+  #keywords: HageKeyword;
+  #reactionKeywords: HageReactionKeyword;
 
   static #isRow(row: unknown): row is HageConfigRow {
     if (row == null || typeof row !== 'object') return false;
@@ -47,6 +47,14 @@ class HageConfig {
       }));
   }
 
+  get keywords() {
+    return this.#keywords;
+  }
+
+  get reactionKeywords() {
+    return this.#reactionKeywords;
+  }
+
   constructor() {
     db.run(`
       create table if not exists ${this.#TABLE} (
@@ -62,8 +70,8 @@ class HageConfig {
       )
     `);
 
-    this.keywords = new HageKeyword();
-    this.reactionKeywords = new HageReactionKeyword();
+    this.#keywords = new HageKeyword();
+    this.#reactionKeywords = new HageReactionKeyword();
   }
 
   async register(guildId: string, guildName: string, template: string, moreTemplate: string, rareTemplate: string, timeout: number, stackSize: number): Promise<void> {
@@ -236,9 +244,9 @@ class HageKeyword {
     }
   }
 
-  async remove(guildId: string, keyword: string): Promise<void> {
+  async delete(guildId: string, keyword: string): Promise<void> {
     if (this.get(guildId, keyword) == null) {
-      return log('HageKeyword#remove:', 'not found', guildId, keyword);
+      return log('HageKeyword#delete:', 'not found', guildId, keyword);
     }
 
     const stmt = db.prepare(`
@@ -257,7 +265,7 @@ class HageKeyword {
     catch (e) {
       if (e instanceof TypeError && e.message.includes('database connection is busy')) {
         await setTimeout();
-        return this.remove(guildId, keyword);
+        return this.delete(guildId, keyword);
       }
       throw e;
     }
@@ -367,9 +375,9 @@ class HageReactionKeyword {
     }
   }
 
-  async remove(guildId: string, reaction: string): Promise<void> {
+  async delete(guildId: string, reaction: string): Promise<void> {
     if (this.get(guildId, reaction) == null) {
-      return log('HageReactionKeyword#remove:', 'not found', guildId, reaction);
+      return log('HageReactionKeyword#delete:', 'not found', guildId, reaction);
     }
 
     const stmt = db.prepare(`
@@ -388,7 +396,7 @@ class HageReactionKeyword {
     catch (e) {
       if (e instanceof TypeError && e.message.includes('database connection is busy')) {
         await setTimeout();
-        return this.remove(guildId, reaction);
+        return this.delete(guildId, reaction);
       }
       throw e;
     }

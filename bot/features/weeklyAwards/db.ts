@@ -6,10 +6,11 @@ import { isUrl } from '@lib/util';
 import type { WeeklyAwardConfigRecord, WeeklyAwardConfigRow, WeeklyAwardDatabaseRow, WeeklyAwardRecord } from 'types/bot/features/weeklyAwards';
 
 const db = new Database('weeklyAward.db', { readwrite: true, create: true });
-const TABLE = 'reacted_messages';
 
-class WeeklyAwardDatabase {
-  #config = new WeeklyAwardDatabaseConfig();
+class WeeklyAward {
+  #TABLE = 'reacted_messages';
+
+  #config: WeeklyAwardConfig;
 
   static #isRow(row: unknown): row is WeeklyAwardDatabaseRow {
     if (row == null || typeof row !== 'object') return false;
@@ -30,14 +31,14 @@ class WeeklyAwardDatabase {
     return true;
   }
 
-  get config() {
+  get config(): WeeklyAwardConfig {
     return this.#config;
   }
 
   constructor() {
     db.run('pragma auto_vacuum = incremental');
     db.run(`
-      create table if not exists ${TABLE} (
+      create table if not exists ${this.#TABLE} (
         guild_id text not null,
         channel_id text not null,
         message_id text not null,
@@ -53,6 +54,8 @@ class WeeklyAwardDatabase {
         primary key (guild_id, channel_id, message_id)
       )
     `);
+
+    this.#config = new WeeklyAwardConfig();
   }
 
   get(guildId: string, channelId: string, messageId: string): WeeklyAwardRecord | null {
@@ -67,7 +70,7 @@ class WeeklyAwardDatabase {
         timestamp,
         created_at,
         updated_at
-      from ${TABLE}
+      from ${this.#TABLE}
       where
         guild_id   = $guildId   and
         channel_id = $channelId and
@@ -80,7 +83,7 @@ class WeeklyAwardDatabase {
       $messageId: messageId,
     });
 
-    if (!WeeklyAwardDatabase.#isRow(row)) return null;
+    if (!WeeklyAward.#isRow(row)) return null;
 
     return {
       guildId,
@@ -100,7 +103,7 @@ class WeeklyAwardDatabase {
 
   async set(message: Message<true>, reactionsCount: number): Promise<void> {
     const stmt = db.prepare(`
-      insert into ${TABLE} (
+      insert into ${this.#TABLE} (
         guild_id,
         channel_id,
         message_id,
@@ -157,10 +160,10 @@ class WeeklyAwardDatabase {
   }
 
   all(): WeeklyAwardRecord[] {
-    const stmt = db.prepare(`select * from ${TABLE}`);
+    const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
     return stmt.all()
-      .filter(WeeklyAwardDatabase.#isRow)
+      .filter(WeeklyAward.#isRow)
       .map(row => ({
         guildId: row.guild_id,
         channelId: row.channel_id,
@@ -178,10 +181,10 @@ class WeeklyAwardDatabase {
   }
 
   *iterate(): Generator<WeeklyAwardRecord> {
-    const stmt = db.prepare(`select * from ${TABLE}`);
+    const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
     for (const row of stmt.values()) {
-      if (!WeeklyAwardDatabase.#isRow(row)) continue;
+      if (!WeeklyAward.#isRow(row)) continue;
 
       yield {
         guildId: row.guild_id,
@@ -217,7 +220,7 @@ class WeeklyAwardDatabase {
 
   async delete(guildId: string, channelId: string, messageId: string): Promise<void> {
     const stmt = db.prepare(`
-      delete from ${TABLE}
+      delete from ${this.#TABLE}
       where
         guild_id   = $guildId   and
         channel_id = $channelId and
@@ -246,8 +249,8 @@ class WeeklyAwardDatabase {
         guild_id = $guildId and
         julianday('now') - julianday(timestamp) > $days
     `;
-    const cntStmt = db.prepare(`select count(*) cnt from ${TABLE} ${whereStatement}`);
-    const delStmt = db.prepare(`delete from ${TABLE} ${whereStatement}`);
+    const cntStmt = db.prepare(`select count(*) cnt from ${this.#TABLE} ${whereStatement}`);
+    const delStmt = db.prepare(`delete from ${this.#TABLE} ${whereStatement}`);
 
     try {
       const countStatementRow = cntStmt.get({ guildId, days });
@@ -284,7 +287,7 @@ class WeeklyAwardDatabase {
   }
 }
 
-class WeeklyAwardDatabaseConfig {
+class WeeklyAwardConfig {
   #TABLE = 'post_target';
 
   static #isRow(row: unknown): row is WeeklyAwardConfigRow {
@@ -305,7 +308,7 @@ class WeeklyAwardDatabaseConfig {
 
     const rows = stmt.all();
     return rows
-      .filter((row: unknown): row is WeeklyAwardConfigRow => WeeklyAwardDatabaseConfig.#isRow(row))
+      .filter((row: unknown): row is WeeklyAwardConfigRow => WeeklyAwardConfig.#isRow(row))
       .map(row => ({
         guildId: row.guild_id,
         guildName: row.guild_name,
@@ -395,7 +398,7 @@ class WeeklyAwardDatabaseConfig {
     `);
 
     const row = stmt.get(guildId);
-    if (!WeeklyAwardDatabaseConfig.#isRow(row)) return null;
+    if (!WeeklyAwardConfig.#isRow(row)) return null;
 
     return {
       guildId: row.guild_id,
@@ -408,5 +411,5 @@ class WeeklyAwardDatabaseConfig {
   }
 }
 
-const _db = new WeeklyAwardDatabase();
+const _db = new WeeklyAward();
 export { _db as db };
