@@ -37,3 +37,11 @@ client.once(Events.ClientReady, async () => {
   const _commands = Object.entries(commands).map(([name, content]) => ({ ...content, name }));
   app.commands.set(_commands);
 });
+client.on(Events.GuildDelete, async guild => {
+  const { commands } = guild.client.application;
+
+  for (const command of commands.cache.values()) {
+    commands.delete(command);
+  }
+  log('bot has been kicked out from', guild.name);
+});
