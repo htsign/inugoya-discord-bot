@@ -2,6 +2,7 @@ import { Events, Message } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
 import { getEnv, toQueryString, urlsOfText } from '@lib/util';
 import client from 'bot/client';
+import { log } from '@lib/log';
 import type { Url } from 'types';
 import type { XgdFailureMessage, XgdRequest, XgdResponse, XgdSuccessMessage } from 'types/bot/features/shortenUrl';
 
@@ -26,6 +27,7 @@ export const shortenUrls = async (urls: Url[]): Promise<(XgdSuccessMessage | Xgd
         shortenUrls.push(`error occurred [${res.status}]: unknown error`);
       }
       else if (data.status === 200) {
+        log('shorten url:', data.originalurl, '->', data.shorturl);
         shortenUrls.push(`\`${data.originalurl}\`: <${data.shorturl}>`);
       }
       else {

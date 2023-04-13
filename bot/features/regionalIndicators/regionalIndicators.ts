@@ -1,3 +1,4 @@
+import { log } from '@lib/log';
 import type { RegionalIndicatorsResult } from 'types/bot/features/regionalIndicators';
 
 const codeRegionalIndicatorA = '🇦'.codePointAt(0) ?? 0;
@@ -37,5 +38,7 @@ export const toEmojis = (text: string): RegionalIndicatorsResult => {
     }
     throw new Error('unexpected procedure');
   };
+
+  log('emojify:', text);
   return { success: true, values: codePoints.map(toEmoji) };
 };
