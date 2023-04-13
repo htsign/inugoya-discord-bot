@@ -201,9 +201,12 @@ const core = async (url: Url, index: number): Promise<{ embeds: APIEmbed[], atta
 };
 
 client.on(Events.MessageCreate, async message => {
+  const { author, content, guild, channel } = message;
+  if (author.bot) return;
+
   await setTimeout(THRESHOLD_DELAY);
 
-  const urls = urlsOfText(message.content);
+  const urls = urlsOfText(content);
   if (message.embeds.length < urls.length) {
     const embedUrls = message.embeds
       .map(embed => embed.url)
@@ -227,8 +230,8 @@ client.on(Events.MessageCreate, async message => {
     if (embeds.length > 0) {
       log(
         [
-          message.guild != null ? [message.guild.name] : [],
-          'name' in message.channel ? [message.channel.name] : [],
+          guild != null ? [guild.name] : [],
+          'name' in channel ? [channel.name] : [],
         ].flat().join('/'),
         'expand no expanded url:',
         embeds.map(e => e.url),
