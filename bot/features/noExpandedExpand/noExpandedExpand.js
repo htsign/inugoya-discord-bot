@@ -272,6 +272,15 @@ client.on(Events.MessageCreate, async message => {
       .filter(/** @type {(x: import('discord.js').AttachmentBuilder?) => x is AttachmentBuilder} */ x => x != null);
 
     if (embeds.length > 0) {
+      log(
+        [
+          message.guild != null ? [message.guild.name] : [],
+          'name' in message.channel ? [message.channel.name] : [],
+        ].flat().join('/'),
+        'expand no expanded url:',
+        embeds.map(e => e.url),
+      );
+
       const content = 'URL が展開されてないみたいだからこっちで付けとくね';
       await message.reply({ content, embeds, files });
     }

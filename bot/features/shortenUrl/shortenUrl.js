@@ -1,5 +1,6 @@
 const { Events } = require('discord.js');
 const client = require('../../client');
+const { log } = require('../../lib/log');
 const { getEnv, toQueryString, urlsOfText } = require('../../lib/util');
 
 const API_KEY = getEnv('XGD_API_KEY', 'X.gd API key');
@@ -30,6 +31,7 @@ const shortenUrls = async urls => {
         shortenUrls.push(`error occurred [${res.status}]: unknown error`);
       }
       else if (data.status === 200) {
+        log('shorten url:', data.originalurl, '->', data.shorturl);
         shortenUrls.push(`\`${data.originalurl}\`: <${data.shorturl}>`);
       }
       else {

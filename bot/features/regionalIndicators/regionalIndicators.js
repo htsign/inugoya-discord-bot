@@ -1,3 +1,5 @@
+const { log } = require('../../lib/log');
+
 const codeRegionalIndicatorA = '🇦'.codePointAt(0) ?? 0;
 const codeLowerA = 'a'.codePointAt(0) ?? 0;
 const codeLowerZ = 'z'.codePointAt(0) ?? 0;
@@ -42,6 +44,8 @@ const toEmojis = text => {
     }
     throw new Error('unexpected procedure');
   };
+
+  log('emojify:', text);
   return { success: true, values: codePoints.map(toEmoji) };
 };
 

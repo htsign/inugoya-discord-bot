@@ -25,11 +25,13 @@ const core = async (url, guild, channel) => {
     if (title == null) return null;
     if (/^[ -~]*? - Wikipedia$/.test(title)) return null;
 
+    /** @type {APIEmbed} */
+    const embed = { author, title, url };
     if (content != null) {
-      return { author, title, description: content, url };
+      return { ...embed, description: content };
     }
     else {
-      return { author, title, url };
+      return embed;
     }
   }
   catch (e) {
@@ -60,6 +62,15 @@ client.on(Events.MessageCreate, async message => {
     .filter(/** @type {(x: APIEmbed?) => x is APIEmbed} */ x => x != null);
 
   if (embeds.length > 0) {
+    log(
+      [
+        guild != null ? [guild.name] : [],
+        'name' in channel ? [channel.name] : [],
+      ].flat().join('/'),
+      'expand wikipedia(ja):',
+      embeds.map(e => e.url),
+    );
+
     await message.reply({ content: 'Wikipedia(ja) 展開', embeds });
   }
 });
