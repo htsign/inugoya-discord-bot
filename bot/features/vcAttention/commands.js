@@ -24,20 +24,24 @@ const subCommands = {
       },
     ],
     async func(interaction) {
-      const guildId = interaction.guildId;
-      const guildName = interaction.guild?.name;
-      const channel = interaction.options.getChannel('channel', true);
-      const threshold = interaction.options.getInteger('threshold') ?? DEFAULT_THRESHOLD;
+      const { guildId, guild } = interaction;
+      const guildName = guild?.name;
+      const bot = guild?.members.me;
 
-      if (guildName == null) {
+      if (guild == null || guildName == null || bot == null) {
         interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
+
+      const channel = interaction.options.getChannel('channel', true);
+      const threshold = interaction.options.getInteger('threshold') ?? DEFAULT_THRESHOLD;
+
       if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || 'permissions' in channel) {
         interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
         return;
       }
-      else if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
+      const permissions = bot.permissionsIn(channel);
+      if (!permissions.has(PermissionFlagsBits.SendMessages) || !permissions.has(PermissionFlagsBits.MentionEveryone)) {
         interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
         return;
       }
