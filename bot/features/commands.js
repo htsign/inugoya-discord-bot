@@ -37,6 +37,9 @@ client.once(Events.ClientReady, async () => {
   const _commands = Object.entries(commands).map(([name, content]) => ({ ...content, name }));
   app.commands.set(_commands);
 });
+client.on(Events.GuildCreate, async ({ name }) => {
+  log('bot has been added to', name);
+});
 client.on(Events.GuildDelete, async guild => {
   const { commands } = guild.client.application;
 
