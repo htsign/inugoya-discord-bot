@@ -232,12 +232,18 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
 
       const { default: keywords } = await import('./keywords.json', { assert: { type: 'json' } });
       const newKeywords = keywords.filter(keyword => db.keywords.get(guildId, keyword) == null);
-      for (const keyword of newKeywords) {
-        addKeywordPromises.push(db.keywords.add(guildId, keyword));
-      }
-      await Promise.all(addKeywordPromises);
 
-      response.edit(`キーワードに${newKeywords.map(keyword => `「 ${keyword} 」`).join('')}を登録しました。`);
+      if (newKeywords.length > 0) {
+        for (const keyword of newKeywords) {
+          addKeywordPromises.push(db.keywords.add(guildId, keyword));
+        }
+        await Promise.all(addKeywordPromises);
+
+        response.edit(`キーワードに${newKeywords.map(keyword => `「 ${keyword} 」`).join('')}を登録しました。`);
+      }
+      else {
+        response.edit('新たに追加されたキーワードはありません。');
+      }
     },
   },
   addkeyword: {
@@ -247,6 +253,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
         name: 'keyword',
         description: '登録したいキーワード',
         type: ApplicationCommandOptionType.String,
+        required: true,
       },
     ],
     async func(interaction: ChatInputCommandInteraction<'cached' | 'raw'>): Promise<void> {
@@ -278,6 +285,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
         name: 'keyword',
         description: '削除したいキーワード',
         type: ApplicationCommandOptionType.String,
+        required: true,
       },
     ],
     async func(interaction: ChatInputCommandInteraction<'cached' | 'raw'>): Promise<void> {
@@ -320,12 +328,18 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
 
       const { default: reactions } = await import('./keywordReactions.json', { assert: { type: 'json' } });
       const newReactions = reactions.filter(reaction => db.keywords.get(guildId, reaction) == null);
-      for (const reaction of newReactions) {
-        addReactionPromises.push(db.reactionKeywords.add(guildId, reaction));
-      }
-      await Promise.all(addReactionPromises);
 
-      response.edit(`リアクションキーワードに${newReactions.map(reaction => `「 ${reaction} 」`).join('')}を登録しました。`);
+      if (newReactions.length > 0) {
+        for (const reaction of newReactions) {
+          addReactionPromises.push(db.reactionKeywords.add(guildId, reaction));
+        }
+        await Promise.all(addReactionPromises);
+
+        response.edit(`リアクションキーワードに${newReactions.map(reaction => `「 ${reaction} 」`).join('')}を登録しました。`);
+      }
+      else {
+        response.edit('新たに追加されたリアクションキーワードはありません。');
+      }
     },
   },
   addreaction: {
@@ -335,6 +349,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
         name: 'reaction',
         description: '登録したいリアクションキーワード',
         type: ApplicationCommandOptionType.String,
+        required: true,
       },
     ],
     async func(interaction: ChatInputCommandInteraction<'cached' | 'raw'>): Promise<void> {
@@ -370,6 +385,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
         name: 'keyword',
         description: '削除したいリアクションキーワード',
         type: ApplicationCommandOptionType.String,
+        required: true,
       },
     ],
     async func(interaction: ChatInputCommandInteraction<'cached' | 'raw'>): Promise<void> {
