@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
     "checkJs": true,
-    "module": "CommonJS",
+    "module": "ESNext",
     "target": "ES2021",
+    "moduleResolution": "node",
     "strict": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
