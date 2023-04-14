@@ -230,7 +230,8 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
 
       const addKeywordPromises: Promise<void>[] = [];
 
-      const newKeywords = (await import('./keywords.json')).filter(keyword => db.keywords.get(guildId, keyword) == null);
+      const { default: keywords } = await import('./keywords.json', { assert: { type: 'json' } });
+      const newKeywords = keywords.filter(keyword => db.keywords.get(guildId, keyword) == null);
       for (const keyword of newKeywords) {
         addKeywordPromises.push(db.keywords.add(guildId, keyword));
       }
@@ -317,7 +318,8 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
 
       const addReactionPromises: Promise<void>[] = [];
 
-      const newReactions = (await import('./keywordReactions.json')).filter(reaction => db.keywords.get(guildId, reaction) == null);
+      const { default: reactions } = await import('./keywordReactions.json', { assert: { type: 'json' } });
+      const newReactions = reactions.filter(reaction => db.keywords.get(guildId, reaction) == null);
       for (const reaction of newReactions) {
         addReactionPromises.push(db.reactionKeywords.add(guildId, reaction));
       }
