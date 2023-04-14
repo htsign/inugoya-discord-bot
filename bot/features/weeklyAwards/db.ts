@@ -74,16 +74,7 @@ class WeeklyAward {
 
   get(guildId: string, channelId: string, messageId: string): WeeklyAwardRecord | null {
     const stmt = db.prepare(`
-      select
-        guild_name,
-        channel_name,
-        content,
-        author,
-        url,
-        reactions_count,
-        timestamp,
-        created_at,
-        updated_at
+      select *
       from ${this.#TABLE}
       where
         guild_id   = $guildId   and

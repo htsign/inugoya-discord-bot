@@ -273,10 +273,7 @@ class HageKeyword {
 
   get(guildId: string, keyword: string): HageKeywordRecord | null {
     const stmt = db.prepare(`
-      select
-        id,
-        created_at,
-        updated_at
+      select *
       from ${this.#TABLE}
       where
         guild_id = $guildId and
@@ -404,10 +401,7 @@ class HageReactionKeyword {
 
   get(guildId: string, reaction: string): HageReactionKeywordRecord | null {
     const stmt = db.prepare(`
-      select
-        id,
-        created_at,
-        updated_at
+      select *
       from ${this.#TABLE}
       where
         guild_id = $guildId and
