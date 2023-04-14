@@ -299,10 +299,7 @@ class HageKeyword {
    */
   get(guildId, keyword) {
     const stmt = db.prepare(`
-      select
-        id,
-        created_at,
-        updated_at
+      select *
       from ${this.#TABLE}
       where
         guild_id = @guildId and
@@ -441,10 +438,7 @@ class HageReactionKeyword {
    */
   get(guildId, reaction) {
     const stmt = db.prepare(`
-      select
-        id,
-        created_at,
-        updated_at
+      select *
       from ${this.#TABLE}
       where
         guild_id = @guildId and
