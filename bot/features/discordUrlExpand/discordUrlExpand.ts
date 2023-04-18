@@ -38,7 +38,14 @@ client.on(Events.MessageCreate, async message => {
 
   const embeds = (await Promise.all(embedPromises)).flat();
   if (embeds.length > 0) {
-    log('expand discord urls:', embeds.map(e => e.url));
+    log(
+      [
+        message.guild != null ? [message.guild.id] : [],
+        'name' in message.channel ? [message.channel.name] : [],
+      ].flat().join('/'),
+      'expand discord urls:',
+      embeds.map(e => e.url),
+    );
 
     message.channel.send({ embeds });
   }
