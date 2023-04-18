@@ -1,5 +1,6 @@
-import { EmbedBuilder, Message, APIEmbed } from 'discord.js';
+import { APIEmbed, Attachment, EmbedBuilder, Message } from 'discord.js';
 import fastAvgColor from 'fast-average-color-node';
+import { isNonEmpty } from 'ts-array-length';
 import { log } from '@lib/log';
 import client from '../client';
 
@@ -87,13 +88,26 @@ export const messageToEmbeds = async (message: Message<boolean>, addReactionFiel
       }
     }
 
-    embeds.push(embed.toJSON());
-
-    for (const attachment of attachments.values()) {
+    const getEmbedMediaType = (attachment: Attachment): 'image' | 'video' => {
       const [type] = attachment.contentType?.split('/') ?? [];
-      const key = type === 'video' ? 'video' : 'image';
+      return type === 'video' ? 'video' : 'image';
+    };
 
-      embeds.push({ url: message.url, [key]: { url: attachment.url } });
+    const attachmentArray = attachments.toJSON();
+    if (isNonEmpty(attachmentArray)) {
+      const attachment = attachmentArray[0];
+      const { url } = attachment;
+
+      embeds.push({ ...embed.toJSON(), [getEmbedMediaType(attachment)]: { url } });
+    }
+    else {
+      embeds.push(embed.toJSON());
+    }
+
+    for (const attachment of attachmentArray.slice(1)) {
+      const { url } = attachment;
+
+      embeds.push({ url: message.url, [getEmbedMediaType(attachment)]: { url } });
     }
 
     return embeds;
