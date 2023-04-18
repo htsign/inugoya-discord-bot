@@ -40,7 +40,7 @@ client.on(Events.MessageCreate, async message => {
   if (embeds.length > 0) {
     log(
       [
-        message.guild != null ? [message.guild.id] : [],
+        message.guild != null ? [message.guild.name] : [],
         'name' in message.channel ? [message.channel.name] : [],
       ].flat().join('/'),
       'expand discord urls:',
