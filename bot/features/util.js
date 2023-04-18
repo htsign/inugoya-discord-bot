@@ -43,6 +43,7 @@ const fetchMessageByIds = async (guildId, channelId, messageId) => {
  * @returns {Promise<APIEmbed[]>}
  */
 const messageToEmbeds = async (message, addReactionField = true) => {
+  const { isNonEmpty } = await import('ts-array-length');
   const { channel } = message;
 
   if (channel.isTextBased()) {
@@ -100,13 +101,30 @@ const messageToEmbeds = async (message, addReactionField = true) => {
       }
     }
 
-    embeds.push(embed.toJSON());
-
-    for (const attachment of attachments.values()) {
+    /**
+     * @param {import('discord.js').Attachment} attachment
+     * @returns {'image' | 'video'}
+     */
+    const getEmbedMediaType = attachment => {
       const [type] = attachment.contentType?.split('/') ?? [];
-      const key = type === 'video' ? 'video' : 'image';
+      return type === 'video' ? 'video' : 'image';
+    };
 
-      embeds.push({ url: message.url, [key]: { url: attachment.url } });
+    const attachmentArray = attachments.toJSON();
+    if (isNonEmpty(attachmentArray)) {
+      const attachment = attachmentArray[0];
+      const { url } = attachment;
+
+      embeds.push({ ...embed.toJSON(), [getEmbedMediaType(attachment)]: { url } });
+    }
+    else {
+      embeds.push(embed.toJSON());
+    }
+
+    for (const attachment of attachmentArray.slice(1)) {
+      const { url } = attachment;
+
+      embeds.push({ url: message.url, [getEmbedMediaType(attachment)]: { url } });
     }
 
     return embeds;
