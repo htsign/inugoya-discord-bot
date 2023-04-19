@@ -88,7 +88,7 @@ const getAuthor = async (document: Document, url: Url): ReturnType<typeof getAut
     const name = document.querySelector('meta[property="og:site_name"]')?.getAttribute('content');
     if (name != null) return [name, url];
 
-    const part = document.title.split(' - ').at(-1);
+    const part = document.title.includes(' - ') ? document.title.split(' - ').at(-1) : null;
     return part != null ? [part.trim(), url] : null;
   };
 
