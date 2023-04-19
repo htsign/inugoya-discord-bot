@@ -53,12 +53,14 @@ client.on(Events.MessageReactionRemove, async (reaction, user) => {
  * @param {string} guildId
  * @param {string} guildName
  * @param {string} channelName
+ * @param {number} showsRankCount
+ * @param {number} minReacted
  * @param {Weekday} weekday
  * @param {number} hour
  * @param {number} minute
  * @returns {Promise<void>}
  */
-const tick = async (guildId, guildName, channelName, weekday, hour, minute) => {
+const tick = async (guildId, guildName, channelName, showsRankCount, minReacted, weekday, hour, minute) => {
   const { isNonEmpty } = await import('ts-array-length');
 
   const now = dayjs().tz();
@@ -82,7 +84,7 @@ const tick = async (guildId, guildName, channelName, weekday, hour, minute) => {
         }
       }
 
-      if (db.all().some(({ reactionsCount: count }) => count > 0)) {
+      if (db.all().some(({ reactionsCount: count }) => count >= minReacted)) {
         /**
          * @param {WeeklyAwardRecord} record
          * @returns {Promise<MessageAndReactions?>}
@@ -97,6 +99,8 @@ const tick = async (guildId, guildName, channelName, weekday, hour, minute) => {
 
         // collect messages posted in current guild
         for (const record of db.iterate()) {
+          if (record.reactionsCount < minReacted) continue;
+
           fetchingPromises.push(fetchesMessage(record));
         }
 
@@ -115,8 +119,7 @@ const tick = async (guildId, guildName, channelName, weekday, hour, minute) => {
         {
           let rank = 1;
 
-          // take 3 elements
-          for (const [count, messages] of messagesArray.filter((_, i) => i < Math.min(messagesArray.length, 3))) {
+          for (const [count, messages] of messagesArray.filter((_, i) => i < Math.min(messagesArray.length, showsRankCount))) {
             const rankText = rank === 1 ? '最も' : ` ${rank}番目に`;
 
             /** @type {APIEmbed[]} */
@@ -154,12 +157,12 @@ const tick = async (guildId, guildName, channelName, weekday, hour, minute) => {
     log(guildName, 'WeeklyAward: report finished');
 
     // run again almost next week.
-    const timeout = setTimeout(() => tick(guildId, guildName, channelName, weekday, hour, minute), 86400 * 1000 * 6.9);
+    const timeout = setTimeout(() => tick(guildId, guildName, channelName, showsRankCount, minReacted, weekday, hour, minute), 86400 * 1000 * 6.9);
     instances.set(guildId, timeout);
   }
   // or else, after 1 sec.
   else {
-    const timeout = setTimeout(() => tick(guildId, guildName, channelName, weekday, hour, minute), 1000);
+    const timeout = setTimeout(() => tick(guildId, guildName, channelName, showsRankCount, minReacted, weekday, hour, minute), 1000);
     instances.set(guildId, timeout);
   }
 };
@@ -175,7 +178,7 @@ const startAward = async guildId => {
     return log(`startAward: ${{ guildId }} is not registered.`);
   }
 
-  const { guildName, channelName, createdAt, updatedAt } = configRecord;
+  const { guildName, channelName, showsRankCount, minReacted, createdAt, updatedAt } = configRecord;
   const { weekday, hour, minute } = timeRecord;
   log('startAward:', {
     ...configRecord,
@@ -186,7 +189,7 @@ const startAward = async guildId => {
   if (instances.has(guildId)) {
     await stopAward(guildId);
   }
-  return tick(guildId, guildName, channelName, weekday, hour, minute);
+  return tick(guildId, guildName, channelName, showsRankCount, minReacted, weekday, hour, minute);
 };
 
 /**

@@ -5,6 +5,8 @@ const { startAward, stopAward } = require('.');
 const { db } = require('./db');
 const { SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, fromNumber, jpString } = require('./weekday');
 
+const DEFAULT_SHOWS_COUNT = 3;
+const DEFAULT_MIN_REACTED = 5;
 const DEFAULT_WEEKDAY = SUNDAY;
 const DEFAULT_HOUR = 12;
 const DEFAULT_MINUTE = 0;
@@ -20,6 +22,20 @@ const subCommands = {
         type: ApplicationCommandOptionType.Channel,
         channelTypes: [ChannelType.GuildAnnouncement, ChannelType.GuildText],
         required: true,
+      },
+      {
+        name: 'showsrankcount',
+        description: `何位まで表彰するか（デフォルト: ${DEFAULT_SHOWS_COUNT}）`,
+        type: ApplicationCommandOptionType.Integer,
+        minValue: 1,
+        maxValue: 100,
+      },
+      {
+        name: 'minreacted',
+        description: `最低何件のリアクションから表彰するか（デフォルト: ${DEFAULT_MIN_REACTED}）`,
+        type: ApplicationCommandOptionType.Integer,
+        minValue: 1,
+        maxValue: 100,
       },
       {
         name: 'weekday',
@@ -54,6 +70,8 @@ const subCommands = {
       }
 
       const channel = interaction.options.getChannel('channel', true);
+      const showsRankCount = interaction.options.getInteger('showsrankcount') ?? DEFAULT_SHOWS_COUNT;
+      const minReacted = interaction.options.getInteger('minreacted') ?? DEFAULT_MIN_REACTED;
       const weekday = fromNumber(interaction.options.getInteger('weekday') ?? DEFAULT_WEEKDAY);
       const hour = interaction.options.getInteger('hour') ?? DEFAULT_HOUR;
       const minute = interaction.options.getInteger('minute') ?? DEFAULT_MINUTE;
@@ -70,7 +88,7 @@ const subCommands = {
 
       const response = await interaction.deferReply();
 
-      await db.config.register(guildId, guildName, channel.id, channel.name);
+      await db.config.register(guildId, guildName, channel.id, channel.name, showsRankCount, minReacted);
       await db.times.set(guildId, weekday, hour, minute);
       await startAward(guildId);
 
@@ -113,6 +131,20 @@ const subCommands = {
         channelTypes: [ChannelType.GuildAnnouncement, ChannelType.GuildText],
       },
       {
+        name: 'showsrankcount',
+        description: '何位まで表彰するか',
+        type: ApplicationCommandOptionType.Integer,
+        minValue: 1,
+        maxValue: 100,
+      },
+      {
+        name: 'minreacted',
+        description: `最低何件のリアクションから表彰するか`,
+        type: ApplicationCommandOptionType.Integer,
+        minValue: 1,
+        maxValue: 100,
+      },
+      {
         name: 'weekday',
         description: '報告する週',
         type: ApplicationCommandOptionType.Integer,
@@ -152,6 +184,8 @@ const subCommands = {
       }
 
       const channel = interaction.options.getChannel('channel') ?? await guild.channels.fetch(configRecord.channelId);
+      const showsRankCount = interaction.options.getInteger('showsrankcount') ?? configRecord.showsRankCount;
+      const minReacted = interaction.options.getInteger('minreacted') ?? configRecord.minReacted;
       const weekday = fromNumber(interaction.options.getInteger('weekday') ?? timeRecord.weekday);
       const hour = interaction.options.getInteger('hour') ?? timeRecord.hour;
       const minute = interaction.options.getInteger('minute') ?? timeRecord.minute;
@@ -172,7 +206,7 @@ const subCommands = {
 
       const response = await interaction.deferReply();
 
-      await db.config.register(guildId, guildName, channel.id, channel.name);
+      await db.config.register(guildId, guildName, channel.id, channel.name, showsRankCount,  minReacted);
       await db.times.set(guildId, weekday, hour, minute);
       await stopAward(guildId);
       await startAward(guildId);
@@ -206,17 +240,20 @@ const subCommands = {
           return;
         }
 
+        const { channelId, showsRankCount, minReacted, createdAt, updatedAt } = configRecord;
         const { weekday, hour, minute } = timeRecord;
         const hourString = String(hour).padStart(2, '0');
         const minuteString = String(minute).padStart(2, '0');
 
         embed.setDescription('登録済み').setColor(Colors.Green);
         embed.addFields(
-          { name: '報告チャンネル', value: `<#${configRecord.channelId}>`, inline: true },
+          { name: '報告チャンネル', value: `<#${channelId}>`, inline: true },
           { name: '報告時間', value: `${jpString(weekday)}の ${hourString}:${minuteString}`, inline: true },
+          { name: '表彰する限界', value: `${showsRankCount} 位まで`, inline: true },
+          { name: '表彰に必要なリアクション数', value: `${minReacted} 個`, inline: true },
           { name: ' ', value: '----------------' },
-          { name: '初回設定日時', value: configRecord.createdAt.format(DATETIME_FORMAT), inline: true },
-          { name: '最終更新日時', value: configRecord.updatedAt.format(DATETIME_FORMAT), inline: true },
+          { name: '初回設定日時', value: createdAt.format(DATETIME_FORMAT), inline: true },
+          { name: '最終更新日時', value: updatedAt.format(DATETIME_FORMAT), inline: true },
         );
       }
       else {

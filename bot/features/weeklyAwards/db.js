@@ -318,6 +318,8 @@ class WeeklyAwardConfig {
     if (!('guild_name' in row && typeof row.guild_name === 'string')) return false;
     if (!('channel_id' in row && typeof row.channel_id === 'string')) return false;
     if (!('channel_name' in row && typeof row.channel_name === 'string')) return false;
+    if (!('shows_rank_count' in row && typeof row.shows_rank_count === 'number')) return false;
+    if (!('min_reacted' in row && typeof row.min_reacted === 'number')) return false;
     if (!('created_at' in row && typeof row.created_at === 'string')) return false;
     if (!('updated_at' in row && typeof row.updated_at === 'string')) return false;
 
@@ -336,6 +338,8 @@ class WeeklyAwardConfig {
         guildName: row.guild_name,
         channelId: row.channel_id,
         channelName: row.channel_name,
+        showsRankCount: row.shows_rank_count,
+        minReacted: row.min_reacted,
         createdAt: dayjs.utc(row.created_at).tz(),
         updatedAt: dayjs.utc(row.updated_at).tz(),
       }));
@@ -348,6 +352,8 @@ class WeeklyAwardConfig {
         guild_name text not null,
         channel_id text not null,
         channel_name text not null,
+        shows_rank_count integer not null,
+        min_reacted integer not null,
         created_at text not null default (datetime('now')),
         updated_at text not null default (datetime('now'))
       )
@@ -359,9 +365,11 @@ class WeeklyAwardConfig {
    * @param {string} guildName
    * @param {string} channelId
    * @param {string} channelName
+   * @param {number} showsRankCount
+   * @param {number} minReacted
    * @returns {Promise<void>}
    */
-  async register(guildId, guildName, channelId, channelName) {
+  async register(guildId, guildName, channelId, channelName, showsRankCount, minReacted) {
     const stmt = db.prepare(`
       insert into ${this.#TABLE} (
         guild_id,
@@ -372,23 +380,27 @@ class WeeklyAwardConfig {
         @guildId,
         @guildName,
         @channelId,
-        @channelName
+        @channelName,
+        @showsRankCount,
+        @minReacted
       )
       on conflict (guild_id) do
         update set
           guild_name = @guildName,
           channel_id = @channelId,
           channel_name = @channelName,
+          shows_rank_count = @showsRankCount,
+          min_reacted = @minReacted,
           updated_at = datetime('now')
     `);
 
     try {
-      stmt.run({ guildId, guildName, channelId, channelName });
+      stmt.run({ guildId, guildName, channelId, channelName, showsRankCount, minReacted });
     }
     catch (e) {
       if (e instanceof TypeError && e.message.includes('database connection is busy')) {
         await setTimeout();
-        return this.register(guildId, guildName, channelId, channelName);
+        return this.register(guildId, guildName, channelId, channelName, showsRankCount, minReacted);
       }
       throw e;
     }
@@ -437,6 +449,8 @@ class WeeklyAwardConfig {
       guildName: row.guild_name,
       channelId: row.channel_id,
       channelName: row.channel_name,
+      showsRankCount: row.shows_rank_count,
+      minReacted: row.min_reacted,
       createdAt: dayjs.utc(row.created_at).tz(),
       updatedAt: dayjs.utc(row.updated_at).tz(),
     };

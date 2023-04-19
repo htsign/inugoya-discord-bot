@@ -28,6 +28,8 @@
  * @property {string} guildName
  * @property {string} channelId
  * @property {string} channelName
+ * @property {number} showsRankCount
+ * @property {number} minReacted
  * @property {Dayjs} createdAt
  * @property {Dayjs} updatedAt
  */
@@ -64,6 +66,8 @@
  * @property {string} guild_name
  * @property {string} channel_id
  * @property {string} channel_name
+ * @property {number} shows_rank_count
+ * @property {number} min_reacted
  * @property {string} created_at
  * @property {string} updated_at
  */
