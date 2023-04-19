@@ -28,6 +28,8 @@ export interface WeeklyAwardConfigRecord {
   guildName: string;
   channelId: string;
   channelName: string;
+  showsRankCount: number;
+  minReacted: number;
   createdAt: Dayjs;
   updatedAt: Dayjs;
 }
@@ -61,6 +63,8 @@ export interface WeeklyAwardConfigRow {
   guild_name: string;
   channel_id: string;
   channel_name: string;
+  shows_rank_count: number;
+  min_reacted: number;
   created_at: string;
   updated_at: string;
 }
