@@ -375,7 +375,9 @@ class WeeklyAwardConfig {
         guild_id,
         guild_name,
         channel_id,
-        channel_name
+        channel_name,
+        shows_rank_count,
+        min_reacted
       ) values (
         @guildId,
         @guildName,
