@@ -88,8 +88,10 @@ const subCommands = {
 
       const response = await interaction.deferReply();
 
-      await db.config.register(guildId, guildName, channel.id, channel.name, showsRankCount, minReacted);
-      await db.times.set(guildId, weekday, hour, minute);
+      await Promise.all([
+        db.config.register(guildId, guildName, channel.id, channel.name, showsRankCount, minReacted),
+        db.times.set(guildId, weekday, hour, minute),
+      ]);
       await startAward(guildId);
 
       const hourString = String(hour).padStart(2, '0');
@@ -115,8 +117,10 @@ const subCommands = {
       const response = await interaction.deferReply();
 
       await stopAward(guildId);
-      await db.times.delete(guildId);
-      await db.config.unregister(guildId);
+      await Promise.all([
+        db.times.delete(guildId),
+        db.config.unregister(guildId),
+      ]);
 
       response.edit('リアクション大賞の巡回対象からこのサーバーを削除しました。');
     },
@@ -206,8 +210,10 @@ const subCommands = {
 
       const response = await interaction.deferReply();
 
-      await db.config.register(guildId, guildName, channel.id, channel.name, showsRankCount,  minReacted);
-      await db.times.set(guildId, weekday, hour, minute);
+      await Promise.all([
+        db.config.register(guildId, guildName, channel.id, channel.name, showsRankCount,  minReacted),
+        db.times.set(guildId, weekday, hour, minute),
+      ]);
       await stopAward(guildId);
       await startAward(guildId);
 
