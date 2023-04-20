@@ -20,7 +20,7 @@ const client = new Client({
 client.login(getEnv('ACCESS_TOKEN')).then(_ => {
   client.user?.setPresence({
     activities: [
-      { name: 'ハゲを監視しています' },
+      { name: '犬小屋を監視しています' },
     ],
     status: PresenceUpdateStatus.Online,
   });
