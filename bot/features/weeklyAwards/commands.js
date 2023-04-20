@@ -249,7 +249,7 @@ const subCommands = {
         fields.push({ name: '表彰に必要なリアクション数', value: `${minReacted} 個` });
       }
 
-      response.edit({ content: '設定を変更しました。', embeds: [{ fields }] });
+      response.edit({ content: 'リアクション大賞の設定を変更しました。', embeds: [{ fields }] });
     },
   },
   status: {

@@ -187,7 +187,7 @@ const subCommands = {
         fields.push({ name: '累積反応数', value: `${stackSize} 回` });
       }
 
-      response.edit({ content: '設定を変更しました。', embeds: [{ fields }] });
+      response.edit({ content: 'ハゲ監視の設定を変更しました。', embeds: [{ fields }] });
     },
   },
   status: {
@@ -278,7 +278,7 @@ const subCommands = {
         response.edit(`キーワードに${newKeywords.map(keyword => `「 ${keyword} 」`).join('')}を登録しました。`);
       }
       else {
-        response.edit('新たに追加されたキーワードはありません。');
+        response.edit('予め用意されたテンプレートからキーワードを追加しようとしましたが、全て既に追加されています。');
       }
     },
   },
@@ -375,7 +375,7 @@ const subCommands = {
         response.edit(`リアクションキーワードに${newReactions.map(reaction => `「 ${reaction} 」`).join('')}を登録しました。`);
       }
       else {
-        response.edit('新たに追加されたリアクションキーワードはありません。');
+        response.edit('予め用意されたテンプレートからリアクションキーワードを追加しようとしましたが、全て既に追加されています。');
       }
     },
   },
@@ -456,7 +456,7 @@ const subCommands = {
 /** @type {ChatInputCommand<void>} */
 module.exports = {
   hage: {
-    description: 'ハゲ',
+    description: 'ハゲ監視',
     options: Object.entries(subCommands).map(([name, content]) => ({
       name,
       type: ApplicationCommandType.ChatInput,
