@@ -43,14 +43,12 @@ client.on(Events.MessageCreate, async message => {
   const { author, content, guild, channel } = message;
   if (author.bot) return;
 
-  const re = /https:\/\/ja(?:\.m)\.wikipedia\.org\/(wiki\/\S+|\?[\w=&]*curid=\d+)/g;
+  const re = /https:\/\/ja(?:\.m)?\.wikipedia\.org\/(wiki\/\S+|\?[\w=&]*curid=\d+)/g;
   const regExpIterator = content.matchAll(re);
 
   const urlToEmbedPromises: Promise<APIEmbed | null>[] = [];
 
-  console.log(content);
   for (const [, path] of regExpIterator) {
-    console.log(path, HOST + path);
     urlToEmbedPromises.push(core(HOST + path, guild, channel));
   }
   const embeds = (await Promise.all(urlToEmbedPromises))
