@@ -3,6 +3,8 @@ const client = require('../../client');
 const { log } = require('../../lib/log');
 const { urlToDocument } = require('../../lib/util');
 
+const HOST = 'https://ja.wikipedia.org/';
+
 /**
  * @param {string} url
  * @param {Guild?} guild
@@ -16,7 +18,7 @@ const core = async (url, guild, channel) => {
     /** @type {APIEmbedAuthor} */
     const author = {
       name: 'Wikipedia',
-      url: 'https://ja.wikipedia.org/',
+      url: HOST,
       icon_url: 'https://upload.wikimedia.org/wikipedia/commons/6/63/Wikipedia-logo.png',
     };
     const title = document.querySelector('title')?.textContent;
@@ -49,14 +51,16 @@ client.on(Events.MessageCreate, async message => {
   const { author, content, guild, channel } = message;
   if (author.bot) return;
 
-  const re = /https:\/\/ja\.wikipedia\.org\/(?:wiki\/\S+|\?[\w=&]*curid=\d+)/g;
+  const re = /https:\/\/ja(?:\.m)\.wikipedia\.org\/(wiki\/\S+|\?[\w=&]*curid=\d+)/g;
   const regExpIterator = content.matchAll(re);
 
   /** @type {Promise<APIEmbed?>[]} */
   const urlToEmbedPromises = [];
 
-  for (const [url] of regExpIterator) {
-    urlToEmbedPromises.push(core(url, guild, channel));
+  console.log(content);
+  for (const [, path] of regExpIterator) {
+    console.log(path, HOST + path);
+    urlToEmbedPromises.push(core(HOST + path, guild, channel));
   }
   const embeds = (await Promise.all(urlToEmbedPromises))
     .filter(/** @type {(x: APIEmbed?) => x is APIEmbed} */ x => x != null);
