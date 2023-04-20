@@ -194,6 +194,19 @@ const subCommands = {
       const hour = interaction.options.getInteger('hour') ?? timeRecord.hour;
       const minute = interaction.options.getInteger('minute') ?? timeRecord.minute;
 
+      const isSet = {
+        channel: interaction.options.getChannel('channel') != null,
+        showsRankCount: interaction.options.getInteger('showsrankcount') != null,
+        minReacted: interaction.options.getInteger('minreacted') != null,
+        weekday: interaction.options.getInteger('weekday') != null,
+        hour: interaction.options.getInteger('hour') != null,
+        minute: interaction.options.getInteger('minute') != null,
+      };
+
+      if (Object.values(isSet).every(x => !x)) {
+        interaction.reply({ content: '最低一つは設定してください。', ephemeral: true });
+        return;
+      }
       if (channel == null) {
         interaction.reply({ content: '指定されたチャンネルは見つかりません。', ephemeral: true });
         return;
@@ -217,9 +230,26 @@ const subCommands = {
       await stopAward(guildId);
       await startAward(guildId);
 
-      const hourString = String(hour).padStart(2, '0');
-      const minuteString = String(minute).padStart(2, '0');
-      response.edit(`週の報告を ${jpString(weekday)}の ${hourString}:${minuteString} に ${channel} で行うよう設定しました。`);
+      /** @type {APIEmbedField[]} */
+      const fields = [];
+
+      if (isSet.channel) {
+        fields.push({ name: '報告チャンネル', value: `<#${channel.id}>` });
+      }
+      if (isSet.weekday || isSet.hour || isSet.minute) {
+        const hourString = String(hour).padStart(2, '0');
+        const minuteString = String(minute).padStart(2, '0');
+
+        fields.push({ name: '報告時間', value: `${jpString(weekday)}の ${hourString}:${minuteString}` });
+      }
+      if (isSet.showsRankCount) {
+        fields.push({ name: '表彰する限界', value: `${showsRankCount} 位まで` });
+      }
+      if (isSet.minReacted) {
+        fields.push({ name: '表彰に必要なリアクション数', value: `${minReacted} 個` });
+      }
+
+      response.edit({ content: '設定を変更しました。', embeds: [{ fields }] });
     },
   },
   status: {

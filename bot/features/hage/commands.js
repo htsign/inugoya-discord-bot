@@ -146,6 +146,18 @@ const subCommands = {
       const timeout = interaction.options.getInteger('timeout') ?? configRecord.timeout;
       const stackSize = interaction.options.getInteger('stack_size') ?? configRecord.stackSize;
 
+      const isSet = {
+        template: interaction.options.getString('template') != null,
+        moreTemplate: interaction.options.getString('more_template') != null,
+        rareTemplate: interaction.options.getString('rare_template') != null,
+        timeout: interaction.options.getInteger('timeout') != null,
+        stackSize: interaction.options.getInteger('stack_size') != null,
+      };
+
+      if (Object.values(isSet).every(x => !x)) {
+        interaction.reply({ content: '最低一つは設定してください。', ephemeral: true });
+        return;
+      }
       if (guildName == null) {
         interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
         return;
@@ -156,7 +168,26 @@ const subCommands = {
 
       await db.register(guildId, guildName, template, moreTemplate, rareTemplate, timeout, stackSize);
 
-      response.edit('設定を更新しました。現在の設定は `/hage status` で確認できます。');
+      /** @type {APIEmbedField[]} */
+      const fields = [];
+
+      if (isSet.template) {
+        fields.push({ name: 'テンプレート', value: template });
+      }
+      if (isSet.moreTemplate) {
+        fields.push({ name: 'しつこいテンプレート', value: moreTemplate });
+      }
+      if (isSet.rareTemplate) {
+        fields.push({ name: 'レアテンプレート', value: rareTemplate });
+      }
+      if (isSet.timeout) {
+        fields.push({ name: 'タイムアウト', value: `${timeout} 分` });
+      }
+      if (isSet.stackSize) {
+        fields.push({ name: '累積反応数', value: `${stackSize} 回` });
+      }
+
+      response.edit({ content: '設定を変更しました。', embeds: [{ fields }] });
     },
   },
   status: {
