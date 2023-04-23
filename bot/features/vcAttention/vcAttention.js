@@ -31,7 +31,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
       const isTargetChannel = channel => channel.type === ChannelType.GuildText && channel.name === configRecord.channelName;
 
       if (!thrivingVoiceChannels.has(getId(newState))) {
-        const targetChannel = await client.channels.cache.find(isTargetChannel)?.fetch();
+        const targetChannel = await newState.guild.channels.cache.find(isTargetChannel)?.fetch();
 
         if (targetChannel?.type === ChannelType.GuildText && newChannel?.name != null) {
           thrivingVoiceChannels.add(getId(newState));
