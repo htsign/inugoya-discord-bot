@@ -36,3 +36,5 @@
  * @template {{}} [AdditionalProperties={}]
  * @template {CacheType=} [TCacheType=CacheType]
  */
+
+/** @typedef {('reactions' | 'originalUrl')[]} EmbedMessageOptions */

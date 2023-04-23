@@ -39,14 +39,15 @@ const fetchMessageByIds = async (guildId, channelId, messageId) => {
 
 /**
  * @param {Message<boolean>} message
- * @param {boolean=} [addReactionField=true]
+ * @param {EmbedMessageOptions} options
  * @returns {Promise<APIEmbed[]>}
  */
-const messageToEmbeds = async (message, addReactionField = true) => {
+const messageToEmbeds = async (message, options) => {
   const { isNonEmpty } = await import('ts-array-length');
   const { channel } = message;
 
   if (channel.isTextBased()) {
+    const optionsSet = new Set(options);
 
     /** @type {APIEmbed[]} */
     const embeds = [];
@@ -74,13 +75,16 @@ const messageToEmbeds = async (message, addReactionField = true) => {
       embed.setDescription(message.content);
     }
 
-    if (addReactionField) {
+    if (optionsSet.has('reactions')) {
       const reactions = message.reactions.cache;
       const reactionsCount = reactions.reduce((acc, x) => acc + x.count, 0);
 
       if (reactionsCount > 0) {
-        embed.addFields({ name: 'Reactions', value: String(reactionsCount) });
+        embed.addFields({ name: 'Reactions', value: String(reactionsCount), inline: true });
       }
+    }
+    if (optionsSet.has('originalUrl')) {
+      embed.addFields({ name: 'OriginalURL', value: message.url, inline: true });
     }
 
     const [attachments, spoilerAttachments] = message.attachments.partition(x => !x.spoiler);

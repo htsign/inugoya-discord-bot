@@ -17,7 +17,7 @@ const core = async (message, guildId, channelId, messageId) => {
     const referredMessage = await fetchMessageByIds(guildId, channelId, messageId);
 
     if (referredMessage != null) {
-      return messageToEmbeds(referredMessage);
+      return messageToEmbeds(referredMessage, ['reactions']);
     }
     else {
       const insideOf = message.guild != null ? message.guild.name : message.author.username;
