@@ -3,6 +3,7 @@ import fastAvgColor from 'fast-average-color-node';
 import { isNonEmpty } from 'ts-array-length';
 import { log } from '@lib/log';
 import client from '../client';
+import type { EmbedMessageOptions } from 'types/bot';
 
 export const fetchMessageByIds = async (guildId: string, channelId: string, messageId: string): Promise<Message<true> | null> => {
   try {
@@ -32,10 +33,11 @@ export const fetchMessageByIds = async (guildId: string, channelId: string, mess
   }
 };
 
-export const messageToEmbeds = async (message: Message<boolean>, addReactionField: boolean = true): Promise<APIEmbed[]> => {
+export const messageToEmbeds = async (message: Message<boolean>, options: EmbedMessageOptions): Promise<APIEmbed[]> => {
   const { channel } = message;
 
   if (channel.isTextBased()) {
+    const optionsSet = new Set(options);
 
     const embeds: APIEmbed[] = [];
 
@@ -61,13 +63,16 @@ export const messageToEmbeds = async (message: Message<boolean>, addReactionFiel
       embed.setDescription(message.content);
     }
 
-    if (addReactionField) {
+    if (optionsSet.has('reactions')) {
       const reactions = message.reactions.cache;
       const reactionsCount = reactions.reduce((acc, x) => acc + x.count, 0);
 
       if (reactionsCount > 0) {
-        embed.addFields({ name: 'Reactions', value: String(reactionsCount) });
+        embed.addFields({ name: 'Reactions', value: String(reactionsCount), inline: true });
       }
+    }
+    if (optionsSet.has('originalUrl')) {
+      embed.addFields({ name: 'OriginalURL', value: message.url, inline: true });
     }
 
     const [attachments, spoilerAttachments] = message.attachments.partition(x => !x.spoiler);

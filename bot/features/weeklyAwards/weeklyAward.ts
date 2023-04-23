@@ -119,7 +119,7 @@ const tick = async (
             const embeds: APIEmbed[] = [];
 
             for (const message of messages) {
-              embeds.push(...await messageToEmbeds(message, false));
+              embeds.push(...await messageToEmbeds(message, ['originalUrl']));
             }
             contents.push({
               title: `**先週${rankText}リアクションが多かった投稿${messages.length >= 2 ? 'たち' : ''}です！！** [${count}個]`,

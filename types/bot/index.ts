@@ -10,3 +10,5 @@ export type ChatInputCommand<FuncResult, AdditionalProperties = {}, TCacheType e
 export interface ChatInputCommandCollection<FuncResult, AdditionalProperties, TCacheType extends CacheType = CacheType> {
   [commandName: string]: ChatInputCommand<FuncResult, AdditionalProperties, TCacheType>;
 }
+
+export type EmbedMessageOptions = ('reactions' | 'originalUrl')[];
