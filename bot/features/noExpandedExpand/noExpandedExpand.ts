@@ -155,6 +155,11 @@ const core = async (url: Url, index: number): Promise<{ embeds: APIEmbed[], atta
       .setDescription(getDescription(document))
       .setImage(getImage(document));
 
+    if (embed.data.title == null && embed.data.description == null) {
+      log( 'noExpandedExpand#core:', realUrl, 'no title and description');
+      return { embeds: [], attachment: null };
+    }
+
     {
       const pureUrl = getUrl(document);
       if (pureUrl != null) {
