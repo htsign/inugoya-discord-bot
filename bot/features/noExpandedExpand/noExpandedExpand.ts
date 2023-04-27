@@ -10,6 +10,12 @@ import type { Url } from 'types';
 
 const THRESHOLD_DELAY = 5 * 1000;
 
+const IGNORING_URLS = [
+  'https://discord.com/channels/',
+  'https://discord.com/api/',
+  'https://discord.com/invite/',
+];
+
 const getFavicon = async (url: Url, index: number): Promise<string | ReturnType<typeof fetchIco>> => {
   const fetchIco = async (iconUrl: string): Promise<[`attachment://favicon${number}.png`, Buffer] | null> => {
     const res = await fetch(iconUrl);
@@ -218,7 +224,7 @@ client.on(Events.MessageCreate, async message => {
       .filter((url: string | null): url is string => url != null);
     const targetUrls = urls
       .filter(url => !embedUrls.includes(url))
-      .filter(url => !url.startsWith('https://discord.com/channels/')); // ignore discord message url
+      .filter(url => !IGNORING_URLS.some(ignoringUrl => url.startsWith(ignoringUrl)));
 
     const expandingPromises: ReturnType<typeof core>[] = [];
 
