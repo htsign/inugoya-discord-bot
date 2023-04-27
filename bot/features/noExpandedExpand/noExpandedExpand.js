@@ -9,6 +9,12 @@ const { getUrlDomain, isUrl, retrieveRealUrl, urlsOfText, urlToDocument } = requ
 
 const THRESHOLD_DELAY = 5 * 1000;
 
+const IGNORING_URLS = [
+  'https://discord.com/channels/',
+  'https://discord.com/api/',
+  'https://discord.com/invite/',
+];
+
 /**
  * @param {Url} url
  * @param {number} index
@@ -264,7 +270,7 @@ client.on(Events.MessageCreate, async message => {
       .filter(/** @type {(url: string?) => url is string} */ url => url != null);
     const targetUrls = urls
       .filter(url => !embedUrls.includes(url))
-      .filter(url => !url.startsWith('https://discord.com/channels/')); // ignore discord message url
+      .filter(url => !IGNORING_URLS.some(ignoringUrl => url.startsWith(ignoringUrl)));
 
     /** @type {ReturnType<typeof core>[]} */
     const expandingPromises = [];
