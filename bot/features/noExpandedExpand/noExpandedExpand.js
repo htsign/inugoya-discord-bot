@@ -3,11 +3,13 @@ const { setTimeout } = require('node:timers/promises');
 const { AttachmentBuilder, Events, EmbedBuilder } = require('discord.js');
 const ico = require('icojs');
 const fastAvgColor = require('fast-average-color-node');
+const dayjs = require('../../lib/dayjsSetup');
 const client = require('../../client');
 const { log } = require('../../lib/log');
 const { getUrlDomain, isUrl, retrieveRealUrl, urlsOfText, urlToDocument } = require('../../lib/util');
 
 const THRESHOLD_DELAY = 5 * 1000;
+const THRESHOLD_FOR_DELETE = 5;
 
 const IGNORING_URLS = [
   'https://discord.com/channels/',
@@ -296,7 +298,19 @@ client.on(Events.MessageCreate, async message => {
       );
 
       const content = 'URL が展開されてないみたいだからこっちで付けとくね';
-      await message.reply({ content, embeds, files });
+      const replied = await message.reply({ content, embeds, files });
+
+      // delete replied message if all of original embeds had been created
+      const now = dayjs().tz();
+      do {
+        await setTimeout(0);
+
+        if (replied.embeds.every(re => message.embeds.some(me => me.url === re.url))) {
+          replied.delete();
+          break;
+        }
+      }
+      while (dayjs().tz().diff(now, 'seconds') < THRESHOLD_FOR_DELETE);
     }
   }
 });
