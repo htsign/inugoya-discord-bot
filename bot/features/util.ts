@@ -63,16 +63,25 @@ export const messageToEmbeds = async (message: Message<boolean>, options: EmbedM
       embed.setDescription(message.content);
     }
 
-    if (optionsSet.has('reactions')) {
-      const reactions = message.reactions.cache;
-      const reactionsCount = reactions.reduce((acc, x) => acc + x.count, 0);
+    for (const option of optionsSet) {
+      switch (option) {
+        case 'reactions': {
+          const reactions = message.reactions.cache;
+          const reactionsCount = reactions.reduce((acc, x) => acc + x.count, 0);
 
-      if (reactionsCount > 0) {
-        embed.addFields({ name: 'Reactions', value: String(reactionsCount), inline: true });
+          if (reactionsCount > 0) {
+            embed.addFields({ name: 'Reactions', value: String(reactionsCount), inline: true });
+          }
+          break;
+        }
+        case 'originalUrl': {
+          embed.addFields({ name: 'OriginalURL', value: message.url, inline: true });
+          break;
+        }
+        default: {
+          throw new RangeError(`exhaustive check: ${option satisfies never} is invalid`);
+        }
       }
-    }
-    if (optionsSet.has('originalUrl')) {
-      embed.addFields({ name: 'OriginalURL', value: message.url, inline: true });
     }
 
     const [attachments, spoilerAttachments] = message.attachments.partition(x => !x.spoiler);
