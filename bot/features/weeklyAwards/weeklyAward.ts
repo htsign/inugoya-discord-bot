@@ -137,7 +137,12 @@ const tick = async (
             const thread = await firstMessage.startThread({ name: 'リアクション大賞全体' });
 
             for (const { title, embeds } of restContents) {
-              await thread.send({ content: title, embeds });
+              // attach upto 10 embeds per message because of discord api limitation
+              await thread.send({ content: title, embeds: embeds.splice(0, 10) });
+
+              while (isNonEmpty(embeds)) {
+                await thread.send({ embeds: embeds.splice(0, 10) });
+              }
             }
           }
         }
