@@ -74,7 +74,7 @@ client.on(Events.MessageCreate, message => {
   log([guild.name, channel.name].join('/'), 'message incoming:', author.username, content);
 
   if (keywords.some(keyword => content.includes(keyword))) {
-    replyToHage(guild.id, text => channel.send(text), id);
+    replyToHage(guild.id, text => (log('hage send:', text), channel.send(text)), id);
   }
 });
 client.on(Events.MessageDelete, message => {
@@ -96,7 +96,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
   log([guild.name, channel.name].join('/'), 'reaction incoming:', user.username, reaction.emoji.name);
 
   if (!reactedMessageIds.has(id) && reactionKeywords.includes(reaction.emoji.toString())) {
-    replyToHage(guild.id, text => message.reply(text), id);
+    replyToHage(guild.id, text => (log('hage reply to', author.username, ':', text), message.reply(text)), id);
   }
 });
 client.on(Events.MessageReactionRemove, async (reaction, user) => {
