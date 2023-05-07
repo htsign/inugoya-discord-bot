@@ -54,6 +54,8 @@ client.once(Events.ClientReady, () => {
   log('random generator initialized by', mtSeed.format('YYYY/MM/DD HH:mm:ss'), mtSeed.unix());
 });
 client.on(Events.GuildDelete, guild => {
+  db.keywords.deleteAll(guild.id);
+  db.reactionKeywords.deleteAll(guild.id);
   db.unregister(guild.id);
 });
 client.on(Events.MessageCreate, message => {
