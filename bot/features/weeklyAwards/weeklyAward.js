@@ -20,7 +20,11 @@ client.once(Events.ClientReady, async () => {
 });
 client.on(Events.GuildDelete, async guild => {
   await stopAward(guild.id);
-  await db.config.unregister(guild.id);
+  await Promise.all([
+    db.deleteOutdated(guild.id, 0),
+    db.times.delete(guild.id),
+    db.config.unregister(guild.id),
+  ]);
 });
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
   const message = await reaction.message.fetch();

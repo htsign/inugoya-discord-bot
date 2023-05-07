@@ -294,6 +294,29 @@ class HageKeyword {
 
   /**
    * @param {string} guildId
+   * @returns {Promise<void>}
+   */
+  async deleteAll(guildId) {
+    const stmt = db.prepare(`
+      delete from ${this.#TABLE}
+      where
+        guild_id = @guildId
+    `);
+
+    try {
+      stmt.run({ guildId });
+    }
+    catch (e) {
+      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+        await setTimeout();
+        return this.deleteAll(guildId);
+      }
+      throw e;
+    }
+  }
+
+  /**
+   * @param {string} guildId
    * @param {string} keyword
    * @returns {HageKeywordRecord?}
    */
@@ -426,6 +449,29 @@ class HageReactionKeyword {
       if (e instanceof TypeError && e.message.includes('database connection is busy')) {
         await setTimeout();
         return this.delete(guildId, reaction);
+      }
+      throw e;
+    }
+  }
+
+  /**
+   * @param {string} guildId
+   * @returns {Promise<void>}
+   */
+  async deleteAll(guildId) {
+    const stmt = db.prepare(`
+      delete from ${this.#TABLE}
+      where
+        guild_id = @guildId
+    `);
+
+    try {
+      stmt.run({ guildId });
+    }
+    catch (e) {
+      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+        await setTimeout();
+        return this.deleteAll(guildId);
       }
       throw e;
     }
