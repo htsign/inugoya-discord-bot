@@ -64,6 +64,10 @@ client.on(Events.MessageCreate, async message => {
       embeds.map(e => e.url),
     );
 
-    await message.reply({ content: 'Wikipedia(ja) 展開', embeds });
+    message = await message.reply({ content: 'Wikipedia(ja) 展開', embeds: embeds.splice(0, 10) });
+
+    while (embeds.length > 0) {
+      message = await message.reply({ embeds: embeds.splice(0, 10) });
+    }
   }
 });

@@ -144,7 +144,7 @@ const tick = async (
               // attach upto 10 embeds per message because of discord api limitation
               await thread.send({ content: title, embeds: embeds.splice(0, 10) });
 
-              while (isNonEmpty(embeds)) {
+              while (embeds.length > 0) {
                 await thread.send({ embeds: embeds.splice(0, 10) });
               }
             }

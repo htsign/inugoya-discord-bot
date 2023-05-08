@@ -47,6 +47,10 @@ client.on(Events.MessageCreate, async message => {
       embeds.map(e => e.url),
     );
 
-    message.channel.send({ embeds });
+    message.channel.send({ embeds: embeds.splice(0, 10) });
+
+    while (embeds.length > 0) {
+      await message.channel.send({ embeds: embeds.splice(0, 10) });
+    }
   }
 });
