@@ -9,6 +9,11 @@
 /** @typedef {import('discord.js').APIEmbed} APIEmbed */
 /** @typedef {import('discord.js').APIEmbedAuthor} APIEmbedAuthor */
 /** @typedef {import('discord.js').APIEmbedField} APIEmbedField */
+/** @typedef {import('discord.js').ClientEvents} ClientEvents */
+/**
+ * @typedef {import('discord.js').Awaitable<T>} Awaitable
+ * @template T
+ */
 
 /** @typedef {import('discord.js').CacheType} CacheType */
 /**
