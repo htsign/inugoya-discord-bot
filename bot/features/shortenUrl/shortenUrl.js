@@ -1,5 +1,5 @@
 const { Events } = require('discord.js');
-const client = require('../../client');
+const { addHandler } = require('../../lib/listeners');
 const { log } = require('../../lib/log');
 const { getEnv, toQueryString, urlsOfText } = require('../../lib/util');
 
@@ -73,7 +73,7 @@ const shortenUrlsOfContent = content => shortenUrls(urlsOfText(content));
  */
 const shortenUrlsOfMessage = message => shortenUrlsOfContent(message.content ?? '');
 
-client.on(Events.MessageCreate, async message => {
+addHandler(Events.MessageCreate, async message => {
   const { reference, content, channel } = message;
 
   if (reference == null) return;

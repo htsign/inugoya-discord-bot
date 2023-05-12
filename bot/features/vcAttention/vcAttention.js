@@ -1,5 +1,5 @@
 const { Events, ChannelType } = require('discord.js');
-const client = require('../../client');
+const { addHandler } = require('../../lib/listeners');
 const { log } = require('../../lib/log');
 const { db } = require('./db');
 
@@ -9,10 +9,10 @@ const thrivingVoiceChannels = new Set();
 /** @type {(state: VoiceState) => `${Snowflake},${Snowflake}`} */
 const getId = state => `${state.guild.id},${state.channelId}`;
 
-client.on(Events.GuildDelete, guild => {
+addHandler(Events.GuildDelete, guild => {
   db.unregister(guild.id);
 });
-client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
+addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
   const configRecord = db.get(newState.guild.id);
   if (configRecord == null) return;
 

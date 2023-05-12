@@ -1,5 +1,5 @@
 const { Events, Message } = require('discord.js');
-const client = require('../../client');
+const { addHandler } = require('../../lib/listeners');
 const { log } = require('../../lib/log');
 const { fetchMessageByIds, messageToEmbeds } = require('../util');
 
@@ -28,7 +28,7 @@ const core = async (message, guildId, channelId, messageId) => {
   return [];
 };
 
-client.on(Events.MessageCreate, async message => {
+addHandler(Events.MessageCreate, async message => {
   if (message.author.bot || message.channel.isVoiceBased()) return;
 
   const regExpIterator = message.content.matchAll(/https:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)\b/g) ?? [];

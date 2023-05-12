@@ -4,7 +4,7 @@ const { AttachmentBuilder, Events, EmbedBuilder } = require('discord.js');
 const ico = require('icojs');
 const fastAvgColor = require('fast-average-color-node');
 const dayjs = require('../../lib/dayjsSetup');
-const client = require('../../client');
+const { addHandler } = require('../../lib/listeners');
 const { log } = require('../../lib/log');
 const { getUrlDomain, isUrl, retrieveRealUrl, urlsOfText, urlToDocument } = require('../../lib/util');
 
@@ -259,7 +259,7 @@ const core = async (url, index) => {
   }
 };
 
-client.on(Events.MessageCreate, async message => {
+addHandler(Events.MessageCreate, async message => {
   const { author, content, guild, channel } = message;
   if (author.bot) return;
 
