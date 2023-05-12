@@ -82,7 +82,7 @@ const urlToDocument = async url => {
   const res = await fetch(url);
   const buffer = await res.arrayBuffer();
   const encoding =
-    res.headers.get('Content-Type')?.match(/(?<=charset=)[^;]+/)?.[0]
+    res.headers.get('Content-Type')?.match(/(?<=charset=)[^;]+/i)?.[0]
     ?? chardet.detect(new Uint8Array(buffer))
     ?? 'utf-8';
   const html = new TextDecoder(encoding).decode(buffer);
