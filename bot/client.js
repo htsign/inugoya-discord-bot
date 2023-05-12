@@ -14,8 +14,7 @@ const client = new Client({
     Partials.Message,
     Partials.Reaction,
   ]
-})
-  .setMaxListeners(50);
+});
 
 client.login(getEnv('ACCESS_TOKEN')).then(_ => {
   client.user?.setPresence({
