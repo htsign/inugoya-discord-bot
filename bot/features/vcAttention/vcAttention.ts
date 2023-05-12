@@ -1,16 +1,16 @@
 import { Events, ChannelType, Snowflake, Channel, VoiceState } from 'discord.js';
 import { log } from '@lib/log';
-import client from 'bot/client';
+import { addHandler } from '@lib/listeners';
 import { db } from './db';
 
 const thrivingVoiceChannels = new Set<`${Snowflake},${Snowflake}`>();
 
 const getId = (state: VoiceState): `${Snowflake},${Snowflake}` => `${state.guild.id},${state.channelId}`;
 
-client.on(Events.GuildDelete, guild => {
+addHandler(Events.GuildDelete, guild => {
   db.unregister(guild.id);
 });
-client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
+addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
   const configRecord = db.get(newState.guild.id);
   if (configRecord == null) return;
 

@@ -1,5 +1,5 @@
 import { APIEmbed, Events, Message } from 'discord.js';
-import client from 'bot/client';
+import { addHandler } from '@lib/listeners';
 import { log } from '@lib/log';
 import { fetchMessageByIds, messageToEmbeds } from '../util';
 
@@ -21,7 +21,7 @@ const core = async (message: Message, guildId: string, channelId: string, messag
   return [];
 };
 
-client.on(Events.MessageCreate, async message => {
+addHandler(Events.MessageCreate, async message => {
   if (message.author.bot || message.channel.isVoiceBased()) return;
 
   const regExpIterator = message.content.matchAll(/https:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)\b/g) ?? [];

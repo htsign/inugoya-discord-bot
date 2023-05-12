@@ -4,7 +4,7 @@ import { AttachmentBuilder, Events, EmbedBuilder, APIEmbed, EmbedAuthorOptions }
 import ico from 'icojs';
 import fastAvgColor from 'fast-average-color-node';
 import { dayjs } from '../../lib/dayjsSetup';
-import client from 'bot/client';
+import { addHandler } from '@lib/listeners';
 import { log } from '@lib/log';
 import { getUrlDomain, isUrl, retrieveRealUrl, urlsOfText, urlToDocument } from '@lib/util';
 import type { Url } from 'types';
@@ -213,7 +213,7 @@ const core = async (url: Url, index: number): Promise<{ embeds: APIEmbed[], atta
   }
 };
 
-client.on(Events.MessageCreate, async message => {
+addHandler(Events.MessageCreate, async message => {
   const { author, content, guild, channel } = message;
   if (author.bot) return;
 

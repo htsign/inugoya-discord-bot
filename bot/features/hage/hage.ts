@@ -1,6 +1,7 @@
 import { Events, Message, PartialMessage, Snowflake } from 'discord.js';
 import MersenneTwister from 'mersenne-twister';
 import { dayjs } from '@lib/dayjsSetup';
+import { addHandler } from '@lib/listeners';
 import client from 'bot/client';
 import { Timeout } from '@lib/timeout';
 import { log } from '@lib/log';
@@ -53,12 +54,12 @@ const replyToHage = (
 client.once(Events.ClientReady, () => {
   log('random generator initialized by', mtSeed.format('YYYY/MM/DD HH:mm:ss'), mtSeed.unix());
 });
-client.on(Events.GuildDelete, guild => {
+addHandler(Events.GuildDelete, guild => {
   db.keywords.deleteAll(guild.id);
   db.reactionKeywords.deleteAll(guild.id);
   db.unregister(guild.id);
 });
-client.on(Events.MessageCreate, message => {
+addHandler(Events.MessageCreate, message => {
   const { content, author, guild, channel } = message;
 
   if (author.bot || guild == null || channel.isVoiceBased() || !('name' in channel)) return;
@@ -75,11 +76,11 @@ client.on(Events.MessageCreate, message => {
     replyToHage(guild.id, text => (log('hage send:', text), channel.send(text)), id);
   }
 });
-client.on(Events.MessageDelete, message => {
+addHandler(Events.MessageDelete, message => {
   const id = getId(message);
   reactedMessageIds.delete(id);
 });
-client.on(Events.MessageReactionAdd, async (reaction, user) => {
+addHandler(Events.MessageReactionAdd, async (reaction, user) => {
   const message = await reaction.message.fetch();
   const { author, guild, channel } = message;
 
@@ -97,7 +98,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
     replyToHage(guild.id, text => (log('hage reply to', author.username, ':', text), message.reply(text)), id);
   }
 });
-client.on(Events.MessageReactionRemove, async (reaction, user) => {
+addHandler(Events.MessageReactionRemove, async (reaction, user) => {
   const message = await reaction.message.fetch();
   const { author, reactions, guildId } = message;
 

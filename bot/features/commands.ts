@@ -1,6 +1,7 @@
 import { Events } from 'discord.js';
+import { addHandler } from '@lib/listeners';
 import { log } from '@lib/log';
-import client from '../client';
+import client from 'bot/client';
 import type { ChatInputCommandCollection } from 'types/bot'
 
 import { commands as hageCommands } from './hage/commands';
@@ -17,7 +18,7 @@ const commands: ChatInputCommandCollection<any, {}> = {
   ...vcAttentionCommands,
 };
 
-client.on(Events.InteractionCreate, async interaction => {
+addHandler(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
   const { guild, user, commandName } = interaction;
@@ -41,10 +42,10 @@ client.once(Events.ClientReady, async () => {
   const _commands = Object.entries(commands).map(([name, content]) => ({ ...content, name }));
   app.commands.set(_commands);
 });
-client.on(Events.GuildCreate, async ({ name }) => {
+addHandler(Events.GuildCreate, async ({ name }) => {
   log('bot has been added to', name);
 });
-client.on(Events.GuildDelete, async guild => {
+addHandler(Events.GuildDelete, async guild => {
   const { commands } = guild.client.application;
 
   for (const command of commands.cache.values()) {

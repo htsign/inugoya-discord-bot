@@ -1,6 +1,7 @@
 import { Events, ChannelType, Message, APIEmbed } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
 import { dayjs } from '@lib/dayjsSetup';
+import { addHandler } from '@lib/listeners';
 import { log } from '@lib/log';
 import client from 'bot/client';
 import { fetchMessageByIds, messageToEmbeds } from '../util';
@@ -20,7 +21,7 @@ client.once(Events.ClientReady, async () => {
 
   log('weekly award is ready.');
 });
-client.on(Events.GuildDelete, async guild => {
+addHandler(Events.GuildDelete, async guild => {
   await stopAward(guild.id);
   await Promise.all([
     db.deleteOutdated(guild.id, 0),
@@ -28,7 +29,7 @@ client.on(Events.GuildDelete, async guild => {
     db.config.unregister(guild.id),
   ]);
 });
-client.on(Events.MessageReactionAdd, async (reaction, user) => {
+addHandler(Events.MessageReactionAdd, async (reaction, user) => {
   const message = await reaction.message.fetch();
   const { author, reactions } = message;
 
@@ -40,7 +41,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
   const reactionsCount = reactions.cache.reduce((acc, reaction) => acc + reaction.count, 0);
   await db.set(message, reactionsCount);
 });
-client.on(Events.MessageReactionRemove, async (reaction, user) => {
+addHandler(Events.MessageReactionRemove, async (reaction, user) => {
   const message = await reaction.message.fetch();
   const { author, reactions } = message;
 
