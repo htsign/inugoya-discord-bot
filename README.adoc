@@ -1,1 +1,1 @@
-CAUTION: not working on https://github.com/oven-sh/bun/releases/tag/bun-v0.5.7[bun 0.5.7] (latest version as of 02/24/2023)
+CAUTION: not working on https://github.com/oven-sh/bun/releases/tag/bun-v0.5.9[bun 0.5.9] (latest version as of 05/13/2023)
