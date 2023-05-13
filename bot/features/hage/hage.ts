@@ -1,8 +1,7 @@
 import { Events, Message, PartialMessage, Snowflake } from 'discord.js';
 import MersenneTwister from 'mersenne-twister';
+import { addHandler } from 'bot/listeners';
 import { dayjs } from '@lib/dayjsSetup';
-import { addHandler } from '@lib/listeners';
-import client from 'bot/client';
 import { Timeout } from '@lib/timeout';
 import { log } from '@lib/log';
 import { db } from './db';
@@ -51,7 +50,7 @@ const replyToHage = (
   }
 };
 
-client.once(Events.ClientReady, () => {
+addHandler(Events.ClientReady, () => {
   log('random generator initialized by', mtSeed.format('YYYY/MM/DD HH:mm:ss'), mtSeed.unix());
 });
 addHandler(Events.GuildDelete, guild => {

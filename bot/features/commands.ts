@@ -1,7 +1,6 @@
 import { Events } from 'discord.js';
-import { addHandler } from '@lib/listeners';
+import { addHandler } from 'bot/listeners';
 import { log } from '@lib/log';
-import client from 'bot/client';
 import type { ChatInputCommandCollection } from 'types/bot'
 
 import { commands as hageCommands } from './hage/commands';
@@ -33,12 +32,9 @@ addHandler(Events.InteractionCreate, async interaction => {
   return command.func(interaction);
 });
 
-client.once(Events.ClientReady, async () => {
-  const app = await client.application?.fetch();
+addHandler(Events.ClientReady, async client => {
+  const app = await client.application.fetch();
 
-  if (app == null) {
-    return log('application fetching is failed.');
-  }
   const _commands = Object.entries(commands).map(([name, content]) => ({ ...content, name }));
   app.commands.set(_commands);
 });

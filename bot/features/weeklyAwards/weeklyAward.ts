@@ -1,9 +1,9 @@
 import { Events, ChannelType, Message, APIEmbed } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
-import { dayjs } from '@lib/dayjsSetup';
-import { addHandler } from '@lib/listeners';
-import { log } from '@lib/log';
 import client from 'bot/client';
+import { addHandler } from 'bot/listeners';
+import { dayjs } from '@lib/dayjsSetup';
+import { log } from '@lib/log';
 import { fetchMessageByIds, messageToEmbeds } from '../util';
 import { db } from './db';
 import { Weekday } from './weekday';
@@ -14,7 +14,7 @@ import type { MessageAndReactions, WeeklyAwardRecord } from 'types/bot/features/
  */
 const instances = new Map<string, NodeJS.Timeout>();
 
-client.once(Events.ClientReady, async () => {
+addHandler(Events.ClientReady, async () => {
   for (const { guildId } of db.config.records) {
     startAward(guildId);
   }

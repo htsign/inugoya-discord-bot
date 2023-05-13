@@ -1,7 +1,7 @@
 import { Events, Message } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
+import { addHandler } from 'bot/listeners';
 import { getEnv, toQueryString, urlsOfText } from '@lib/util';
-import { addHandler } from '@lib/listeners';
 import { log } from '@lib/log';
 import type { Url } from 'types';
 import type { XgdFailureMessage, XgdRequest, XgdResponse, XgdSuccessMessage } from 'types/bot/features/shortenUrl';

@@ -1,5 +1,4 @@
-import { Awaitable, ClientEvents, Events } from 'discord.js';
-import client from '../client';
+import { Awaitable, Client, ClientEvents, Events } from 'discord.js';
 
 const listeners: Map<keyof ClientEvents, Set<(...args: any) => Awaitable<void>>> = new Map();
 
@@ -13,12 +12,14 @@ export const addHandler = <K extends keyof ClientEvents>(
   listeners.get(event)!.add(handler);
 };
 
-client.once(Events.ClientReady, () => {
+export const init = (client: Client<true>) => {
   for (const [event, handlers] of listeners) {
-    client.on(event, (...args) => {
+    const hook = (event === Events.ClientReady ? client.once : client.on).bind(client);
+
+    hook(event, (...args) => {
       for (const handler of handlers) {
         handler(...args);
       }
     });
   }
-});
+};

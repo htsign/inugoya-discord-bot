@@ -1,6 +1,6 @@
 import { Events, ChannelType, Snowflake, Channel, VoiceState } from 'discord.js';
+import { addHandler } from 'bot/listeners';
 import { log } from '@lib/log';
-import { addHandler } from '@lib/listeners';
 import { db } from './db';
 
 const thrivingVoiceChannels = new Set<`${Snowflake},${Snowflake}`>();

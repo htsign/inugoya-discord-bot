@@ -1,5 +1,5 @@
 import { APIEmbed, Events, Message } from 'discord.js';
-import { addHandler } from '@lib/listeners';
+import { addHandler } from 'bot/listeners';
 import { log } from '@lib/log';
 import { fetchMessageByIds, messageToEmbeds } from '../util';
 
