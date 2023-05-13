@@ -4,7 +4,7 @@ const { AttachmentBuilder, Events, EmbedBuilder } = require('discord.js');
 const ico = require('icojs');
 const fastAvgColor = require('fast-average-color-node');
 const dayjs = require('../../lib/dayjsSetup');
-const { addHandler } = require('../../lib/listeners');
+const { addHandler } = require('../../listeners');
 const { log } = require('../../lib/log');
 const { getUrlDomain, isUrl, retrieveRealUrl, urlsOfText, urlToDocument } = require('../../lib/util');
 

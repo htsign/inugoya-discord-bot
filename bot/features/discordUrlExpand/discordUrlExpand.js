@@ -1,5 +1,5 @@
 const { Events, Message } = require('discord.js');
-const { addHandler } = require('../../lib/listeners');
+const { addHandler } = require('../../listeners');
 const { log } = require('../../lib/log');
 const { fetchMessageByIds, messageToEmbeds } = require('../util');
 

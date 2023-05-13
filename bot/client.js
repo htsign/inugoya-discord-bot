@@ -1,5 +1,6 @@
 const { Client, GatewayIntentBits, Partials, PresenceUpdateStatus } = require('discord.js');
 const { getEnv } = require('./lib/util');
+const { init } = require('./listeners');
 
 const client = new Client({
   intents: [
@@ -17,12 +18,16 @@ const client = new Client({
 });
 
 client.login(getEnv('ACCESS_TOKEN')).then(_ => {
-  client.user?.setPresence({
+  const { user } = client;
+  if (user == null) return;
+
+  const presence = user.setPresence({
     activities: [
       { name: '犬小屋を監視しています' },
     ],
     status: PresenceUpdateStatus.Online,
   });
+  init(presence.client);
 });
 
 module.exports = client;

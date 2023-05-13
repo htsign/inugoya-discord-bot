@@ -1,8 +1,7 @@
 const { Events } = require('discord.js');
 const MersenneTwister = require('mersenne-twister');
 const dayjs = require('../../lib/dayjsSetup');
-const { addHandler } = require('../../lib/listeners');
-const client = require('../../client');
+const { addHandler } = require('../../listeners');
 const { Timeout } = require('../../lib/timeout');
 const { log } = require('../../lib/log');
 const { db } = require('./db');
@@ -55,7 +54,7 @@ const replyToHage = (guildId, messageHandler, id) => {
   }
 };
 
-client.once(Events.ClientReady, () => {
+addHandler(Events.ClientReady, () => {
   log('random generator initialized by', mtSeed.format('YYYY/MM/DD HH:mm:ss'), mtSeed.unix());
 });
 addHandler(Events.GuildDelete, guild => {

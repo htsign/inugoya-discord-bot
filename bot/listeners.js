@@ -1,5 +1,4 @@
-const { Events } = require('discord.js');
-const client = require('../client');
+const { Client, Events } = require('discord.js');
 
 /** @type {Map<keyof ClientEvents, Set<(...args: any) => Awaitable<void>>>} */
 const listeners = new Map();
@@ -16,14 +15,22 @@ const addHandler = (event, handler) => {
   listeners.get(event)?.add(handler);
 };
 
-client.once(Events.ClientReady, () => {
+/**
+ * @param {Client<true>} client
+ */
+const init = client => {
   for (const [event, handlers] of listeners) {
-    client.on(event, (...args) => {
+    const hook = (event === Events.ClientReady ? client.once : client.on).bind(client);
+
+    hook(event, (...args) => {
       for (const handler of handlers) {
         handler(...args);
       }
     });
   }
-});
+};
 
-module.exports = { addHandler };
+module.exports = {
+  addHandler,
+  init,
+};

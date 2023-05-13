@@ -1,6 +1,6 @@
 const { Events, ChannelType } = require('discord.js');
 const dayjs = require('../../lib/dayjsSetup');
-const { addHandler } = require('../../lib/listeners');
+const { addHandler } = require('../../listeners');
 const client = require('../../client');
 const { log } = require('../../lib/log');
 const { fetchMessageByIds, messageToEmbeds } = require('../util');
@@ -12,7 +12,7 @@ const { db } = require('./db');
  */
 const instances = new Map();
 
-client.once(Events.ClientReady, async () => {
+addHandler(Events.ClientReady, async () => {
   for (const { guildId } of db.config.records) {
     startAward(guildId);
   }

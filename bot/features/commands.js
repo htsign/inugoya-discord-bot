@@ -1,6 +1,5 @@
 const { Events } = require('discord.js');
-const { addHandler } = require('../lib/listeners');
-const client = require('../client');
+const { addHandler } = require('../listeners');
 const { log } = require('../lib/log');
 
 /**
@@ -29,12 +28,9 @@ addHandler(Events.InteractionCreate, async interaction => {
   return command.func(interaction);
 });
 
-client.once(Events.ClientReady, async () => {
-  const app = await client.application?.fetch();
+addHandler(Events.ClientReady, async client => {
+  const app = await client.application.fetch();
 
-  if (app == null) {
-    return log('application fetching is failed.');
-  }
   const _commands = Object.entries(commands).map(([name, content]) => ({ ...content, name }));
   app.commands.set(_commands);
 });

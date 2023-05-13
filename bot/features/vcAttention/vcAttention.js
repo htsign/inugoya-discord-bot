@@ -1,5 +1,5 @@
 const { Events, ChannelType } = require('discord.js');
-const { addHandler } = require('../../lib/listeners');
+const { addHandler } = require('../../listeners');
 const { log } = require('../../lib/log');
 const { db } = require('./db');
 
