@@ -1,6 +1,46 @@
-import { ApplicationCommandOptionType, ChatInputCommandInteraction } from 'discord.js';
+import {
+  ActionRowBuilder,
+  ApplicationCommandOptionType,
+  ButtonBuilder,
+  ButtonStyle,
+  ChatInputCommandInteraction,
+  Events,
+  MessageReaction,
+} from 'discord.js';
+import { addHandler } from '../../listeners';
+import { log } from '../../lib/log';
 import { toEmojis } from '.';
 import type { ChatInputCommandCollection } from 'types/bot';
+
+addHandler(Events.InteractionCreate, async interaction => {
+  const { guild, channel } = interaction;
+
+  if (interaction.isButton()) {
+    const { customId } = interaction;
+
+    if (channel == null) {
+      log(...[
+        guild != null ? [guild.name] : [],
+        customId,
+        'couldn\'t fetch channel',
+      ]);
+      interaction.reply({ content: '想定外のエラーが発生しました。', ephemeral: true });
+      return;
+    }
+
+    if (customId.startsWith('delete_')) {
+      const messageId = customId.slice('delete_'.length);
+      const { reactions } = channel.messages.cache.get(messageId) ?? await channel.messages.fetch(messageId);
+
+      for (const reaction of reactions.cache.values()) {
+        if (reaction.me) {
+          reaction.remove();
+        }
+      }
+      interaction.reply({ content: '削除しました。', ephemeral: true });
+    }
+  }
+});
 
 export const commands: ChatInputCommandCollection<void, {}> = {
   emojify: {
@@ -43,10 +83,14 @@ export const commands: ChatInputCommandCollection<void, {}> = {
       if (emojis.success) {
         await channel.send(`${interaction.user} が \`/emojify "${text}"\` を使用しました。`);
 
+        const reactedEmojis: MessageReaction[] = [];
         for (const emojiText of emojis.values) {
-          await message.react(emojiText);
+          reactedEmojis.push(await message.react(emojiText));
         }
-        await interaction.deleteReply();
+
+        const button = new ButtonBuilder({ customId: `delete_${to}`, label: 'やっぱり削除', style: ButtonStyle.Danger });
+        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(button);
+        await interaction.editReply({ components: [row.toJSON()] });
       }
       else {
         await interaction.editReply(emojis.message);
