@@ -259,14 +259,19 @@ const core = async (url, index) => {
   }
 };
 
+/** @type {Set<Message<boolean>>} */
+const targetMessages = new Set();
+
 addHandler(Events.MessageCreate, async message => {
   const { author, content, guild, channel } = message;
   if (author.bot) return;
 
+  targetMessages.add(message);
   await setTimeout(THRESHOLD_DELAY);
 
   const urls = urlsOfText(content);
-  if (message.embeds.length < urls.length) {
+  if (targetMessages.has(message) && message.embeds.length < urls.length) {
+
     const embedUrls = message.embeds
       .map(embed => embed.url)
       .filter(/** @type {(url: string?) => url is string} */ url => url != null);
@@ -287,7 +292,7 @@ addHandler(Events.MessageCreate, async message => {
     const files = results.map(res => res.attachment)
       .filter(/** @type {(x: import('discord.js').AttachmentBuilder?) => x is AttachmentBuilder} */ x => x != null);
 
-    if (embeds.length > 0) {
+    if (targetMessages.has(message) && embeds.length > 0) {
       log(
         [
           guild != null ? [guild.name] : [],
@@ -312,5 +317,11 @@ addHandler(Events.MessageCreate, async message => {
       }
       while (dayjs().tz().diff(now, 'seconds') < THRESHOLD_FOR_DELETE);
     }
+
+    targetMessages.delete(message);
   }
+});
+
+addHandler(Events.MessageDelete, async message => {
+  targetMessages.delete(message);
 });
