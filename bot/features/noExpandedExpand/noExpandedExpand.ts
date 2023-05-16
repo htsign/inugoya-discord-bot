@@ -1,6 +1,6 @@
 import { URL } from 'node:url';
 import { setTimeout } from 'node:timers/promises';
-import { AttachmentBuilder, Events, EmbedBuilder, APIEmbed, EmbedAuthorOptions } from 'discord.js';
+import { AttachmentBuilder, APIEmbed, EmbedBuilder, EmbedAuthorOptions, Events, Message, PartialMessage } from 'discord.js';
 import ico from 'icojs';
 import fastAvgColor from 'fast-average-color-node';
 import { addHandler } from 'bot/listeners';
@@ -213,14 +213,18 @@ const core = async (url: Url, index: number): Promise<{ embeds: APIEmbed[], atta
   }
 };
 
+const targetMessages: Set<Message<boolean> | PartialMessage> = new Set();
+
 addHandler(Events.MessageCreate, async message => {
   const { author, content, guild, channel } = message;
   if (author.bot) return;
 
+  targetMessages.add(message);
   await setTimeout(THRESHOLD_DELAY);
 
   const urls = urlsOfText(content);
-  if (message.embeds.length < urls.length) {
+  if (targetMessages.has(message) && message.embeds.length < urls.length) {
+
     const embedUrls = message.embeds
       .map(embed => embed.url)
       .filter((url: string | null): url is string => url != null);
@@ -240,7 +244,7 @@ addHandler(Events.MessageCreate, async message => {
     const files = results.map(res => res.attachment)
       .filter((x: AttachmentBuilder | null): x is AttachmentBuilder => x != null);
 
-    if (embeds.length > 0) {
+    if (targetMessages.has(message) && embeds.length > 0) {
       log(
         [
           guild != null ? [guild.name] : [],
@@ -265,5 +269,11 @@ addHandler(Events.MessageCreate, async message => {
       }
       while (dayjs().tz().diff(now, 'seconds') < THRESHOLD_FOR_DELETE);
     }
+
+    targetMessages.delete(message);
   }
+});
+
+addHandler(Events.MessageDelete, async message => {
+  targetMessages.delete(message);
 });
