@@ -1,3 +1,6 @@
+const dns = require('node:dns');
+dns.setDefaultResultOrder('ipv4first');
+
 require('./bot/features/commands');
 require('./bot/features/hage');
 require('./bot/features/weeklyAwards');
