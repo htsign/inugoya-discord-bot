@@ -260,9 +260,18 @@ addHandler(Events.MessageCreate, async message => {
       // delete replied message if all of original embeds had been created
       const now = dayjs().tz();
       do {
-        await setTimeout(0);
+        await setTimeout();
 
         if (replied.embeds.every(re => message.embeds.some(me => me.url === re.url))) {
+          log(
+            [
+              guild != null ? [guild.name] : [],
+              'name' in channel ? [channel.name] : [],
+            ].flat().join('/'),
+            'delete expanded url:',
+            embeds.map(e => e.url),
+          );
+
           replied.delete();
           break;
         }
