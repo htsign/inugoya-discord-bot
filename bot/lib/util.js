@@ -1,4 +1,5 @@
 const { URL } = require('node:url');
+const { setTimeout: delay } = require('node:timers/promises');
 const dotenv = require('dotenv');
 const chardet = require('chardet');
 const { JSDOM } = require('jsdom');
@@ -79,7 +80,22 @@ const urlsOfText = text => {
  * @returns {Promise<Document>}
  */
 const urlToDocument = async url => {
-  const res = await fetch(url);
+  /**
+   * @param {string} url
+   * @returns {Promise<Response>}
+   */
+  const _fetch = async url => {
+    for (let tryCount = 0; tryCount < 3; tryCount++) {
+      try {
+        return await fetch(url);
+      }
+      catch {
+        delay(1000);
+      }
+    }
+    return Promise.reject(new Error('failed to fetch'));
+  };
+  const res = await _fetch(url);
   const buffer = await res.arrayBuffer();
   const encoding =
     res.headers.get('Content-Type')?.match(/(?<=charset=)[^;]+/i)?.[0]
