@@ -1,4 +1,5 @@
 import { URL } from 'node:url';
+import { setTimeout as delay } from 'node:timers/promises';
 import chardet from 'chardet';
 import { JSDOM } from 'jsdom';
 import _emojiRegex from 'emoji-regex';
@@ -55,7 +56,18 @@ export const urlsOfText = (text: string): Url[] => {
 };
 
 export const urlToDocument = async (url: string): Promise<Document> => {
-  const res = await fetch(url);
+  const _fetch = async (url: string): Promise<Response> => {
+    for (let tryCount = 0; tryCount < 3; tryCount++) {
+      try {
+        return await fetch(url);
+      }
+      catch {
+        delay(1000);
+      }
+    }
+    return Promise.reject(new Error('failed to fetch'));
+  };
+  const res = await _fetch(url);
   const buffer = await res.arrayBuffer();
   const encoding =
     res.headers.get('Content-Type')?.match(/(?<=charset=)[^;]+/i)?.[0]
