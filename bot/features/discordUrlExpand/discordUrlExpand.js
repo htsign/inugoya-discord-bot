@@ -10,7 +10,7 @@ const TRY_COUNT_THRESHOLD = 3;
  * @param {string} guildId
  * @param {string} channelId
  * @param {string} messageId
- * @returns {Promise<APIEmbed[]>}
+ * @returns {Promise<import('discord.js').APIEmbed[]>}
  */
 const core = async (message, guildId, channelId, messageId) => {
   for (let tryCount = 0; tryCount < TRY_COUNT_THRESHOLD; ++tryCount) {
@@ -33,7 +33,7 @@ addHandler(Events.MessageCreate, async message => {
 
   const regExpIterator = message.content.matchAll(/https:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)\b/g) ?? [];
 
-  /** @type {Promise<APIEmbed[]>[]} */
+  /** @type {Promise<import('discord.js').APIEmbed[]>[]} */
   const embedPromises = [];
 
   for (const [, guildId, channelId, messageId] of regExpIterator) {

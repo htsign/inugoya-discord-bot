@@ -16,7 +16,7 @@ const isNumber = cp => code0 <= cp && cp <= code9;
 
 /**
  * @param {string} text
- * @returns {RegionalIndicatorsResult}
+ * @returns {import('types/bot/features/regionalIndicators').RegionalIndicatorsResult}
  */
 const toEmojis = text => {
   if (text.length !== new Set(text).size) {

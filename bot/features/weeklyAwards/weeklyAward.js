@@ -60,7 +60,7 @@ addHandler(Events.MessageReactionRemove, async (reaction, user) => {
  * @param {string} channelName
  * @param {number} showsRankCount
  * @param {number} minReacted
- * @param {Weekday} weekday
+ * @param {import('./weekday').Weekday} weekday
  * @param {number} hour
  * @param {number} minute
  * @returns {Promise<void>}
@@ -91,8 +91,8 @@ const tick = async (guildId, guildName, channelName, showsRankCount, minReacted,
 
       if (db.all().some(({ reactionsCount: count }) => count >= minReacted)) {
         /**
-         * @param {WeeklyAwardRecord} record
-         * @returns {Promise<MessageAndReactions?>}
+         * @param {import('types/bot/features/weeklyAwards').WeeklyAwardRecord} record
+         * @returns {Promise<import('types/bot/features/weeklyAwards').MessageAndReactions?>}
          */
         const fetchesMessage = async record => {
           if (record.guildId !== guildId) return null;
@@ -110,16 +110,16 @@ const tick = async (guildId, guildName, channelName, showsRankCount, minReacted,
         }
 
         const messages = (await Promise.all(fetchingPromises))
-          .filter(/** @type {(x: MessageAndReactions?) => x is MessageAndReactions} */ x => x != null);
+          .filter(/** @type {(x: import('types/bot/features/weeklyAwards').MessageAndReactions?) => x is import('types/bot/features/weeklyAwards').MessageAndReactions} */ x => x != null);
 
         // tally messages by reactions count
         const talliedMessages = messages
-          .reduce((/** @type {{ [count: number]: Message<true>[] }} */ acc, { message, reactionsCount }) =>
+          .reduce((/** @type {{ [count: number]: import('discord.js').Message<true>[] }} */ acc, { message, reactionsCount }) =>
             ({ ...acc, [reactionsCount]: [...acc[reactionsCount] ?? [], message] }), {});
         // sort descending order by reactions count
         const messagesArray = Object.entries(talliedMessages).sort(([a, ], [b, ]) => (+b) - (+a));
 
-        /** @type {{ title: string, embeds: APIEmbed[] }[]} */
+        /** @type {{ title: string, embeds: import('discord.js').APIEmbed[] }[]} */
         const contents = [];
         {
           let rank = 1;
@@ -127,7 +127,7 @@ const tick = async (guildId, guildName, channelName, showsRankCount, minReacted,
           for (const [count, messages] of messagesArray.filter((_, i) => i < Math.min(messagesArray.length, showsRankCount))) {
             const rankText = rank === 1 ? '最も' : ` ${rank}番目に`;
 
-            /** @type {APIEmbed[]} */
+            /** @type {import('discord.js').APIEmbed[]} */
             const embeds = [];
 
             for (const message of messages) {

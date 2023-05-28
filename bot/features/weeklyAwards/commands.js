@@ -11,7 +11,7 @@ const DEFAULT_WEEKDAY = SUNDAY;
 const DEFAULT_HOUR = 12;
 const DEFAULT_MINUTE = 0;
 
-/** @type {ChatInputCommand<void, {}, 'cached' | 'raw'>} */
+/** @type {import('types/bot').ChatInputCommandCollection<void, {}, 'cached' | 'raw'>} */
 const subCommands = {
   register: {
     description: '初期登録をします。',
@@ -230,7 +230,7 @@ const subCommands = {
       await stopAward(guildId);
       await startAward(guildId);
 
-      /** @type {APIEmbedField[]} */
+      /** @type {import('discord.js').APIEmbedField[]} */
       const fields = [];
 
       if (isSet.channel) {
@@ -300,7 +300,7 @@ const subCommands = {
   },
 };
 
-/** @type {ChatInputCommand<void>} */
+/** @type {import('types/bot').ChatInputCommandCollection<void, {}>} */
 module.exports = {
   weeklyaward: {
     description: 'リアクション大賞',

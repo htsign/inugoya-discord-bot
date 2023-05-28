@@ -7,15 +7,15 @@ const API_KEY = getEnv('XGD_API_KEY', 'X.gd API key');
 const API_ENTRYPOINT = 'https://xgd.io/V1/shorten';
 
 /**
- * @param {Url[]} urls
- * @returns {Promise<(XgdSuccessMessage | XgdFailureMessage)[]>}
+ * @param {import('types').Url[]} urls
+ * @returns {Promise<(import('types/bot/features/shortenUrl').XgdSuccessMessage | import('types/bot/features/shortenUrl').XgdFailureMessage)[]>}
  */
 const shortenUrls = async urls => {
-  /** @type {(XgdSuccessMessage | XgdFailureMessage)[]} */
+  /** @type {(import('types/bot/features/shortenUrl').XgdSuccessMessage | import('types/bot/features/shortenUrl').XgdFailureMessage)[]} */
   const shortenUrls = [];
 
   for (const url of urls) {
-    /** @type {XgdRequest} */
+    /** @type {import('types/bot/features/shortenUrl').XgdRequest} */
     const params = {
       key: API_KEY,
       url,
@@ -24,7 +24,7 @@ const shortenUrls = async urls => {
 
     try {
       const res = await fetch(`${API_ENTRYPOINT}?${toQueryString(params)}`);
-      /** @type {XgdResponse} */
+      /** @type {import('types/bot/features/shortenUrl').XgdResponse} */
       const data = await res.json();
 
       if (res.status !== 200) {
@@ -48,8 +48,8 @@ const shortenUrls = async urls => {
 };
 
 /**
- * @param {Url} url
- * @returns {Promise<XgdSuccessMessage | XgdFailureMessage>}
+ * @param {import('types').Url} url
+ * @returns {Promise<import('types/bot/features/shortenUrl').XgdSuccessMessage | import('types/bot/features/shortenUrl').XgdFailureMessage>}
  */
 const shortenUrl = async url => {
   const { isNonEmpty } = await import('ts-array-length');
@@ -63,13 +63,13 @@ const shortenUrl = async url => {
 
 /**
  * @param {string} content
- * @returns {Promise<(XgdSuccessMessage | XgdFailureMessage)[]>}
+ * @returns {Promise<(import('types/bot/features/shortenUrl').XgdSuccessMessage | import('types/bot/features/shortenUrl').XgdFailureMessage)[]>}
  */
 const shortenUrlsOfContent = content => shortenUrls(urlsOfText(content));
 
 /**
- * @param {Message<boolean>} message
- * @returns {Promise<(XgdSuccessMessage | XgdFailureMessage)[]>}
+ * @param {import('discord.js').Message<boolean>} message
+ * @returns {Promise<(import('types/bot/features/shortenUrl').XgdSuccessMessage | import('types/bot/features/shortenUrl').XgdFailureMessage)[]>}
  */
 const shortenUrlsOfMessage = message => shortenUrlsOfContent(message.content ?? '');
 

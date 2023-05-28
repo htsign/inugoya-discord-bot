@@ -29,7 +29,7 @@ const STACK_SIZE = 5;
  */
 const isSingleEmoji = s => /^<:\w+?:[0-9]+?>$/.test(s) || (graphemeSplitter.countGraphemes(s) === 1 && emojiRegex.test(s));
 
-/** @type {ChatInputCommand<void, {}, 'cached' | 'raw'>} */
+/** @type {import('types/bot').ChatInputCommandCollection<void, {}, 'cached' | 'raw'>} */
 const subCommands = {
   register: {
     description: '初期登録をします。',
@@ -168,7 +168,7 @@ const subCommands = {
 
       await db.register(guildId, guildName, template, moreTemplate, rareTemplate, timeout, stackSize);
 
-      /** @type {APIEmbedField[]} */
+      /** @type {import('discord.js').APIEmbedField[]} */
       const fields = [];
 
       if (isSet.template) {
@@ -453,7 +453,7 @@ const subCommands = {
   },
 };
 
-/** @type {ChatInputCommand<void>} */
+/** @type {import('types/bot').ChatInputCommandCollection<void, {}>} */
 module.exports = {
   hage: {
     description: 'ハゲ監視',
@@ -462,7 +462,7 @@ module.exports = {
       type: ApplicationCommandType.ChatInput,
       ...content,
     })),
-    func(interaction) {
+    async func(interaction) {
       const subCommandName = interaction.options.getSubcommand(true);
 
       if (!interaction.inGuild()) {

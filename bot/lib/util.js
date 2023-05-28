@@ -34,13 +34,13 @@ const getUrlDomain = url => {
 
 /**
  * @param {string} content
- * @returns {content is Url}
+ * @returns {content is import('types').Url}
  */
 const isUrl = content => /^https?:\/\/\S+$/.test(content);
 
 /**
- * @param {Url} url
- * @returns {Promise<Url>}
+ * @param {import('types').Url} url
+ * @returns {Promise<import('types').Url>}
  */
 const retrieveRealUrl = async url => {
   try {
@@ -65,10 +65,10 @@ const retrieveRealUrl = async url => {
 
 /**
  * @param {string} text
- * @returns {Url[]}
+ * @returns {import('types').Url[]}
  */
 const urlsOfText = text => {
-  /** @type {function(string[]): Url[]} */
+  /** @type {function(string[]): import('types').Url[]} */
   const filterUrls = contents => contents.filter(isUrl);
   const urls = text.match(URL_REGEX_GLOBAL) ?? [];
 

@@ -1,3 +1,5 @@
+/** @typedef {typeof SUNDAY | typeof MONDAY | typeof TUESDAY | typeof WEDNESDAY | typeof THURSDAY | typeof FRIDAY | typeof SATURDAY} Weekday */
+
 /** @type {0} */
 const SUNDAY = 0;
 /** @type {1} */

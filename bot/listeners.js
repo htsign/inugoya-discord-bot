@@ -1,12 +1,12 @@
 const { Client, Events } = require('discord.js');
 
-/** @type {Map<keyof ClientEvents, Set<(...args: any) => Awaitable<void>>>} */
+/** @type {Map<keyof import('discord.js').ClientEvents, Set<(...args: any) => import('discord.js').Awaitable<void>>>} */
 const listeners = new Map();
 
 /**
  * @param {K} event
- * @param {(...args: ClientEvents[K]) => Awaitable<void>} handler
- * @template {keyof ClientEvents} K
+ * @param {(...args: import('discord.js').ClientEvents[K]) => import('discord.js').Awaitable<void>} handler
+ * @template {keyof import('discord.js').ClientEvents} K
  */
 const addHandler = (event, handler) => {
   if (!listeners.has(event)) {

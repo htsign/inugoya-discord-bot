@@ -13,7 +13,7 @@ class WeeklyAward {
   /** @type {WeeklyAwardTime} */
   #times;
 
-  /** @type {(row: unknown) => row is WeeklyAwardDatabaseRow} */
+  /** @type {(row: unknown) => row is import('types/bot/features/weeklyAwards').WeeklyAwardDatabaseRow} */
   static #isRow(row) {
     if (row == null || typeof row !== 'object') return false;
 
@@ -69,7 +69,7 @@ class WeeklyAward {
    * @param {string} guildId
    * @param {string} channelId
    * @param {string} messageId
-   * @returns {WeeklyAwardRecord?}
+   * @returns {import('types/bot/features/weeklyAwards').WeeklyAwardRecord?}
    */
   get(guildId, channelId, messageId) {
     const stmt = db.prepare(`
@@ -101,7 +101,7 @@ class WeeklyAward {
   }
 
   /**
-   * @param {Message<true>} message
+   * @param {import('discord.js').Message<true>} message
    * @param {number} reactionsCount
    * @returns {Promise<void>}
    */
@@ -166,7 +166,7 @@ class WeeklyAward {
     }
   }
 
-  /** @returns {WeeklyAwardRecord[]} */
+  /** @returns {import('types/bot/features/weeklyAwards').WeeklyAwardRecord[]} */
   all() {
     const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
@@ -189,7 +189,7 @@ class WeeklyAward {
   }
 
   /**
-   * @returns {Generator<WeeklyAwardRecord>}
+   * @returns {Generator<import('types/bot/features/weeklyAwards').WeeklyAwardRecord>}
    */
   *iterate() {
     const stmt = db.prepare(`select * from ${this.#TABLE}`);
@@ -221,7 +221,7 @@ class WeeklyAward {
    * @template T
    */
   async transaction(values, callback) {
-    /** @type {Transaction<(values: T[]) => void>} */
+    /** @type {import('better-sqlite3').Transaction<(values: T[]) => void>} */
     const fn = db.transaction(values => values.forEach(callback));
 
     try {
@@ -310,7 +310,7 @@ class WeeklyAward {
 class WeeklyAwardConfig {
   #TABLE = 'post_target';
 
-  /** @type {(row: unknown) => row is WeeklyAwardConfigRow} */
+  /** @type {(row: unknown) => row is import('types/bot/features/weeklyAwards').WeeklyAwardConfigRow} */
   static #isRow(row) {
     if (row == null || typeof row !== 'object') return false;
 
@@ -326,7 +326,7 @@ class WeeklyAwardConfig {
     return true;
   }
 
-  /** @type {WeeklyAwardConfigRecord[]} */
+  /** @type {import('types/bot/features/weeklyAwards').WeeklyAwardConfigRecord[]} */
   get records() {
     const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
@@ -433,7 +433,7 @@ class WeeklyAwardConfig {
 
   /**
    * @param {string} guildId
-   * @returns {WeeklyAwardConfigRecord?}
+   * @returns {import('types/bot/features/weeklyAwards').WeeklyAwardConfigRecord?}
    */
   get(guildId) {
     const stmt = db.prepare(`
@@ -462,7 +462,7 @@ class WeeklyAwardConfig {
 class WeeklyAwardTime {
   #TABLE = 'times';
 
-  /** @type {(row: unknown) => row is WeeklyAwardTimeRow} */
+  /** @type {(row: unknown) => row is import('types/bot/features/weeklyAwards').WeeklyAwardTimeRow} */
   static #isRow(row) {
     if (row == null || typeof row !== 'object') return false;
 
@@ -491,7 +491,7 @@ class WeeklyAwardTime {
 
   /**
    * @param {string} guildId
-   * @param {Weekday} weekday
+   * @param {import('./weekday').Weekday} weekday
    * @param {number} hour
    * @param {number} minute
    * @returns {Promise<void>}
@@ -554,7 +554,7 @@ class WeeklyAwardTime {
 
   /**
    * @param {string} guildId
-   * @returns {WeeklyAwardTimeRecord?}
+   * @returns {import('types/bot/features/weeklyAwards').WeeklyAwardTimeRecord?}
    */
   get(guildId) {
     const stmt = db.prepare(`

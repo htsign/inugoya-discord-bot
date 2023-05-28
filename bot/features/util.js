@@ -7,7 +7,7 @@ const { log } = require('../lib/log');
  * @param {string} guildId
  * @param {string} channelId
  * @param {string} messageId
- * @returns {Promise<Message<true>?>}
+ * @returns {Promise<import('discord.js').Message<true>?>}
  */
 const fetchMessageByIds = async (guildId, channelId, messageId) => {
   try {
@@ -38,9 +38,9 @@ const fetchMessageByIds = async (guildId, channelId, messageId) => {
 };
 
 /**
- * @param {Message<boolean>} message
- * @param {EmbedMessageOptions} options
- * @returns {Promise<APIEmbed[]>}
+ * @param {import('discord.js').Message<boolean>} message
+ * @param {import('types/bot').EmbedMessageOptions} options
+ * @returns {Promise<import('discord.js').APIEmbed[]>}
  */
 const messageToEmbeds = async (message, options) => {
   const { isNonEmpty } = await import('ts-array-length');
@@ -49,7 +49,7 @@ const messageToEmbeds = async (message, options) => {
   if (channel.isTextBased()) {
     const optionsSet = new Set(options);
 
-    /** @type {APIEmbed[]} */
+    /** @type {import('discord.js').APIEmbed[]} */
     const embeds = [];
 
     const author = await message.author?.fetch();

@@ -12,7 +12,7 @@ class HageConfig {
   /** @type {HageReactionKeyword} */
   #reactionKeywords;
 
-  /** @type {(row: unknown) => row is HageConfigRow} */
+  /** @type {(row: unknown) => row is import('types/bot/features/hage').HageConfigRow} */
   static #isRow(row) {
     if (row == null || typeof row !== 'object') return false;
 
@@ -29,7 +29,7 @@ class HageConfig {
     return true;
   }
 
-  /** @type {HageConfigRecord[]} */
+  /** @type {import('types/bot/features/hage').HageConfigRecord[]} */
   get records() {
     const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
@@ -153,7 +153,7 @@ class HageConfig {
 
   /**
    * @param {string} guildId
-   * @returns {HageConfigRecord?}
+   * @returns {import('types/bot/features/hage').HageConfigRecord?}
    */
   get(guildId) {
     const stmt = db.prepare(`
@@ -183,7 +183,7 @@ class HageConfig {
 class HageKeyword {
   #TABLE = 'keywords';
 
-  /** @type {(row: unknown) => row is HageKeywordRow} */
+  /** @type {(row: unknown) => row is import('types/bot/features/hage').HageKeywordRow} */
   static #isRow(row) {
     if (row == null || typeof row !== 'object') return false;
 
@@ -210,7 +210,7 @@ class HageKeyword {
 
   /**
    * @param {string} guildId
-   * @returns {HageKeywordRecord[]}
+   * @returns {import('types/bot/features/hage').HageKeywordRecord[]}
    */
   getRecords(guildId) {
     const stmt = db.prepare(`
@@ -318,7 +318,7 @@ class HageKeyword {
   /**
    * @param {string} guildId
    * @param {string} keyword
-   * @returns {HageKeywordRecord?}
+   * @returns {import('types/bot/features/hage').HageKeywordRecord?}
    */
   get(guildId, keyword) {
     const stmt = db.prepare(`
@@ -345,7 +345,7 @@ class HageKeyword {
 class HageReactionKeyword {
   #TABLE = 'reaction_keywords';
 
-  /** @type {(row: unknown) => row is HageReactionKeywordRow} */
+  /** @type {(row: unknown) => row is import('types/bot/features/hage').HageReactionKeywordRow} */
   static #isRow(row) {
     if (row == null || typeof row !== 'object') return false;
 
@@ -372,7 +372,7 @@ class HageReactionKeyword {
 
   /**
    * @param {string} guildId
-   * @returns {HageReactionKeywordRecord[]}
+   * @returns {import('types/bot/features/hage').HageReactionKeywordRecord[]}
    */
   getRecords(guildId) {
     const stmt = db.prepare(`
@@ -480,7 +480,7 @@ class HageReactionKeyword {
   /**
    * @param {string} guildId
    * @param {string} reaction
-   * @returns {HageReactionKeywordRecord?}
+   * @returns {import('types/bot/features/hage').HageReactionKeywordRecord?}
    */
   get(guildId, reaction) {
     const stmt = db.prepare(`

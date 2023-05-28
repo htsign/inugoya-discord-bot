@@ -3,10 +3,12 @@ const { addHandler } = require('../../listeners');
 const { log } = require('../../lib/log');
 const { db } = require('./db');
 
+/** @typedef {import('discord.js').Snowflake} Snowflake */
+
 /** @type {Set<`${Snowflake},${Snowflake}`>} */
 const thrivingVoiceChannels = new Set();
 
-/** @type {(state: VoiceState) => `${Snowflake},${Snowflake}`} */
+/** @type {(state: import('discord.js').VoiceState) => `${Snowflake},${Snowflake}`} */
 const getId = state => `${state.guild.id},${state.channelId}`;
 
 addHandler(Events.GuildDelete, guild => {
@@ -27,7 +29,7 @@ addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
     log(newState.guild.name, 'member joined:', newChannel?.name, { membersCount });
 
     if (membersCount >= configRecord.threshold) {
-      /** @type {function(Channel): boolean} */
+      /** @type {function(import('discord.js').Channel): boolean} */
       const isTargetChannel = channel => channel.type === ChannelType.GuildText && channel.name === configRecord.channelName;
 
       if (!thrivingVoiceChannels.has(getId(newState))) {

@@ -18,7 +18,7 @@ const IGNORING_URLS = [
 ];
 
 /**
- * @param {Url} url
+ * @param {import('types').Url} url
  * @param {number} index
  * @returns {Promise<string | ReturnType<typeof fetchIco>>}
  */
@@ -108,7 +108,7 @@ const getDescription = document => {
 
 /**
  * @param {Document} document
- * @param {Url} url
+ * @param {import('types').Url} url
  * @returns {ReturnType<typeof getAuthorInner>}
  */
 const getAuthor = async (document, url) => {
@@ -191,9 +191,9 @@ const getColorAsInt = async resource => {
 };
 
 /**
- * @param {Url} url
+ * @param {import('types').Url} url
  * @param {number} index
- * @returns {Promise<{ embeds: APIEmbed[], attachment: import('discord.js').AttachmentBuilder? }>}
+ * @returns {Promise<{ embeds: import('discord.js').APIEmbed[], attachment: import('discord.js').AttachmentBuilder? }>}
  */
 const core = async (url, index) => {
   try {
@@ -259,7 +259,7 @@ const core = async (url, index) => {
   }
 };
 
-/** @type {Set<Message<boolean>>} */
+/** @type {Set<import('discord.js').Message<boolean> | import('discord.js').PartialMessage>} */
 const targetMessages = new Set();
 
 addHandler(Events.MessageCreate, async message => {

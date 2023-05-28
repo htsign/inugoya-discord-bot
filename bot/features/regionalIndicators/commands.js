@@ -40,7 +40,7 @@ addHandler(Events.InteractionCreate, async interaction => {
   }
 });
 
-/** @type {ChatInputCommand<void>} */
+/** @type {import('types/bot').ChatInputCommandCollection<void, {}>} */
 module.exports = {
   emojify: {
     description: 'アルファベット絵文字で連続リアクションします。',

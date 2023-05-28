@@ -6,7 +6,7 @@ const db = require('better-sqlite3')('vcAttention.db');
 class VCAttentionDatabaseConfig {
   #TABLE = 'thresholds';
 
-  /** @type {(row: unknown) => row is VCAttentionConfigRow} */
+  /** @type {(row: unknown) => row is import('types/bot/features/vcAttention').VCAttentionConfigRow} */
   static #isRow(row) {
     if (row == null || typeof row !== 'object') return false;
 
@@ -21,7 +21,7 @@ class VCAttentionDatabaseConfig {
     return true;
   }
 
-  /** @type {VCAttentionConfigRecord[]} */
+  /** @type {import('types/bot/features/vcAttention').VCAttentionConfigRecord[]} */
   get records() {
     const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
@@ -122,7 +122,7 @@ class VCAttentionDatabaseConfig {
 
   /**
    * @param {string} guildId
-   * @returns {VCAttentionConfigRecord?}
+   * @returns {import('types/bot/features/vcAttention').VCAttentionConfigRecord?}
    */
   get(guildId) {
     const stmt = db.prepare(`

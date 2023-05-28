@@ -3,7 +3,7 @@ const { addHandler } = require('../listeners');
 const { log } = require('../lib/log');
 
 /**
- * @type {ChatInputCommand<any>}
+ * @type {import('types/bot').ChatInputCommandCollection<any, {}>}
  */
 const commands = {
   ...require('./hage/commands'),

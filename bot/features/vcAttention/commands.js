@@ -5,7 +5,7 @@ const { db } = require('./db');
 
 const DEFAULT_THRESHOLD = 5;
 
-/** @type {ChatInputCommand<void, {}, 'cached' | 'raw'>} */
+/** @type {import('types/bot').ChatInputCommandCollection<void, {}, 'cached' | 'raw'>} */
 const subCommands = {
   register: {
     description: '初期登録をします。',
@@ -108,7 +108,7 @@ const subCommands = {
   },
 };
 
-/** @type {ChatInputCommand<void>} */
+/** @type {import('types/bot').ChatInputCommandCollection<void, {}>} */
 module.exports = {
   vcattention: {
     description: 'VC盛り上がり通知',

@@ -6,6 +6,8 @@ const { Timeout } = require('../../lib/timeout');
 const { log } = require('../../lib/log');
 const { db } = require('./db');
 
+/** @typedef {import('discord.js').Snowflake} Snowflake */
+
 /** @type {Set<`${Snowflake},${Snowflake},${Snowflake}`>} */
 const reactedMessageIds = new Set();
 /** @type {Map<Snowflake, Set<Timeout<boolean>>>} */
@@ -14,12 +16,12 @@ const timeouts = new Map();
 const mtSeed = dayjs().tz();
 const mtRnd = new MersenneTwister(mtSeed.unix());
 
-/** @type {function(Message<boolean>): `${Snowflake},${Snowflake},${Snowflake}`} */
+/** @type {function(import('discord.js').Message<boolean> | import('discord.js').PartialMessage): `${Snowflake},${Snowflake},${Snowflake}`} */
 const getId = message => `${message.guildId},${message.channelId},${message.id}`;
 
 /**
  * @param {Snowflake} guildId
- * @param {(text: string) => Promise<Message<boolean>>} messageHandler
+ * @param {(text: string) => Promise<import('discord.js').Message<boolean>>} messageHandler
  * @param {`${Snowflake},${Snowflake},${Snowflake}`} id
  */
 const replyToHage = (guildId, messageHandler, id) => {
