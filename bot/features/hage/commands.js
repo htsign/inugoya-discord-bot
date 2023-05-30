@@ -1,7 +1,8 @@
-const { ApplicationCommandOptionType, ApplicationCommandType, Colors, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
-const { log } = require('../../lib/log');
-const { DATETIME_FORMAT, emojiRegex, graphemeSplitter } = require('../../lib/util');
-const { db } = require('./db');
+import { ApplicationCommandOptionType, ApplicationCommandType, Colors, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import { isNonEmpty } from 'ts-array-length';
+import { log } from '../../lib/log.js';
+import { DATETIME_FORMAT, emojiRegex, graphemeSplitter } from '../../lib/util.js';
+import { db } from './db.js';
 
 const TEMPLATE = ` 彡⌒ミ
 (´･ω･\`)　また髪の話してる・・・`;
@@ -203,8 +204,6 @@ const subCommands = {
       log('peek status hage:', user.username, guildName);
 
       const response = await interaction.deferReply();
-
-      const { isNonEmpty } = await import('ts-array-length');
 
       const configRecord = db.get(guildId);
       const embed = new EmbedBuilder({ title: '登録状況' });
@@ -454,9 +453,10 @@ const subCommands = {
 };
 
 /** @type {import('types/bot').ChatInputCommandCollection<void, {}>} */
-module.exports = {
+export const commands = {
   hage: {
     description: 'ハゲ監視',
+    // @ts-ignore
     options: Object.entries(subCommands).map(([name, content]) => ({
       name,
       type: ApplicationCommandType.ChatInput,

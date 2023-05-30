@@ -1,1 +1,1 @@
-module.exports = require('./discordUrlExpand');
+export * from './discordUrlExpand.js';

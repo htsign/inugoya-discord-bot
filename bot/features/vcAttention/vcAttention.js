@@ -1,7 +1,7 @@
-const { Events, ChannelType } = require('discord.js');
-const { addHandler } = require('../../listeners');
-const { log } = require('../../lib/log');
-const { db } = require('./db');
+import { Events, ChannelType } from 'discord.js';
+import { addHandler } from '../../listeners.js';
+import { log } from '../../lib/log.js';
+import { db } from './db.js';
 
 /** @typedef {import('discord.js').Snowflake} Snowflake */
 

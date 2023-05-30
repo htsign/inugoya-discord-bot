@@ -1,4 +1,4 @@
-const { log } = require('../../lib/log');
+import { log } from '../../lib/log.js';
 
 const codeRegionalIndicatorA = '🇦'.codePointAt(0) ?? 0;
 const codeLowerA = 'a'.codePointAt(0) ?? 0;
@@ -18,7 +18,7 @@ const isNumber = cp => code0 <= cp && cp <= code9;
  * @param {string} text
  * @returns {import('types/bot/features/regionalIndicators').RegionalIndicatorsResult}
  */
-const toEmojis = text => {
+export const toEmojis = text => {
   if (text.length !== new Set(text).size) {
     return { success: false, message: '重複文字が含まれています。' };
   }
@@ -47,8 +47,4 @@ const toEmojis = text => {
 
   log('emojify:', text);
   return { success: true, values: codePoints.map(toEmoji) };
-};
-
-module.exports = {
-  toEmojis,
 };

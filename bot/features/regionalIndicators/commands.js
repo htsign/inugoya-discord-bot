@@ -1,14 +1,7 @@
-const {
-  ActionRowBuilder,
-  ApplicationCommandOptionType,
-  ButtonBuilder,
-  ButtonStyle,
-  Events,
-  MessageReaction,
-} = require('discord.js');
-const { addHandler } = require('../../listeners');
-const { log } = require('../../lib/log');
-const { toEmojis } = require('.');
+import { ActionRowBuilder, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, Events, MessageReaction } from 'discord.js';
+import { addHandler } from '../../listeners.js';
+import { log } from '../../lib/log.js';
+import { toEmojis } from './index.js';
 
 addHandler(Events.InteractionCreate, async interaction => {
   const { guild, channel } = interaction;
@@ -41,7 +34,7 @@ addHandler(Events.InteractionCreate, async interaction => {
 });
 
 /** @type {import('types/bot').ChatInputCommandCollection<void, {}>} */
-module.exports = {
+export const commands = {
   emojify: {
     description: 'アルファベット絵文字で連続リアクションします。',
     options: [

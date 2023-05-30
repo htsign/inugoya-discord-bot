@@ -1,1 +1,1 @@
-module.exports = require('./noExpandedExpand');
+export * from './noExpandedExpand.js';

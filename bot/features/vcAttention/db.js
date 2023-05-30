@@ -1,7 +1,8 @@
-const { setTimeout } = require('node:timers/promises');
-const dayjs = require('../../lib/dayjsSetup');
+import { setTimeout } from 'node:timers/promises';
+import Database from 'better-sqlite3';
+import dayjs from '../../lib/dayjsSetup.js';
 
-const db = require('better-sqlite3')('vcAttention.db');
+const db = new Database('vcAttention.db');
 
 class VCAttentionDatabaseConfig {
   #TABLE = 'thresholds';
@@ -147,4 +148,5 @@ class VCAttentionDatabaseConfig {
   }
 }
 
-exports.db = new VCAttentionDatabaseConfig();
+const _db = new VCAttentionDatabaseConfig();
+export { _db as db };

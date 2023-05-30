@@ -1,16 +1,20 @@
-const { Events } = require('discord.js');
-const { addHandler } = require('../listeners');
-const { log } = require('../lib/log');
+import { Events } from 'discord.js';
+import { addHandler } from '../listeners.js';
+import { log } from '../lib/log.js';
 
-/**
- * @type {import('types/bot').ChatInputCommandCollection<any, {}>}
- */
+import { commands as hageCommands } from './hage/commands.js';
+import { commands as shortenUrlCommands } from './shortenUrl/commands.js';
+import { commands as weeklyAwardsCommands } from './weeklyAwards/commands.js';
+import { commands as regionalIndicatorsCommands } from './regionalIndicators/commands.js';
+import { commands as vcAttentionCommands } from './vcAttention/commands.js';
+
+/** @type {import('types/bot').ChatInputCommandCollection<any, {}>} */
 const commands = {
-  ...require('./hage/commands'),
-  ...require('./shortenUrl/commands'),
-  ...require('./weeklyAwards/commands'),
-  ...require('./regionalIndicators/commands'),
-  ...require('./vcAttention/commands'),
+  ...hageCommands,
+  ...shortenUrlCommands,
+  ...weeklyAwardsCommands,
+  ...regionalIndicatorsCommands,
+  ...vcAttentionCommands,
 };
 
 addHandler(Events.InteractionCreate, async interaction => {

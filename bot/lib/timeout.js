@@ -2,7 +2,7 @@
  * @class Timeout
  * @template T
  */
-class Timeout {
+export class Timeout {
   /** @type {(instance: Timeout<T>) => T} */
   #callback;
   /** @type {number} */
@@ -34,5 +34,3 @@ class Timeout {
     clearTimeout(this.#timeoutId);
   }
 }
-
-module.exports = { Timeout };

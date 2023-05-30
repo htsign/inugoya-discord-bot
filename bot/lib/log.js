@@ -1,5 +1,5 @@
-const fs = require('node:fs/promises');
-const dayjs = require('./dayjsSetup');
+import { writeFile } from 'node:fs/promises';
+import dayjs from './dayjsSetup.js';
 
 /**
  * @param {unknown} value
@@ -38,15 +38,15 @@ const formatter = value => {
  * @param {...unknown} values
  * @returns {Promise<void>}
  */
-exports.log = (...values) => {
+export function log(...values) {
   const now = dayjs().tz();
   const strings = [
     now.format('YYYY/MM/DD HH:mm:ss.SSS'),
     ...values.map(formatter),
   ];
 
-  const wp = fs.writeFile(`logs/${now.format('YYYY-MM-DD')}.log`, strings.join(' ') + '\n', { encoding: 'utf-8', flag: 'a' });
+  const wp = writeFile(`logs/${now.format('YYYY-MM-DD')}.log`, strings.join(' ') + '\n', { encoding: 'utf-8', flag: 'a' });
   console.log(...strings);
 
   return wp;
-};
+}

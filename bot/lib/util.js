@@ -1,21 +1,24 @@
-const { URL } = require('node:url');
-const { setTimeout: delay } = require('node:timers/promises');
-const dotenv = require('dotenv');
-const chardet = require('chardet');
-const { JSDOM } = require('jsdom');
-const emojiRegex = require('emoji-regex');
-const GraphemeSplitter = require('grapheme-splitter');
+import { URL } from 'node:url';
+import { setTimeout as delay } from 'node:timers/promises';
+import dotenv from 'dotenv';
+import chardet from 'chardet';
+import { JSDOM } from 'jsdom';
+import _emojiRegex from 'emoji-regex';
+import GraphemeSplitter from 'grapheme-splitter';
 
-const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
-const DATETIME_FORMAT = 'YYYY/MM/DD HH:mm:ss';
+export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
+export const DATETIME_FORMAT = 'YYYY/MM/DD HH:mm:ss';
 const configOutput = dotenv.config();
+
+export const emojiRegex = _emojiRegex();
+export const graphemeSplitter = new GraphemeSplitter();
 
 /**
  * @param {string} key
  * @param {string=} [name='token']
  * @returns {string}
  */
-const getEnv = (key, name = 'token') => {
+export const getEnv = (key, name = 'token') => {
   const token = configOutput.parsed?.[key] ?? process.env[key];
   if (token == null) {
     throw new Error(`${name} is empty`);
@@ -27,7 +30,7 @@ const getEnv = (key, name = 'token') => {
  * @param {string} url
  * @returns {string}
  */
-const getUrlDomain = url => {
+export const getUrlDomain = url => {
   const { protocol, host } = new URL(url);
   return `${protocol}//${host}/`;
 };
@@ -36,13 +39,13 @@ const getUrlDomain = url => {
  * @param {string} content
  * @returns {content is import('types').Url}
  */
-const isUrl = content => /^https?:\/\/\S+$/.test(content);
+export const isUrl = content => /^https?:\/\/\S+$/.test(content);
 
 /**
  * @param {import('types').Url} url
  * @returns {Promise<import('types').Url>}
  */
-const retrieveRealUrl = async url => {
+export const retrieveRealUrl = async url => {
   try {
     const controller = new AbortController();
     setTimeout(() => controller.abort(), 2000);
@@ -67,7 +70,7 @@ const retrieveRealUrl = async url => {
  * @param {string} text
  * @returns {import('types').Url[]}
  */
-const urlsOfText = text => {
+export const urlsOfText = text => {
   /** @type {function(string[]): import('types').Url[]} */
   const filterUrls = contents => contents.filter(isUrl);
   const urls = text.match(URL_REGEX_GLOBAL) ?? [];
@@ -79,7 +82,7 @@ const urlsOfText = text => {
  * @param {string} url
  * @returns {Promise<Document>}
  */
-const urlToDocument = async url => {
+export const urlToDocument = async url => {
   /**
    * @param {string} url
    * @returns {Promise<Response>}
@@ -113,7 +116,7 @@ const urlToDocument = async url => {
  * @returns {T}
  * @template T
  */
-const peek = value => {
+export const peek = value => {
   console.log(value);
   return value;
 }
@@ -122,21 +125,4 @@ const peek = value => {
  * @param {object} queries
  * @returns {string}
  */
-const toQueryString = queries => Object.entries(queries).map(([key, val]) => `${key}=${val}`).join('&');
-
-module.exports = {
-  URL_REGEX_GLOBAL,
-  DATETIME_FORMAT,
-  getEnv,
-  /** @type {RegExp} */
-  // @ts-ignore
-  emojiRegex: emojiRegex(),
-  graphemeSplitter: new GraphemeSplitter(),
-  getUrlDomain,
-  isUrl,
-  retrieveRealUrl,
-  urlsOfText,
-  urlToDocument,
-  peek,
-  toQueryString,
-};
+export const toQueryString = queries => Object.entries(queries).map(([key, val]) => `${key}=${val}`).join('&');

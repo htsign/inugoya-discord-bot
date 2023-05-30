@@ -1,7 +1,8 @@
-const { Events } = require('discord.js');
-const { addHandler } = require('../../listeners');
-const { log } = require('../../lib/log');
-const { getEnv, toQueryString, urlsOfText } = require('../../lib/util');
+import { Events } from 'discord.js';
+import { isNonEmpty } from 'ts-array-length';
+import { addHandler } from '../../listeners.js';
+import { log } from '../../lib/log.js';
+import { getEnv, toQueryString, urlsOfText } from '../../lib/util.js';
 
 const API_KEY = getEnv('XGD_API_KEY', 'X.gd API key');
 const API_ENTRYPOINT = 'https://xgd.io/V1/shorten';
@@ -10,7 +11,7 @@ const API_ENTRYPOINT = 'https://xgd.io/V1/shorten';
  * @param {import('types').Url[]} urls
  * @returns {Promise<(import('types/bot/features/shortenUrl').XgdSuccessMessage | import('types/bot/features/shortenUrl').XgdFailureMessage)[]>}
  */
-const shortenUrls = async urls => {
+export const shortenUrls = async urls => {
   /** @type {(import('types/bot/features/shortenUrl').XgdSuccessMessage | import('types/bot/features/shortenUrl').XgdFailureMessage)[]} */
   const shortenUrls = [];
 
@@ -51,9 +52,7 @@ const shortenUrls = async urls => {
  * @param {import('types').Url} url
  * @returns {Promise<import('types/bot/features/shortenUrl').XgdSuccessMessage | import('types/bot/features/shortenUrl').XgdFailureMessage>}
  */
-const shortenUrl = async url => {
-  const { isNonEmpty } = await import('ts-array-length');
-
+export const shortenUrl = async url => {
   const shortens = await shortenUrls([url]);
   if (!isNonEmpty(shortens)) {
     throw new Error('unexpected procedure');
@@ -65,13 +64,13 @@ const shortenUrl = async url => {
  * @param {string} content
  * @returns {Promise<(import('types/bot/features/shortenUrl').XgdSuccessMessage | import('types/bot/features/shortenUrl').XgdFailureMessage)[]>}
  */
-const shortenUrlsOfContent = content => shortenUrls(urlsOfText(content));
+export const shortenUrlsOfContent = content => shortenUrls(urlsOfText(content));
 
 /**
  * @param {import('discord.js').Message<boolean>} message
  * @returns {Promise<(import('types/bot/features/shortenUrl').XgdSuccessMessage | import('types/bot/features/shortenUrl').XgdFailureMessage)[]>}
  */
-const shortenUrlsOfMessage = message => shortenUrlsOfContent(message.content ?? '');
+export const shortenUrlsOfMessage = message => shortenUrlsOfContent(message.content ?? '');
 
 addHandler(Events.MessageCreate, async message => {
   const { reference, content, channel } = message;
@@ -85,10 +84,3 @@ addHandler(Events.MessageCreate, async message => {
 
   message.reply(urls.length > 0 ? urls.join('\n') : 'URL が見つからないよ！');
 });
-
-module.exports = {
-  shortenUrls,
-  shortenUrl,
-  shortenUrlsOfContent,
-  shortenUrlsOfMessage,
-};

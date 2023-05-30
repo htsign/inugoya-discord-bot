@@ -1,12 +1,12 @@
-const { URL } = require('node:url');
-const { setTimeout } = require('node:timers/promises');
-const { AttachmentBuilder, Events, EmbedBuilder } = require('discord.js');
-const ico = require('icojs');
-const fastAvgColor = require('fast-average-color-node');
-const dayjs = require('../../lib/dayjsSetup');
-const { addHandler } = require('../../listeners');
-const { log } = require('../../lib/log');
-const { getUrlDomain, isUrl, retrieveRealUrl, urlsOfText, urlToDocument } = require('../../lib/util');
+import { URL } from 'node:url';
+import { setTimeout } from 'node:timers/promises';
+import { AttachmentBuilder, Events, EmbedBuilder } from 'discord.js';
+import ico from 'icojs';
+import fastAvgColor from 'fast-average-color-node';
+import dayjs from '../../lib/dayjsSetup.js';
+import { addHandler } from '../../listeners.js';
+import { log } from '../../lib/log.js';
+import { getUrlDomain, isUrl, retrieveRealUrl, urlsOfText, urlToDocument } from '../../lib/util.js';
 
 const THRESHOLD_DELAY = 5 * 1000;
 const THRESHOLD_FOR_DELETE = 5;

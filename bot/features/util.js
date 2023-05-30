@@ -1,7 +1,8 @@
-const { EmbedBuilder } = require('discord.js');
-const fastAvgColor = require('fast-average-color-node');
-const client = require('../client');
-const { log } = require('../lib/log');
+import { EmbedBuilder } from 'discord.js';
+import fastAvgColor from 'fast-average-color-node';
+import { isNonEmpty } from 'ts-array-length';
+import client from '../client.js';
+import { log } from '../lib/log.js';
 
 /**
  * @param {string} guildId
@@ -9,7 +10,7 @@ const { log } = require('../lib/log');
  * @param {string} messageId
  * @returns {Promise<import('discord.js').Message<true>?>}
  */
-const fetchMessageByIds = async (guildId, channelId, messageId) => {
+export const fetchMessageByIds = async (guildId, channelId, messageId) => {
   try {
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
     const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
@@ -42,8 +43,7 @@ const fetchMessageByIds = async (guildId, channelId, messageId) => {
  * @param {import('types/bot').EmbedMessageOptions} options
  * @returns {Promise<import('discord.js').APIEmbed[]>}
  */
-const messageToEmbeds = async (message, options) => {
-  const { isNonEmpty } = await import('ts-array-length');
+export const messageToEmbeds = async (message, options) => {
   const { channel } = message;
 
   if (channel.isTextBased()) {
@@ -147,9 +147,4 @@ const messageToEmbeds = async (message, options) => {
   else {
     return [];
   }
-};
-
-module.exports = {
-  fetchMessageByIds,
-  messageToEmbeds,
 };

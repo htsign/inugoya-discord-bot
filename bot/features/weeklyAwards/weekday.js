@@ -1,25 +1,25 @@
 /** @typedef {typeof SUNDAY | typeof MONDAY | typeof TUESDAY | typeof WEDNESDAY | typeof THURSDAY | typeof FRIDAY | typeof SATURDAY} Weekday */
 
 /** @type {0} */
-const SUNDAY = 0;
+export const SUNDAY = 0;
 /** @type {1} */
-const MONDAY = 1;
+export const MONDAY = 1;
 /** @type {2} */
-const TUESDAY = 2;
+export const TUESDAY = 2;
 /** @type {3} */
-const WEDNESDAY = 3;
+export const WEDNESDAY = 3;
 /** @type {4} */
-const THURSDAY = 4;
+export const THURSDAY = 4;
 /** @type {5} */
-const FRIDAY = 5;
+export const FRIDAY = 5;
 /** @type {6} */
-const SATURDAY = 6;
+export const SATURDAY = 6;
 
 /**
  * @param {number} n
  * @returns {Weekday}
  */
-const fromNumber = n => {
+export const fromNumber = n => {
   switch (n) {
     case 0: return SUNDAY;
     case 1: return MONDAY;
@@ -37,7 +37,7 @@ const fromNumber = n => {
  * @param {Weekday} weekday
  * @returns {string}
  */
-const jpString = weekday => {
+export const jpString = weekday => {
   switch (weekday) {
     case SUNDAY   : return '日曜';
     case MONDAY   : return '月曜';
@@ -47,16 +47,4 @@ const jpString = weekday => {
     case FRIDAY   : return '金曜';
     case SATURDAY : return '土曜';
   }
-};
-
-module.exports = {
-  SUNDAY,
-  MONDAY,
-  TUESDAY,
-  WEDNESDAY,
-  THURSDAY,
-  FRIDAY,
-  SATURDAY,
-  fromNumber,
-  jpString,
 };

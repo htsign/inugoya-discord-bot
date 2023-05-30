@@ -3,6 +3,7 @@
     "checkJs": true,
     "module": "ESNext",
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "baseUrl": "./",
     "target": "ES2021",
     "strict": true,

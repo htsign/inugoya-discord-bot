@@ -1,7 +1,7 @@
-const { Events, Message } = require('discord.js');
-const { addHandler } = require('../../listeners');
-const { log } = require('../../lib/log');
-const { fetchMessageByIds, messageToEmbeds } = require('../util');
+import { Events, Message } from 'discord.js';
+import { addHandler } from '../../listeners.js';
+import { log } from '../../lib/log.js';
+import { fetchMessageByIds, messageToEmbeds } from '../util.js';
 
 const TRY_COUNT_THRESHOLD = 3;
 

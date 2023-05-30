@@ -1,8 +1,9 @@
-const { setTimeout } = require('node:timers/promises');
-const dayjs = require('../../lib/dayjsSetup');
-const { log } = require('../../lib/log');
+import { setTimeout } from 'node:timers/promises';
+import Database from 'better-sqlite3';
+import dayjs from '../../lib/dayjsSetup.js';
+import { log } from '../../lib/log.js';
 
-const db = require('better-sqlite3')('hage.db');
+const db = new Database('hage.db');
 
 class HageConfig {
   #TABLE = 'config';
@@ -504,4 +505,5 @@ class HageReactionKeyword {
   }
 }
 
-exports.db = new HageConfig();
+const _db = new HageConfig();
+export { _db as db };

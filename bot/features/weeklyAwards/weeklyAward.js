@@ -1,10 +1,11 @@
-const { Events, ChannelType } = require('discord.js');
-const dayjs = require('../../lib/dayjsSetup');
-const { addHandler } = require('../../listeners');
-const client = require('../../client');
-const { log } = require('../../lib/log');
-const { fetchMessageByIds, messageToEmbeds } = require('../util');
-const { db } = require('./db');
+import { Events, ChannelType } from 'discord.js';
+import { isNonEmpty } from 'ts-array-length';
+import dayjs from '../../lib/dayjsSetup.js';
+import { addHandler } from '../../listeners.js';
+import client from '../../client.js';
+import { log } from '../../lib/log.js';
+import { fetchMessageByIds, messageToEmbeds } from '../util.js';
+import { db } from './db.js';
 
 /**
  * @type {Map<string, NodeJS.Timeout>}
@@ -66,8 +67,6 @@ addHandler(Events.MessageReactionRemove, async (reaction, user) => {
  * @returns {Promise<void>}
  */
 const tick = async (guildId, guildName, channelName, showsRankCount, minReacted, weekday, hour, minute) => {
-  const { isNonEmpty } = await import('ts-array-length');
-
   const now = dayjs().tz();
 
   if (now.day() === weekday && now.hour() === hour && now.minute() === minute) {
@@ -181,7 +180,7 @@ const tick = async (guildId, guildName, channelName, showsRankCount, minReacted,
  * @param {string} guildId
  * @returns {Promise<void>}
  */
-const startAward = async guildId => {
+export const startAward = async guildId => {
   const configRecord = db.config.get(guildId);
   const timeRecord = db.times.get(guildId);
   if (configRecord == null || timeRecord == null) {
@@ -206,7 +205,7 @@ const startAward = async guildId => {
  * @param {string} guildId
  * @returns {Promise<void>}
  */
-const stopAward = async guildId => {
+export const stopAward = async guildId => {
   const configRecord = db.config.get(guildId);
   if (configRecord == null) {
     return await log(`stopAward: ${{ guildId }} is not registered.`);
@@ -222,9 +221,4 @@ const stopAward = async guildId => {
   if (instances.has(guildId)) {
     clearTimeout(instances.get(guildId));
   }
-};
-
-module.exports = {
-  startAward,
-  stopAward,
 };

@@ -1,7 +1,7 @@
-const { ApplicationCommandOptionType, ApplicationCommandType, ChannelType, Colors, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
-const { log } = require('../../lib/log');
-const { DATETIME_FORMAT } = require('../../lib/util');
-const { db } = require('./db');
+import { ApplicationCommandOptionType, ApplicationCommandType, ChannelType, Colors, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import { log } from '../../lib/log.js';
+import { DATETIME_FORMAT } from '../../lib/util.js';
+import { db } from './db.js';
 
 const DEFAULT_THRESHOLD = 5;
 
@@ -109,15 +109,16 @@ const subCommands = {
 };
 
 /** @type {import('types/bot').ChatInputCommandCollection<void, {}>} */
-module.exports = {
+export const commands = {
   vcattention: {
     description: 'VC盛り上がり通知',
+    // @ts-ignore
     options: Object.entries(subCommands).map(([name, content]) => ({
       name,
       type: ApplicationCommandType.ChatInput,
       ...content,
     })),
-    func(interaction) {
+    async func(interaction) {
       const subCommandName = interaction.options.getSubcommand(true);
 
       if (!interaction.inGuild()) {

@@ -1,6 +1,6 @@
-const { Client, GatewayIntentBits, Partials, PresenceUpdateStatus } = require('discord.js');
-const { getEnv } = require('./lib/util');
-const { init } = require('./listeners');
+import { Client, GatewayIntentBits, Partials, PresenceUpdateStatus } from 'discord.js';
+import { getEnv } from './lib/util.js';
+import { init } from './listeners.js';
 
 const client = new Client({
   intents: [
@@ -30,4 +30,4 @@ client.login(getEnv('ACCESS_TOKEN')).then(_ => {
   init(presence.client);
 });
 
-module.exports = client;
+export default client;

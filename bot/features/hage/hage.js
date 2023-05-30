@@ -1,10 +1,10 @@
-const { Events } = require('discord.js');
-const MersenneTwister = require('mersenne-twister');
-const dayjs = require('../../lib/dayjsSetup');
-const { addHandler } = require('../../listeners');
-const { Timeout } = require('../../lib/timeout');
-const { log } = require('../../lib/log');
-const { db } = require('./db');
+import { Events } from 'discord.js';
+import MersenneTwister from 'mersenne-twister';
+import dayjs from '../../lib/dayjsSetup.js';
+import { addHandler } from '../../listeners.js';
+import { Timeout } from '../../lib/timeout.js';
+import { log } from '../../lib/log.js';
+import { db } from './db.js';
 
 /** @typedef {import('discord.js').Snowflake} Snowflake */
 

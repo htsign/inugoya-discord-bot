@@ -1,9 +1,10 @@
-const { setTimeout } = require('node:timers/promises');
-const dayjs = require('../../lib/dayjsSetup');
-const { isUrl } = require('../../lib/util');
-const { fromNumber } = require('./weekday');
+import { setTimeout } from 'node:timers/promises';
+import Database from 'better-sqlite3';
+import dayjs from '../../lib/dayjsSetup.js';
+import { isUrl } from '../../lib/util.js';
+import { fromNumber } from './weekday.js';
 
-const db = require('better-sqlite3')('weeklyAward.db');
+const db = new Database('weeklyAward.db');
 
 class WeeklyAward {
   #TABLE = 'reacted_messages';
@@ -578,4 +579,5 @@ class WeeklyAwardTime {
   }
 }
 
-exports.db = new WeeklyAward();
+const _db = new WeeklyAward();
+export { _db as db };
