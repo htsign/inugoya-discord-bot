@@ -71,9 +71,8 @@ const tick = async (
   if (now.day() === weekday && now.hour() === hour && now.minute() === minute) {
     log(guildName, 'WeeklyAward: report initiated');
 
-    const guilds = await client.guilds.fetch();
-    const guild = await guilds.find(guild => guild.name === guildName)?.fetch();
-    const channel = guild?.channels?.cache?.find(channel => channel.name === channelName);
+    const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
+    const channel = guild.channels?.cache?.find(channel => channel.name === channelName);
 
     if (channel?.type === ChannelType.GuildText) {
       // remove messages sent over a week ago
