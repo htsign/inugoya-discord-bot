@@ -9,7 +9,7 @@
       "@lib/*": ["bot/lib/*"],
     },
     "types": ["bun-types"],
-    "target": "ES2021",
+    "target": "ESNext",
     "outDir": "dest",
     "strict": true,
     "noImplicitReturns": true,

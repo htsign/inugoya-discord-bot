@@ -6,6 +6,7 @@ import type { ChatInputCommandCollection } from 'types/bot'
 import { commands as hageCommands } from './hage/commands';
 import { commands as shortenUrlCommands } from './shortenUrl/commands';
 import { commands as weeklyAwardsCommands } from './weeklyAwards/commands';
+import { commands as earthquakeCommands } from './earthquake/commands';
 import { commands as regionalIndicatorsCommands } from './regionalIndicators/commands';
 import { commands as vcAttentionCommands } from './vcAttention/commands';
 
@@ -13,6 +14,7 @@ const commands: ChatInputCommandCollection<any, {}> = {
   ...hageCommands,
   ...shortenUrlCommands,
   ...weeklyAwardsCommands,
+  ...earthquakeCommands,
   ...regionalIndicatorsCommands,
   ...vcAttentionCommands,
 };
