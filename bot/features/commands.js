@@ -5,6 +5,7 @@ import { log } from '../lib/log.js';
 import { commands as hageCommands } from './hage/commands.js';
 import { commands as shortenUrlCommands } from './shortenUrl/commands.js';
 import { commands as weeklyAwardsCommands } from './weeklyAwards/commands.js';
+import { commands as earthquakeCommands } from './earthquake/commands.js';
 import { commands as regionalIndicatorsCommands } from './regionalIndicators/commands.js';
 import { commands as vcAttentionCommands } from './vcAttention/commands.js';
 
@@ -13,6 +14,7 @@ const commands = {
   ...hageCommands,
   ...shortenUrlCommands,
   ...weeklyAwardsCommands,
+  ...earthquakeCommands,
   ...regionalIndicatorsCommands,
   ...vcAttentionCommands,
 };

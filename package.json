@@ -12,7 +12,8 @@
     "grapheme-splitter": "^1.0.4",
     "icojs": "^0.17.1",
     "jsdom": "^22.0.0",
-    "mersenne-twister": "^1.1.0"
+    "mersenne-twister": "^1.1.0",
+    "ws": "^8.13.0"
   },
   "devDependencies": {
     "ts-array-length": "^0.1.2"
