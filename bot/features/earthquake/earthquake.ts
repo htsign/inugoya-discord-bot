@@ -3,6 +3,7 @@ import WebSocket from 'ws';
 import { isNonEmpty } from 'ts-array-length';
 import client from 'bot/client';
 import { log } from '@lib/log';
+import { dayjs } from '@lib/dayjsSetup';
 import { db } from './db';
 import type {
   Area,
@@ -101,36 +102,47 @@ const resolveEEW = async (response: EEW): Promise<void> => {
   }, [])
     .sort((a, b) => a.pref > b.pref ? 1 : -1);
 
+  if (maxIntensityAreas.length === 0 || response.earthquake == null) {
+    return log('resolveEEW:', 'no data', JSON.stringify(response));
+  }
+
   const maxIntensity = Math.max(...maxIntensityAreas.map(x => x.scaleTo));
   const intensity = intensityFromNumber(maxIntensity);
+  if (maxIntensity < 10 || intensity === '不明') {
 
-  for (const record of db.records) {
-    if (maxIntensity < record.minIntensity) continue;
+  }
 
-    const guild = client.guilds.cache.get(record.guildId) ?? await client.guilds.fetch(record.guildId);
-    const channel = guild.channels.cache.get(record.channelId) ?? await guild.channels.fetch(record.channelId);
+  const areaNames: { [pref: string]: string[] } = {};
+  for (const { pref, name } of maxIntensityAreas) {
+    if (Object.hasOwn(areaNames, pref)) {
+      areaNames[pref]?.push(name);
+    }
+    else {
+      areaNames[pref] = [name];
+    }
+  }
+  const maxIntensityAreaNames =
+    Object.entries(areaNames).map(([pref, names]) => `${pref}: ${names.join('、')}`);
 
-    if (channel?.isTextBased() && response.earthquake != null) {
-      const areaNames: { [pref: string]: string[] } = {};
-      for (const { pref, name } of maxIntensityAreas) {
-        if (Object.hasOwn(areaNames, pref)) {
-          areaNames[pref]?.push(name);
-        }
-        else {
-          areaNames[pref] = [name];
-        }
-      }
+  for (const { guildId, channelId, minIntensity } of db.records) {
+    if (maxIntensity < minIntensity) continue;
 
-      const embed = new EmbedBuilder();
+    const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
+    const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
+
+    if (channel?.isTextBased()) {
+      const embed = new EmbedBuilder()
+        .setTitle('緊急地震速報')
+        .setTimestamp(dayjs(response.time).tz().valueOf());
+
       embed.addFields({ name: '最大予測震度', value: intensity });
       embed.addFields({
         name: '最大震度観測予定地',
-        value: Object.entries(areaNames).map(([pref, names]) => `${pref}: ${names.join('、')}`).join('\n'),
+        value: maxIntensityAreaNames.join('\n'),
       });
       embed.addFields({ name: '発生日時', value: response.earthquake.originTime });
 
-      const embeds = [embed];
-      channel.send({ content: '緊急地震速報です。', embeds });
+      channel.send({ embeds: [embed] });
     }
   }
 };
