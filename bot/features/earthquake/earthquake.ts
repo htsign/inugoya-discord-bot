@@ -97,7 +97,7 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
     return log('resolveJMAQuake:', 'no data', JSON.stringify(response));
   }
 
-  const { hypocenter: { name, magnitude, depth }, maxScale = -1 } = response.earthquake;
+  const { hypocenter: { name, magnitude, depth }, maxScale } = response.earthquake;
   const maxIntensity = intensityFromNumber(maxScale);
 
   for (const { guildId, channelId, minIntensity } of db.records) {
@@ -107,11 +107,11 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
     const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
 
     if (channel?.isTextBased()) {
-      const sentences = [(name != null ? `${name}で` : '') + `最大${maxIntensity}の地震が発生しました。`];
-      if (magnitude != null) {
+      const sentences = [`${name}で最大${maxIntensity}の地震が発生しました。`];
+      if (magnitude !== -1) {
         sentences.push(`マグニチュードは ${magnitude}。`);
       }
-      if (depth != null) {
+      if (depth !== -1) {
         sentences.push(`震源の深さはおよそ ${depth}km です。`)
       }
 
