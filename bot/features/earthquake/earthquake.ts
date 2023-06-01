@@ -18,14 +18,24 @@ import type {
   WebSocketResponse,
 } from 'types/bot/features/earthquake';
 
-const ws = new WebSocket('wss://api.p2pquake.net/v2/ws');
-
 const quakeCache: Map<string, JMAQuake> = new Map();
 
-ws.once('open', () => {
-  log('earthquake: connected');
-});
-ws.on('message', data => {
+const connectWebSocket = (address: string, onMessage: (data: WebSocket.RawData, isBinary: boolean) => void): WebSocket => {
+  const ws = new WebSocket(address);
+
+  ws.once('open', () => {
+    log('earthquake: connected');
+  });
+  ws.on('message', onMessage);
+  ws.on('close', (code, reason) => {
+    log('earthquake: disconnected', `[${code}] ${reason.toString()}`);
+    setTimeout(() => connectWebSocket(address, onMessage), 1000);
+  });
+
+  return ws;
+};
+
+connectWebSocket('wss://api.p2pquake.net/v2/ws', data => {
   const response: WebSocketResponse = JSON.parse(data.toString());
 
   // actual data does not have "id", but has "_id"
