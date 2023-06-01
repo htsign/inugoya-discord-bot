@@ -1,4 +1,4 @@
-import { EmbedBuilder } from 'discord.js';
+import { Colors, EmbedBuilder } from 'discord.js';
 import WebSocket from 'ws';
 import { isNonEmpty } from 'ts-array-length';
 import client from 'bot/client';
@@ -215,6 +215,7 @@ const resolveEEW = async (response: EEW): Promise<void> => {
     if (channel?.isTextBased()) {
       const embed = new EmbedBuilder()
         .setTitle('緊急地震速報')
+        .setColor(Colors.Red)
         .setTimestamp(dayjs(response.time).tz().valueOf());
 
       embed.addFields({ name: '最大予測震度', value: intensity });
