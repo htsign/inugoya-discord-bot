@@ -6,15 +6,30 @@ import { log } from '../../lib/log.js';
 import dayjs from '../../lib/dayjsSetup.js';
 import { db } from './db.js';
 
-const ws = new WebSocket('wss://api.p2pquake.net/v2/ws');
-
 /** @type {Map<string, import('types/bot/features/earthquake').JMAQuake>} */
 const quakeCache = new Map();
+
+/**
+ * @param {string} address
+ * @param {(data: WebSocket.RawData, isBinary: boolean) => void} onMessage
+ * @returns {WebSocket}
+ */
+const connectWebSocket = (address, onMessage) => {
+  const ws = new WebSocket(address);
 
 ws.once('open', () => {
   log('earthquake: connected');
 });
-ws.on('message', data => {
+  ws.on('message', onMessage);
+  ws.on('close', (code, reason) => {
+    log('earthquake: disconnected', `[${code}] ${reason.toString()}`);
+    setTimeout(() => connectWebSocket(address, onMessage), 1000);
+  });
+
+  return ws;
+};
+
+connectWebSocket('wss://api.p2pquake.net/v2/ws', data => {
   /** @type {import('types/bot/features/earthquake').WebSocketResponse} */
   const response = JSON.parse(data.toString());
 
