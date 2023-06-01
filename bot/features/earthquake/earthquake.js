@@ -126,11 +126,8 @@ const resolveJMAQuake = async response => {
   }
 
   const { hypocenter: { name, magnitude, depth, latitude, longitude }, maxScale } = response.earthquake;
-  if (name === '') {
-    return log('resolveJMAQuake:', 'no location name', JSON.stringify(response));
-  }
-  if (latitude === -200 || longitude === -200) {
-    return log('resolveJMAQuake:', 'no location', JSON.stringify(response));
+  if (name === '' || latitude === -200 || longitude === -200 || depth === -1 || magnitude === -1) {
+    return log('resolveJMAQuake:', 'insufficient hypocenter data', JSON.stringify(response));
   }
 
   const maxIntensity = intensityFromNumber(maxScale);
@@ -154,19 +151,16 @@ const resolveJMAQuake = async response => {
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
     const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
 
-    const sentences = [`[${name}](https://www.google.com/maps/@${latitude},${longitude},8z)で最大${maxIntensity}の地震が発生しました。`];
-    if (magnitude !== -1) {
-      sentences.push(`マグニチュードは ${magnitude}。`);
-    }
-    if (depth !== -1) {
-      sentences.push(`震源の深さはおよそ ${depth}km です。`)
-    }
+    const sentences = [
+      `[${name}](https://www.google.com/maps/@${latitude},${longitude},8z)で最大${maxIntensity}の地震が発生しました。`,
+      `マグニチュードは ${magnitude}、震源の深さはおよそ ${depth}km です。`,
+    ];
 
     const embed = new EmbedBuilder()
       .setTitle('地震情報')
       .setDescription(sentences.join('\n'))
       .setImage(mapImageUrl.toString())
-      .setTimestamp(dayjs(response.time).valueOf());
+      .setTimestamp(dayjs(response.time).tz().valueOf());
 
     if (channel?.isTextBased()) {
       const message = await channel.send({ embeds: [embed] });
