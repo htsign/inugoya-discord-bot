@@ -35,17 +35,17 @@ type CollectType =
 interface Earthquake {
   time: string;
   hypocenter?: Hypocenter;
-  maxScale?: EarthquakeMaxScale;
+  maxScale: EarthquakeMaxScale;
   domesticTsunami?: DomesticTsunami;
   foreignTsunami?: ForeignTsunami;
 }
 
 interface Hypocenter {
-  name?: string;
-  latitude?: number;
-  longitude?: number;
-  depth?: number;
-  magnitude?: number;
+  name: string;
+  latitude: number;
+  longitude: number;
+  depth: number;
+  magnitude: number;
 }
 
 type EarthquakeMaxScale = -1 | 10 | 20 | 30 | 40 | 45 | 50 | 55 | 60 | 70;
