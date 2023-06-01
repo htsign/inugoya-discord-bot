@@ -1,4 +1,5 @@
 export interface JMAQuake {
+  _id: string;
   id: string;
   code: 551;
   time: string;
@@ -40,9 +41,9 @@ interface Earthquake {
 }
 
 interface Hypocenter {
-  description?: string;
   name?: string;
   latitude?: number;
+  longitude?: number;
   depth?: number;
   magnitude?: number;
 }
