@@ -126,6 +126,13 @@ const resolveJMAQuake = async response => {
   }
 
   const { hypocenter: { name, magnitude, depth, latitude, longitude }, maxScale } = response.earthquake;
+  if (name === '') {
+    return log('resolveJMAQuake:', 'no location name', JSON.stringify(response));
+  }
+  if (latitude === -200 || longitude === -200) {
+    return log('resolveJMAQuake:', 'no location', JSON.stringify(response));
+  }
+
   const maxIntensity = intensityFromNumber(maxScale);
 
   const mapImageParams = {
