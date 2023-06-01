@@ -63,7 +63,7 @@ const subCommands = {
 
       await db.register(guildId, guildName, channel.id, channel.name, minIntensity),
 
-      response.edit(`地震速報をこのサーバーの ${channel} に通知するよう設定しました。`);
+      response.edit(`${intensityFromNumber(minIntensity)}以上の地震速報をこのサーバーの ${channel} に通知するよう設定しました。`);
     },
   },
   unregister: {
