@@ -1,7 +1,9 @@
+import { URL } from 'node:url';
 import { Colors, EmbedBuilder } from 'discord.js';
 import WebSocket from 'ws';
 import { isNonEmpty } from 'ts-array-length';
 import client from 'bot/client';
+import { getEnv } from '@lib/util';
 import { log } from '@lib/log';
 import { dayjs } from '@lib/dayjsSetup';
 import { db } from './db';
@@ -17,6 +19,8 @@ import type {
   UserQuakeEvaluation,
   WebSocketResponse,
 } from 'types/bot/features/earthquake';
+
+const ENDPOINT = 'wss://api.p2pquake.net/v2/ws';
 
 const quakeCache: Map<string, JMAQuake> = new Map();
 
@@ -35,7 +39,7 @@ const connectWebSocket = (address: string, onMessage: (data: WebSocket.RawData, 
   return ws;
 };
 
-connectWebSocket('wss://api.p2pquake.net/v2/ws', data => {
+connectWebSocket(ENDPOINT, data => {
   const response: WebSocketResponse = JSON.parse(data.toString());
 
   // actual data does not have "id", but has "_id"
@@ -91,61 +95,70 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
   quakeCache.set(response.id, response);
 
   let groupedByIntensityAreas = (response.points ?? [])
-    .reduce<Map<number, ObservationPoint[]>>((acc, curr) => {
-      const group = acc.get(curr.scale) ?? [];
-      if (isNonEmpty(group)) {
-        return acc.set(curr.scale, group.concat(curr).sort((a, b) => a.addr > b.addr ? 1 : -1));
+    .reduce<Map<number, Map<string, string[]>>>((acc, curr) => {
+      const group = acc.get(curr.scale) ?? new Map<string, string[]>();
+      const areas = group.get(curr.pref) ?? [];
+      if (isNonEmpty(areas)) {
+        return acc.set(curr.scale, group.set(curr.pref, areas.concat(curr.addr).sort()));
       }
       else {
-        return acc.set(curr.scale, [curr]);
+        return acc.set(curr.scale, group.set(curr.pref, [curr.addr]));
       }
     }, new Map());
-  // sort by intensity scale
-  groupedByIntensityAreas = new Map([...groupedByIntensityAreas].sort(([a], [b]) => b - a));
+  // sort by intensity scale descending and prefectures ascending
+  groupedByIntensityAreas = new Map(
+    [...groupedByIntensityAreas]
+      .sort(([a], [b]) => b - a)
+      .map(([scale, group]) => [scale, new Map([...group].sort(([a], [b]) => a.localeCompare(b)))])
+  );
 
   if (groupedByIntensityAreas.size === 0 || response.earthquake.hypocenter == null) {
     return log('resolveJMAQuake:', 'no data', JSON.stringify(response));
   }
 
-  const { hypocenter: { name, magnitude, depth }, maxScale } = response.earthquake;
+  const { hypocenter: { name, magnitude, depth, latitude, longitude }, maxScale } = response.earthquake;
   const maxIntensity = intensityFromNumber(maxScale);
 
-  for (const { guildId, channelId, minIntensity } of db.records) {
+  const mapImageParams = {
+    key: getEnv('GOOGLE_MAPS_API_KEY', 'Googlemaps API Key'),
+    size: '640x480',
+    zoom: '8',
+    center: `${latitude},${longitude}`,
+    markers: `color:red|${latitude},${longitude}`,
+    language: 'ja',
+  };
+  const mapImageUrl = new URL('https://maps.googleapis.com/maps/api/staticmap');
+  for (const [key, value] of Object.entries(mapImageParams)) {
+    mapImageUrl.searchParams.set(key, value);
+  }
+
+  for (const { guildId, guildName, channelId, minIntensity } of db.records) {
     if (maxScale < minIntensity) continue;
 
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
     const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
 
+    const sentences = [`[${name}](https://www.google.com/maps/@${latitude},${longitude},8z)で最大${maxIntensity}の地震が発生しました。`];
+    if (magnitude !== -1) {
+      sentences.push(`マグニチュードは ${magnitude}。`);
+    }
+    if (depth !== -1) {
+      sentences.push(`震源の深さはおよそ ${depth}km です。`)
+    }
+
+    const embed = new EmbedBuilder()
+      .setTitle('地震情報')
+      .setDescription(sentences.join('\n'))
+      .setImage(mapImageUrl.toString())
+      .setTimestamp(dayjs(response.time).valueOf());
+
     if (channel?.isTextBased()) {
-      const sentences = [`[${name}](https://maps.google.com/?q=${encodeURIComponent(name)})で最大${maxIntensity}の地震が発生しました。`];
-      if (magnitude !== -1) {
-        sentences.push(`マグニチュードは ${magnitude}。`);
-      }
-      if (depth !== -1) {
-        sentences.push(`震源の深さはおよそ ${depth}km です。`)
-      }
-
-      const embed = new EmbedBuilder()
-        .setTitle('地震情報')
-        .setDescription(sentences.join('\n'))
-        .setTimestamp(dayjs(response.time).valueOf());
-
       const message = await channel.send({ embeds: [embed] });
       const thread = await message.startThread({ name: `${response.time} 震度別地域詳細` });
 
-      for (const [intensity, observations] of groupedByIntensityAreas) {
+      for (const [intensity, groupedByPrefPoints] of groupedByIntensityAreas) {
         const embed = new EmbedBuilder()
           .setTitle(intensityFromNumber(intensity));
-
-        const groupedByPrefPoints = observations.reduce<Map<string, string[]>>((acc, curr) => {
-          const group = acc.get(curr.pref) ?? [];
-          if (isNonEmpty(group)) {
-            return acc.set(curr.pref, group.concat(curr.addr).sort());
-          }
-          else {
-            return acc.set(curr.pref, [curr.addr]);
-          }
-        }, new Map());
 
         for (const [pref, points] of groupedByPrefPoints) {
           embed.addFields({ name: pref, value: points.join('、') });
@@ -153,6 +166,8 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
 
         await thread.send({ embeds: [embed] });
       }
+
+      log('resolveJMAQuake:', `sent to ${guildName}`, JSON.stringify(response));
     }
   }
 };
@@ -206,7 +221,7 @@ const resolveEEW = async (response: EEW): Promise<void> => {
   const maxIntensityAreaNames =
     Object.entries(areaNames).map(([pref, names]) => `${pref}: ${names.join('、')}`);
 
-  for (const { guildId, channelId, minIntensity } of db.records) {
+  for (const { guildId, guildName, channelId, minIntensity } of db.records) {
     if (maxIntensity < minIntensity) continue;
 
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
@@ -226,6 +241,8 @@ const resolveEEW = async (response: EEW): Promise<void> => {
       embed.addFields({ name: '発生日時', value: response.earthquake.originTime });
 
       channel.send({ embeds: [embed] });
+
+      log('resolveEEW:', `sent to ${guildName}`, JSON.stringify(response.earthquake));
     }
   }
 };
