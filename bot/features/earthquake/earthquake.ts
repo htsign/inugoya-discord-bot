@@ -117,7 +117,7 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
     const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
 
     if (channel?.isTextBased()) {
-      const sentences = [`${name}で最大${maxIntensity}の地震が発生しました。`];
+      const sentences = [`[${name}](https://maps.google.com/?q=${encodeURIComponent(name)})で最大${maxIntensity}の地震が発生しました。`];
       if (magnitude !== -1) {
         sentences.push(`マグニチュードは ${magnitude}。`);
       }
