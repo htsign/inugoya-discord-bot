@@ -36,7 +36,7 @@ ws.on('message', data => {
 
 /**
  * @param {number} number
- * @returns {string}
+ * @returns {'不明' | `震度${0 | 1 | 2 | 3 | 4}` | `震度${5 | 6}${'弱' | '強'}` | `震度7${'' | '程度以上'}`}
  */
 export const intensityFromNumber = number =>
   intensityFromNumberCore(number, n => {
@@ -45,7 +45,7 @@ export const intensityFromNumber = number =>
   });
 /**
  * @param {number} number
- * @returns {string}
+ * @returns {ReturnType<typeof intensityFromNumber> | never}
  */
 export const intensityFromNumberWithException = number =>
   intensityFromNumberCore(number, n => {
@@ -54,8 +54,9 @@ export const intensityFromNumberWithException = number =>
   });
 /**
  * @param {number} number
- * @param {(intensity: number) => string} ifUnexpected
- * @returns {string}
+ * @param {(intensity: number) => S} ifUnexpected
+ * @returns {ReturnType<typeof intensityFromNumber> | S}
+ * @template {string} S
  */
 const intensityFromNumberCore = (number, ifUnexpected) => {
   switch (number) {
@@ -81,6 +82,72 @@ const intensityFromNumberCore = (number, ifUnexpected) => {
  */
 const resolveJMAQuake = async response => {
   quakeCache.set(response.id, response);
+
+  let groupedByIntensityAreas = (response.points ?? [])
+    .reduce((/** @type {Map<number, import('types/bot/features/earthquake').ObservationPoint[]>} */ acc, curr) => {
+      const group = acc.get(curr.scale) ?? [];
+      if (isNonEmpty(group)) {
+        return acc.set(curr.scale, group.concat(curr).sort((a, b) => a.addr > b.addr ? 1 : -1));
+      }
+      else {
+        return acc.set(curr.scale, [curr]);
+      }
+    }, new Map());
+  // sort by intensity scale
+  groupedByIntensityAreas = new Map([...groupedByIntensityAreas].sort(([a], [b]) => b - a));
+
+  if (groupedByIntensityAreas.size === 0 || response.earthquake.hypocenter == null) {
+    return log('resolveJMAQuake:', 'no data', JSON.stringify(response));
+  }
+
+  const { hypocenter: { name, magnitude, depth }, maxScale = -1 } = response.earthquake;
+  const maxIntensity = intensityFromNumber(maxScale);
+
+  for (const { guildId, channelId, minIntensity } of db.records) {
+    if (maxScale < minIntensity) continue;
+
+    const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
+    const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
+
+    if (channel?.isTextBased()) {
+      const sentences = [(name != null ? `${name}で` : '') + `最大${maxIntensity}の地震が発生しました。`];
+      if (magnitude != null) {
+        sentences.push(`マグニチュードは ${magnitude}。`);
+      }
+      if (depth != null) {
+        sentences.push(`震源の深さはおよそ ${depth}km です。`)
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle('地震情報')
+        .setDescription(sentences.join('\n'))
+        .setTimestamp(dayjs(response.time).valueOf());
+
+      const message = await channel.send({ embeds: [embed] });
+      const thread = await message.startThread({ name: `${response.time} 震度別地域詳細` });
+
+      for (const [intensity, observations] of groupedByIntensityAreas) {
+        const embed = new EmbedBuilder()
+          .setTitle(intensityFromNumber(intensity));
+
+        const groupedByPrefPoints = observations.reduce((/** @type {Map<string, string[]>} */ acc, curr) => {
+          const group = acc.get(curr.pref) ?? [];
+          if (isNonEmpty(group)) {
+            return acc.set(curr.pref, group.concat(curr.addr).sort());
+          }
+          else {
+            return acc.set(curr.pref, [curr.addr]);
+          }
+        }, new Map());
+
+        for (const [pref, points] of groupedByPrefPoints) {
+          embed.addFields({ name: pref, value: points.join('、') });
+        }
+
+        await thread.send({ embeds: [embed] });
+      }
+    }
+  }
 };
 
 /**
@@ -136,16 +203,16 @@ const resolveEEW = async response => {
 
   }
 
-      /** @type {{ [pref: string]: string[] }} */
-      const areaNames = {};
-      for (const { pref, name } of maxIntensityAreas) {
-        if (Object.hasOwn(areaNames, pref)) {
-          areaNames[pref]?.push(name);
-        }
-        else {
-          areaNames[pref] = [name];
-        }
-      }
+  /** @type {{ [pref: string]: string[] }} */
+  const areaNames = {};
+  for (const { pref, name } of maxIntensityAreas) {
+    if (Object.hasOwn(areaNames, pref)) {
+      areaNames[pref]?.push(name);
+    }
+    else {
+      areaNames[pref] = [name];
+    }
+  }
   const maxIntensityAreaNames =
     Object.entries(areaNames).map(([pref, names]) => `${pref}: ${names.join('、')}`);
 

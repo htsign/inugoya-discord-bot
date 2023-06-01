@@ -72,7 +72,7 @@ type ForeignTsunami =
   | 'Potential'
   ;
 
-interface ObservationPoint {
+export interface ObservationPoint {
   pref: string;
   addr: string;
   isArea: boolean;
