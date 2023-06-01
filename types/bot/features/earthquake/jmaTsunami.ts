@@ -1,4 +1,5 @@
 export interface JMATsunami {
+  _id: string;
   id: string;
   code: 552;
   time: string;

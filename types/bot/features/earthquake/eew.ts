@@ -1,4 +1,5 @@
 export interface EEW {
+  _id: string;
   id: string;
   code: 556;
   time: string;

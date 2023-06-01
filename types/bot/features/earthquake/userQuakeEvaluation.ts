@@ -1,4 +1,5 @@
 export interface UserQuakeEvaluation {
+  _id: string;
   id: string;
   code: 9611;
   time: string;

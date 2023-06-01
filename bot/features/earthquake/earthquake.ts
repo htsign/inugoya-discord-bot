@@ -26,6 +26,11 @@ ws.once('open', () => {
 ws.on('message', data => {
   const response: WebSocketResponse = JSON.parse(data.toString());
 
+  // actual data does not have "id", but has "_id"
+  if (response.id == null) {
+    response.id = response._id;
+  }
+
   switch (response.code) {
     case 551: return resolveJMAQuake(response);
     case 552: return resolveJMATsunami(response);
