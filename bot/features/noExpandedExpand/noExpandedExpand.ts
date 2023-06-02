@@ -7,7 +7,7 @@ import { addHandler } from 'bot/listeners';
 import { dayjs } from '@lib/dayjsSetup';
 import { log } from '@lib/log';
 import { getUrlDomain, isUrl, retrieveRealUrl, urlsOfText, urlToDocument } from '@lib/util';
-import type { Url } from 'types';
+import type { Nullable, Url } from 'types';
 
 const THRESHOLD_DELAY = 5 * 1000;
 const THRESHOLD_FOR_DELETE = 5;
@@ -120,7 +120,7 @@ const getAuthor = async (document: Document, url: Url): ReturnType<typeof getAut
 };
 
 const getUrl = (document: Document): string | null => {
-  const url = document.querySelector<HTMLMetaElement>('meta[property="og:url]')?.content ?? null;
+  const url = document.querySelector<HTMLMetaElement>('meta[property="og:url]')?.content;
 
   return url != null && isUrl(url) ? url : null;
 };
@@ -130,10 +130,10 @@ const getImage = (document: Document): string | null => {
     'meta[property="og:image"]',
     'meta[name="twitter:image:src"]',
   ]
-    .reduce<string | null>(
-      (acc, selector) => acc ?? document.querySelector<HTMLMetaElement>(selector)?.content ?? null,
+    .reduce<Nullable<string>>(
+      (acc, selector) => acc ?? document.querySelector<HTMLMetaElement>(selector)?.content,
       null,
-    ) ?? null;
+    );
 
   return imageUrl != null && isUrl(imageUrl) ? imageUrl : null;
 };
