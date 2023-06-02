@@ -70,7 +70,7 @@ const tick = async (guildId, guildName, channelName, showsRankCount, minReacted,
   const now = dayjs().tz();
 
   if (now.day() === weekday && now.hour() === hour && now.minute() === minute) {
-    log(guildName, 'WeeklyAward: report initiated');
+    log('WeeklyAward: report initiated', guildName);
 
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
     const channel = guild.channels?.cache?.find(channel => channel.name === channelName);
@@ -79,18 +79,20 @@ const tick = async (guildId, guildName, channelName, showsRankCount, minReacted,
       // remove messages sent over a week ago
       for await (const count of db.deleteOutdated(guildId, 7)) {
         if (typeof count === 'number') {
-          log(guildName, `WeeklyAward: outdated records [${count}]`);
+          log(`WeeklyAward: outdated records [${count}]`, guildName);
         }
         else {
           db.vacuum();
-          log(guildName, `WeeklyAward: records deleted`);
+          log('WeeklyAward: records deleted', guildName);
         }
       }
 
       if (db.all().some(({ reactionsCount: count }) => count >= minReacted)) {
+        /** @typedef {import('types/bot/features/weeklyAwards').MessageAndReactions} MessageAndReactions */
+
         /**
          * @param {import('types/bot/features/weeklyAwards').WeeklyAwardRecord} record
-         * @returns {Promise<import('types/bot/features/weeklyAwards').MessageAndReactions?>}
+         * @returns {Promise<MessageAndReactions?>}
          */
         const fetchesMessage = async record => {
           if (record.guildId !== guildId) return null;
@@ -98,6 +100,8 @@ const tick = async (guildId, guildName, channelName, showsRankCount, minReacted,
           const message = await fetchMessageByIds(guildId, record.channelId, record.messageId);
           return message != null ? { message, reactionsCount: record.reactionsCount } : null;
         };
+
+        /** @type {Promise<MessageAndReactions | null>[]} */
         const fetchingPromises = [];
 
         // collect messages posted in current guild
@@ -108,14 +112,14 @@ const tick = async (guildId, guildName, channelName, showsRankCount, minReacted,
         }
 
         const messages = (await Promise.all(fetchingPromises))
-          .filter(/** @type {(x: import('types/bot/features/weeklyAwards').MessageAndReactions?) => x is import('types/bot/features/weeklyAwards').MessageAndReactions} */ x => x != null);
+          .filter(/** @type {(x: MessageAndReactions?) => x is MessageAndReactions} */ x => x != null);
 
         // tally messages by reactions count
         const talliedMessages = messages
           .reduce((/** @type {{ [count: number]: import('discord.js').Message<true>[] }} */ acc, { message, reactionsCount }) =>
             ({ ...acc, [reactionsCount]: [...acc[reactionsCount] ?? [], message] }), {});
         // sort descending order by reactions count
-        const messagesArray = Object.entries(talliedMessages).sort(([a, ], [b, ]) => (+b) - (+a));
+        const messagesArray = Object.entries(talliedMessages).sort(([a], [b]) => (+b) - (+a));
 
         /** @type {{ title: string, embeds: import('discord.js').APIEmbed[] }[]} */
         const contents = [];
@@ -141,24 +145,65 @@ const tick = async (guildId, guildName, channelName, showsRankCount, minReacted,
 
         if (isNonEmpty(contents)) {
           const [{ title, embeds }, ...restContents] = contents;
-          const firstMessage = await channel.send({ content: `**【リアクション大賞】**\n${title}`, embeds });
+
+          /** @type {import('discord.js').Message<true>} */
+          let firstMessage;
+          try {
+            firstMessage = await channel.send({ content: `**【リアクション大賞】**\n${title}`, embeds });
+          }
+          catch (e) {
+            if (e instanceof Error) {
+              log('weeklyAward#tick:', `failed to send to ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
+              return;
+            }
+            throw e;
+          }
 
           if (restContents.length > 0) {
-            const thread = await firstMessage.startThread({ name: 'リアクション大賞全体' });
+            /** @type {import('discord.js').AnyThreadChannel} */
+            let thread;
+            try {
+              thread = await firstMessage.startThread({ name: 'リアクション大賞全体' });
+            }
+            catch (e) {
+              if (e instanceof Error) {
+                log('weeklyAward#tick:', `failed to start thread in ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
+                return;
+              }
+              throw e;
+            }
 
             for (const { title, embeds } of restContents) {
-              // attach upto 10 embeds per message because of discord api limitation
-              await thread.send({ content: title, embeds: embeds.splice(0, 10) });
+              try {
+                // attach upto 10 embeds per message because of discord api limitation
+                await thread.send({ content: title, embeds: embeds.splice(0, 10) });
 
-              while (embeds.length > 0) {
-                await thread.send({ embeds: embeds.splice(0, 10) });
+                while (embeds.length > 0) {
+                  await thread.send({ embeds: embeds.splice(0, 10) });
+                }
+              }
+              catch (e) {
+                if (e instanceof Error) {
+                  log('weeklyAward#tick:', `failed to send to ${guildName}/${thread.name}`, e.stack ?? `${e.name}: ${e.message}`);
+                  continue;
+                }
+                throw e;
               }
             }
           }
         }
       }
       else {
-        await channel.send('【リアクション大賞】\n先週はリアクションが付いた投稿はありませんでした！！');
+        try {
+          await channel.send('【リアクション大賞】\n先週はリアクションが付いた投稿はありませんでした！！');
+        }
+        catch (e) {
+          if (e instanceof Error) {
+            log('weeklyAward#tick:', `failed to send to ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
+            return;
+          }
+          throw e;
+        }
       }
     }
 

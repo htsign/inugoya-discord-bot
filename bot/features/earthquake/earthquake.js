@@ -1,5 +1,5 @@
 import { URL } from 'node:url';
-import { Colors, EmbedBuilder } from 'discord.js';
+import { Colors, EmbedBuilder, ThreadAutoArchiveDuration } from 'discord.js';
 import WebSocket from 'ws';
 import { isNonEmpty } from 'ts-array-length';
 import client from '../../client.js';
@@ -122,12 +122,12 @@ const resolveJMAQuake = async response => {
   );
 
   if (groupedByIntensityAreas.size === 0 || response.earthquake.hypocenter == null) {
-    return log('resolveJMAQuake:', 'no data', JSON.stringify(response));
+    return log('earthquake#resolveJMAQuake:', 'no data', JSON.stringify(response));
   }
 
   const { hypocenter: { name, magnitude, depth, latitude, longitude }, maxScale } = response.earthquake;
   if (name === '' || latitude === -200 || longitude === -200 || depth === -1 || magnitude === -1) {
-    return log('resolveJMAQuake:', 'insufficient hypocenter data', JSON.stringify(response));
+    return log('earthquake#resolveJMAQuake:', 'insufficient hypocenter data', JSON.stringify(response));
   }
 
   const maxIntensity = intensityFromNumber(maxScale);
@@ -163,8 +163,34 @@ const resolveJMAQuake = async response => {
       .setTimestamp(dayjs(response.time).tz().valueOf());
 
     if (channel?.isTextBased()) {
-      const message = await channel.send({ embeds: [embed] });
-      const thread = await message.startThread({ name: `${response.time} 震度別地域詳細` });
+      /** @type {import('discord.js').Message<true>} */
+      let message;
+      try {
+        message = await channel.send({ embeds: [embed] });
+      }
+      catch (e) {
+        if (e instanceof Error) {
+          log('earthquake#resolveJMAQuake:', `failed to send to ${guildName}/${channel.name}`, e.stack ?? `${e.name}: ${e.message}`);
+          continue;
+        }
+        throw e;
+      }
+
+      /** @type {import('discord.js').AnyThreadChannel<boolean>} */
+      let thread;
+      try {
+        thread = await message.startThread({
+          name: `${response.time} 震度別地域詳細`,
+          autoArchiveDuration: ThreadAutoArchiveDuration.OneHour,
+        });
+      }
+      catch (e) {
+        if (e instanceof Error) {
+          log('earthquake#resolveJMAQuake:', `failed to start thread in ${guildName}/${channel.name}`, e.stack ?? `${e.name}: ${e.message}`);
+          continue;
+        }
+        throw e;
+      }
 
       for (const [intensity, groupedByPrefPoints] of groupedByIntensityAreas) {
         const embed = new EmbedBuilder()
@@ -174,10 +200,19 @@ const resolveJMAQuake = async response => {
           embed.addFields({ name: pref, value: points.join('、') });
         }
 
-        await thread.send({ embeds: [embed] });
+        try {
+          await thread.send({ embeds: [embed] });
+        }
+        catch (e) {
+          if (e instanceof Error) {
+            log('earthquake#resolveJMAQuake:', `failed to send to ${guildName}/${thread.name}`, e.stack ?? `${e.name}: ${e.message}`);
+            continue;
+          }
+          throw e;
+        }
       }
 
-      log('resolveJMAQuake:', `sent to ${guildName}`, JSON.stringify(response));
+      log('earthquake#resolveJMAQuake:', `sent to ${guildName}`, JSON.stringify(response));
     }
   }
 };
@@ -226,7 +261,7 @@ const resolveEEW = async response => {
     .sort((a, b) => a.pref > b.pref ? 1 : -1);
 
   if (maxIntensityAreas.length === 0 || response.earthquake == null) {
-    return log('resolveEEW:', 'no data', JSON.stringify(response));
+    return log('earthquake#resolveEEW:', 'no data', JSON.stringify(response));
   }
 
   const maxIntensity = Math.max(...maxIntensityAreas.map(x => x.scaleTo));
@@ -248,7 +283,7 @@ const resolveEEW = async response => {
   const maxIntensityAreaNames =
     Object.entries(areaNames).map(([pref, names]) => `${pref}: ${names.join('、')}`);
 
-  for (const { guildId, guildName, channelId, minIntensity } of db.records) {
+  for (const { guildId, guildName, channelId, channelName, minIntensity } of db.records) {
     if (maxIntensity < minIntensity) continue;
 
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
@@ -267,9 +302,18 @@ const resolveEEW = async response => {
       });
       embed.addFields({ name: '発生日時', value: response.earthquake.originTime });
 
-      channel.send({ embeds: [embed] });
+      try {
+        await channel.send({ embeds: [embed] });
+      }
+      catch (e) {
+        if (e instanceof Error) {
+          log('earthquake#resolveEEW:', `failed to send to ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
+          continue;
+        }
+        throw e;
+      }
 
-      log('resolveEEW:', `sent to ${guildName}`, JSON.stringify(response.earthquake));
+      log('earthquake#resolveEEW:', `sent to ${guildName}/${channelName}`, JSON.stringify(response.earthquake));
     }
   }
 };

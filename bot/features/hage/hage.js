@@ -21,7 +21,7 @@ const getId = message => `${message.guildId},${message.channelId},${message.id}`
 
 /**
  * @param {Snowflake} guildId
- * @param {(text: string) => Promise<import('discord.js').Message<boolean>>} messageHandler
+ * @param {(text: string) => Promise<void>} messageHandler
  * @param {`${Snowflake},${Snowflake},${Snowflake}`} id
  */
 const replyToHage = (guildId, messageHandler, id) => {
@@ -78,7 +78,20 @@ addHandler(Events.MessageCreate, message => {
   log([guild.name, channel.name].join('/'), 'message incoming:', author.username, content);
 
   if (keywords.some(keyword => content.includes(keyword))) {
-    replyToHage(guild.id, text => (log('hage send:', text), channel.send(text)), id);
+    replyToHage(guild.id, async text => {
+      try {
+        await channel.send(text);
+      }
+      catch (e) {
+        if (e instanceof Error) {
+          log('hage:', `failed to send to: ${guild.name}/${channel.name}`, e.stack ?? `${e.name}: ${e.message}`);
+          return;
+        }
+        throw e;
+      }
+
+      log('hage:', `sent to: ${guild.name}/${channel.name}`, text);
+    }, id);
   }
 });
 addHandler(Events.MessageDelete, message => {
@@ -100,7 +113,20 @@ addHandler(Events.MessageReactionAdd, async (reaction, user) => {
   log([guild.name, channel.name].join('/'), 'reaction incoming:', user.username, reaction.emoji.name);
 
   if (!reactedMessageIds.has(id) && reactionKeywords.includes(reaction.emoji.toString())) {
-    replyToHage(guild.id, text => (log('hage reply to', author.username, ':', text), message.reply(text)), id);
+    replyToHage(guild.id, async text => {
+      try {
+        await message.reply(text);
+      }
+      catch (e) {
+        if (e instanceof Error) {
+          log('hage:', `failed to reply to: ${author.username}`, e.stack ?? `${e.name}: ${e.message}`);
+          return;
+        }
+        throw e;
+      }
+
+      log('hage:', `reply to ${author.username}`, ':', text);
+    }, id);
   }
 });
 addHandler(Events.MessageReactionRemove, async (reaction, user) => {

@@ -4,7 +4,7 @@ import { log } from '../../lib/log.js';
 import { toEmojis } from './index.js';
 
 addHandler(Events.InteractionCreate, async interaction => {
-  const { guild, channel } = interaction;
+  const { guild, channel, user } = interaction;
 
   if (interaction.isButton()) {
     const { customId } = interaction;
@@ -15,8 +15,17 @@ addHandler(Events.InteractionCreate, async interaction => {
         customId,
         'couldn\'t fetch channel',
       ]);
-      interaction.reply({ content: '想定外のエラーが発生しました。', ephemeral: true });
-      return;
+      try {
+        await interaction.reply({ content: '想定外のエラーが発生しました。', ephemeral: true });
+        return;
+      }
+      catch (e) {
+        if (e instanceof Error) {
+          log('regionalIndicators:', `failed to reply to ${user.username}`, e.stack ?? `${e.name}: ${e.message}`);
+          return;
+        }
+        throw e;
+      }
     }
 
     if (customId.startsWith('delete_')) {
@@ -25,10 +34,28 @@ addHandler(Events.InteractionCreate, async interaction => {
 
       for (const reaction of reactions.cache.values()) {
         if (reaction.me) {
-          reaction.remove();
+          try {
+            await reaction.remove();
+          }
+          catch (e) {
+            if (e instanceof Error) {
+              log('regionalIndicators:', `failed to remove ${reaction.emoji.name}`, e.stack ?? `${e.name}: ${e.message}`);
+              continue;
+            }
+            throw e;
+          }
         }
       }
-      interaction.reply({ content: '削除しました。', ephemeral: true });
+      try {
+        await interaction.reply({ content: '削除しました。', ephemeral: true });
+      }
+      catch (e) {
+        if (e instanceof Error) {
+          log('regionalIndicators:', `failed to reply to ${user.username}`, e.stack ?? `${e.name}: ${e.message}`);
+          return;
+        }
+        throw e;
+      }
     }
   }
 });

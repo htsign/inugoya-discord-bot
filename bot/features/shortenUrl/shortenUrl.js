@@ -73,7 +73,7 @@ export const shortenUrlsOfContent = content => shortenUrls(urlsOfText(content));
 export const shortenUrlsOfMessage = message => shortenUrlsOfContent(message.content ?? '');
 
 addHandler(Events.MessageCreate, async message => {
-  const { reference, content, channel } = message;
+  const { reference, content, channel, author } = message;
 
   if (reference == null) return;
   if (content !== '短縮して') return;
@@ -82,5 +82,14 @@ addHandler(Events.MessageCreate, async message => {
   const referredMessage = await channel.messages.fetch(reference.messageId ?? '');
   const urls = await shortenUrlsOfMessage(referredMessage);
 
-  message.reply(urls.length > 0 ? urls.join('\n') : 'URL が見つからないよ！');
+  try {
+    await message.reply(urls.length > 0 ? urls.join('\n') : 'URL が見つからないよ！');
+  }
+  catch (e) {
+    if (e instanceof Error) {
+      log('shortenUrl:', `failed to reply to ${author.username}`, e.stack ?? `${e.name}: ${e.message}`);
+      return;
+    }
+    throw e;
+  }
 });

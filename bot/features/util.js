@@ -52,7 +52,19 @@ export const messageToEmbeds = async (message, options) => {
     /** @type {import('discord.js').APIEmbed[]} */
     const embeds = [];
 
-    const author = await message.author?.fetch();
+    /** @type {import('discord.js').User | null} */
+    let author = null;
+    try {
+      author = await message.author?.fetch();
+    }
+    catch (e) {
+      if (e instanceof Error) {
+        log(`${messageToEmbeds.name}:`, 'failed to fetch author', e.stack ?? `${e.name}: ${e.message}`);
+      }
+      else {
+        throw e;
+      }
+    }
 
     /** @type {(avatarUrl: string | null | undefined) => Promise<number | null>} */
     const getAverageColor = async avatarUrl => {

@@ -55,10 +55,23 @@ addHandler(Events.MessageCreate, async message => {
       embeds.map(e => e.url),
     );
 
-    message.channel.send({ embeds: embeds.splice(0, 10) });
-
-    while (embeds.length > 0) {
+    try {
       await message.channel.send({ embeds: embeds.splice(0, 10) });
+
+      while (embeds.length > 0) {
+        await message.channel.send({ embeds: embeds.splice(0, 10) });
+      }
+    }
+    catch (e) {
+      if (e instanceof Error) {
+        const to = [
+          message.guild != null ? [message.guild.name] : [],
+          'name' in message.channel ? [message.channel.name] : [],
+        ].flat().join('/');
+        log('discordUrlExpand:', `failed to send to ${to}`, e.stack ?? `${e.name}: ${e.message}`);
+        return;
+      }
+      throw e;
     }
   }
 });

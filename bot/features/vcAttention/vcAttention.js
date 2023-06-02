@@ -18,6 +18,8 @@ addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
   const configRecord = db.get(newState.guild.id);
   if (configRecord == null) return;
 
+  const { guildName, channelName, threshold } = configRecord;
+
   const { channelId: oldChannelId } = oldState;
   const { channelId: newChannelId } = newState;
 
@@ -28,16 +30,39 @@ addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
 
     log(newState.guild.name, 'member joined:', newChannel?.name, { membersCount });
 
-    if (membersCount >= configRecord.threshold) {
-      /** @type {function(import('discord.js').Channel): boolean} */
-      const isTargetChannel = channel => channel.type === ChannelType.GuildText && channel.name === configRecord.channelName;
+    if (membersCount >= threshold) {
+      /**
+       * @param {import('discord.js').Channel} channel
+       * @returns {channel is import('discord.js').TextChannel}
+       */
+      const isTargetChannel = channel => channel.type === ChannelType.GuildText && channel.name === channelName;
 
       if (!thrivingVoiceChannels.has(getId(newState))) {
-        const targetChannel = await newState.guild.channels.cache.find(isTargetChannel)?.fetch();
+        /** @type {import('discord.js').TextChannel | undefined} */
+        let targetChannel;
+        try {
+          targetChannel = await newState.guild.channels.cache.find(isTargetChannel)?.fetch();
+        }
+        catch (e) {
+          if (e instanceof Error) {
+            log('vcAttention:', `failed to fetch target channel of ${guildName}`, e.stack ?? `${e.name}: ${e.message}`);
+            return;
+          }
+          throw e;
+        }
 
         if (targetChannel?.type === ChannelType.GuildText && newChannel?.name != null) {
           thrivingVoiceChannels.add(getId(newState));
-          await targetChannel.send(`@here <#${newChannelId}> が盛り上がっているみたい！`);
+          try {
+            await targetChannel.send(`@here <#${newChannelId}> が盛り上がっているみたい！`);
+          }
+          catch (e) {
+            if (e instanceof Error) {
+              log('vcAttention:', `failed to send message to ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
+              return;
+            }
+            throw e;
+          }
         }
       }
     }
