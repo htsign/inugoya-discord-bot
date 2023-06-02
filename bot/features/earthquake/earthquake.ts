@@ -1,5 +1,13 @@
 import { URL } from 'node:url';
-import { AnyThreadChannel, Colors, EmbedBuilder, Message, ThreadAutoArchiveDuration } from 'discord.js';
+import {
+  AnyThreadChannel,
+  AttachmentBuilder,
+  Colors,
+  EmbedBuilder,
+  Message,
+  MessageCreateOptions,
+  ThreadAutoArchiveDuration,
+} from 'discord.js';
 import WebSocket from 'ws';
 import { isNonEmpty } from 'ts-array-length';
 import client from 'bot/client';
@@ -122,18 +130,8 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
 
   const maxIntensity = intensityFromNumber(maxScale);
 
-  const mapImageParams = {
-    key: getEnv('GOOGLE_MAPS_API_KEY', 'Googlemaps API Key'),
-    size: '640x480',
-    zoom: '8',
-    center: `${latitude},${longitude}`,
-    markers: `color:red|${latitude},${longitude}`,
-    language: 'ja',
-  };
-  const mapImageUrl = new URL('https://maps.googleapis.com/maps/api/staticmap');
-  for (const [key, value] of Object.entries(mapImageParams)) {
-    mapImageUrl.searchParams.set(key, value);
-  }
+  const mapBuffer = await getMapImageAsBuffer(latitude, longitude);
+  const mapAttachment = mapBuffer != null ? new AttachmentBuilder(mapBuffer, { name: `${response.id}.png` }) : null;
 
   for (const { guildId, guildName, channelId, minIntensity } of db.records) {
     if (maxScale < minIntensity) continue;
@@ -141,21 +139,26 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
     const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
 
-    const sentences = [
-      `[${name}](https://www.google.com/maps/@${latitude},${longitude},8z)で最大${maxIntensity}の地震が発生しました。`,
-      `マグニチュードは ${magnitude}、震源の深さはおよそ ${depth}km です。`,
-    ];
-
-    const embed = new EmbedBuilder()
-      .setTitle('地震情報')
-      .setDescription(sentences.join('\n'))
-      .setImage(mapImageUrl.toString())
-      .setTimestamp(dayjs(response.time).tz().valueOf());
-
     if (channel?.isTextBased()) {
+      const sentences = [
+        `[${name}](https://www.google.com/maps/@${latitude},${longitude},8z)で最大${maxIntensity}の地震が発生しました。`,
+        `マグニチュードは ${magnitude}、震源の深さはおよそ ${depth}km です。`,
+      ];
+
+      const embed = new EmbedBuilder()
+        .setTitle('地震情報')
+        .setDescription(sentences.join('\n'))
+        .setTimestamp(dayjs(response.time).tz().valueOf());
+
+      const payload: MessageCreateOptions = { embeds: [embed] };
+      if (mapAttachment != null) {
+        payload.files = [mapAttachment];
+        embed.setImage(`attachment://${response.id}.png`);
+      }
+
       let message: Message<true>;
       try {
-        message = await channel.send({ embeds: [embed] });
+        message = await channel.send(payload);
       }
       catch (e) {
         if (e instanceof Error) {
@@ -239,7 +242,8 @@ const resolveEEW = async (response: EEW): Promise<void> => {
   const maxIntensity = Math.max(...maxIntensityAreas.map(x => x.scaleTo));
   const intensity = intensityFromNumber(maxIntensity);
   if (maxIntensity < 10 || intensity === '不明') {
-
+    log('earthquake#resolveEEW:', 'insufficient intensity data', JSON.stringify(response));
+    return;
   }
 
   const areaNames: { [pref: string]: string[] } = {};
@@ -295,6 +299,34 @@ const resolveUserQuake = async (response: UserQuake): Promise<void> => {
 
 const resolveUserQuakeEvaluation = async (response: UserQuakeEvaluation): Promise<void> => {
   // not implemented
+};
+
+const getMapImageAsBuffer = async (latitude: number, longitude: number): Promise<Buffer | null> => {
+  const mapImageParams = {
+    key: getEnv('GOOGLE_MAPS_API_KEY', 'Googlemaps API Key'),
+    size: '640x480',
+    zoom: '8',
+    center: `${latitude},${longitude}`,
+    markers: `color:red|${latitude},${longitude}`,
+    language: 'ja',
+  };
+  const mapImageUrl = new URL('https://maps.googleapis.com/maps/api/staticmap');
+  for (const [key, value] of Object.entries(mapImageParams)) {
+    mapImageUrl.searchParams.set(key, value);
+  }
+
+  const url = mapImageUrl.toString();
+  try {
+    const buffer = await fetch(url).then(x => x.arrayBuffer());
+    return Buffer.from(buffer);
+  }
+  catch (e) {
+    if (e instanceof Error) {
+      log('earthquake#getMapImageAsBuffer:', `failed to fetch ${url}`, e.stack ?? `${e.name}: ${e.message}`);
+      return null;
+    }
+    throw e;
+  }
 };
 
 export class UnexpectedIntensityError extends Error {
