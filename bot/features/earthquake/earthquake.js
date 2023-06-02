@@ -21,7 +21,7 @@ const quakeCache = new Map();
 const connectWebSocket = (address, onMessage) => {
   const ws = new WebSocket(address);
 
-  ws.once('open', () => {
+  ws.on('open', () => {
     log('earthquake: connected');
   });
   ws.on('message', onMessage);
