@@ -8,7 +8,6 @@ import {
   MessageCreateOptions,
   ThreadAutoArchiveDuration,
 } from 'discord.js';
-import WebSocket from 'ws';
 import { isNonEmpty } from 'ts-array-length';
 import client from 'bot/client';
 import { getEnv } from '@lib/util';
@@ -31,14 +30,14 @@ const ENDPOINT = 'wss://api.p2pquake.net/v2/ws';
 
 const quakeCache: Map<string, JMAQuake> = new Map();
 
-const connectWebSocket = (address: string, onMessage: (data: WebSocket.RawData, isBinary: boolean) => void): WebSocket => {
+const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => void): WebSocket => {
   const ws = new WebSocket(address);
 
-  ws.once('open', () => {
+  ws.addEventListener('open', () => {
     log('earthquake: connected');
   });
-  ws.on('message', onMessage);
-  ws.on('close', (code, reason) => {
+  ws.addEventListener('message', onMessage);
+  ws.addEventListener('close', ({ code, reason }) => {
     log('earthquake: disconnected', `[${code}] ${reason.toString()}`);
     setTimeout(() => connectWebSocket(address, onMessage), 1000);
   });
@@ -46,7 +45,7 @@ const connectWebSocket = (address: string, onMessage: (data: WebSocket.RawData, 
   return ws;
 };
 
-connectWebSocket(ENDPOINT, data => {
+connectWebSocket(ENDPOINT, ({ data }) => {
   const response: WebSocketResponse = JSON.parse(data.toString());
 
   // actual data does not have "id", but has "_id"

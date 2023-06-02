@@ -1,9 +1,9 @@
 import { setTimeout } from 'node:timers/promises';
-import Database from 'bun:sqlite';
+import { Database } from 'bun:sqlite';
 import { dayjs } from '../../lib/dayjsSetup.js';
 import type { EEWConfigRecord, EEWConfigRow } from 'types/bot/features/earthquake';
 
-const db = new Database('earthquake.db');
+const db = new Database('earthquake.db', { readwrite: true, create: true });
 
 class EEWConfig {
   #TABLE = 'post_target';
