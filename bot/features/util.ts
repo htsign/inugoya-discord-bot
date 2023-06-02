@@ -1,8 +1,9 @@
-import { APIEmbed, Attachment, EmbedBuilder, Message } from 'discord.js';
+import { APIEmbed, Attachment, EmbedBuilder, Message, User } from 'discord.js';
 import fastAvgColor from 'fast-average-color-node';
 import { isNonEmpty } from 'ts-array-length';
 import { log } from '@lib/log';
 import client from '../client';
+import type { Nullable } from 'types';
 import type { EmbedMessageOptions } from 'types/bot';
 
 export const fetchMessageByIds = async (guildId: string, channelId: string, messageId: string): Promise<Message<true> | null> => {
@@ -41,9 +42,20 @@ export const messageToEmbeds = async (message: Message<boolean>, options: EmbedM
 
     const embeds: APIEmbed[] = [];
 
-    const author = await message.author.fetch();
+    let author: User | null = null;
+    try {
+      author = await message.author.fetch();
+    }
+    catch (e) {
+      if (e instanceof Error) {
+        log(`${messageToEmbeds.name}:`, 'failed to fetch author', e.stack ?? `${e.name}: ${e.message}`);
+      }
+      else {
+        throw e;
+      }
+    }
 
-    const getAverageColor = async (avatarUrl: string | null): Promise<number | null> => {
+    const getAverageColor = async (avatarUrl: Nullable<string>): Promise<number | null> => {
       if (avatarUrl == null) return null;
 
       const { value: [red, green, blue] } = await fastAvgColor.getAverageColor(avatarUrl, { silent: true });

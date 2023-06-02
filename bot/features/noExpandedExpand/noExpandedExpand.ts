@@ -254,8 +254,18 @@ addHandler(Events.MessageCreate, async message => {
         embeds.map(e => e.url),
       );
 
-      const content = 'URL が展開されてないみたいだからこっちで付けとくね';
-      const replied = await message.reply({ content, embeds, files });
+      let replied: Message<boolean>;
+      try {
+        const content = 'URL が展開されてないみたいだからこっちで付けとくね';
+        replied = await message.reply({ content, embeds, files });
+      }
+      catch (e) {
+        if (e instanceof Error) {
+          log('noExpandedExpand:', `failed to reply to ${author.username}`, e.stack ?? `${e.name}: ${e.message}`);
+          return;
+        }
+        throw e;
+      }
 
       // delete replied message if all of original embeds had been created
       const now = dayjs().tz();
@@ -272,8 +282,17 @@ addHandler(Events.MessageCreate, async message => {
             embeds.map(e => e.url),
           );
 
-          replied.delete();
-          break;
+          try {
+            await replied.delete();
+            break;
+          }
+          catch (e) {
+            if (e instanceof Error) {
+              log('noExpandedExpand:', `failed to delete replied message`, e.stack ?? `${e.name}: ${e.message}`);
+              break;
+            }
+            throw e;
+          }
         }
       }
       while (dayjs().tz().diff(now, 'seconds') < THRESHOLD_FOR_DELETE);

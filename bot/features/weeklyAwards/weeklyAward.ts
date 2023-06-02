@@ -1,4 +1,4 @@
-import { Events, ChannelType, Message, APIEmbed } from 'discord.js';
+import { APIEmbed, AnyThreadChannel, Events, ChannelType, Message } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
 import client from 'bot/client';
 import { addHandler } from 'bot/listeners';
@@ -69,7 +69,7 @@ const tick = async (
   const now = dayjs().tz();
 
   if (now.day() === weekday && now.hour() === hour && now.minute() === minute) {
-    log(guildName, 'WeeklyAward: report initiated');
+    log('WeeklyAward: report initiated', guildName);
 
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
     const channel = guild.channels?.cache?.find(channel => channel.name === channelName);
@@ -78,11 +78,11 @@ const tick = async (
       // remove messages sent over a week ago
       for await (const count of db.deleteOutdated(guildId, 7)) {
         if (typeof count === 'number') {
-          log(guildName, `WeeklyAward: outdated records [${count}]`);
+          log(`WeeklyAward: outdated records [${count}]`, guildName);
         }
         else {
           db.vacuum();
-          log(guildName, `WeeklyAward: records deleted`);
+          log('WeeklyAward: records deleted', guildName);
         }
       }
 
@@ -93,7 +93,8 @@ const tick = async (
           const message = await fetchMessageByIds(guildId, record.channelId, record.messageId);
           return message != null ? { message, reactionsCount: record.reactionsCount } : null;
         };
-        const fetchingPromises = [];
+
+        const fetchingPromises: Promise<MessageAndReactions | null>[] = [];
 
         // collect messages posted in current guild
         for (const record of db.iterate()) {
@@ -111,7 +112,7 @@ const tick = async (
             ({ ...acc, [reactionsCount]: [...acc[reactionsCount] ?? [], message] }), {});
 
         // sort descending order by reactions count
-        const messagesArray = Object.entries(talliedMessages).sort(([a, ], [b, ]) => (+b) - (+a));
+        const messagesArray = Object.entries(talliedMessages).sort(([a], [b]) => (+b) - (+a));
 
         const contents: { title: string, embeds: APIEmbed[] }[] = [];
         {
@@ -135,24 +136,63 @@ const tick = async (
 
         if (isNonEmpty(contents)) {
           const [{ title, embeds }, ...restContents] = contents;
-          const firstMessage = await channel.send({ content: `**【リアクション大賞】**\n${title}`, embeds });
+
+          let firstMessage: Message<true>;
+          try {
+            firstMessage = await channel.send({ content: `**【リアクション大賞】**\n${title}`, embeds });
+          }
+          catch (e) {
+            if (e instanceof Error) {
+              log('weeklyAward#tick:', `failed to send to ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
+              return;
+            }
+            throw e;
+          }
 
           if (restContents.length > 0) {
-            const thread = await firstMessage.startThread({ name: 'リアクション大賞全体' });
+            let thread: AnyThreadChannel;
+            try {
+              thread = await firstMessage.startThread({ name: 'リアクション大賞全体' });
+            }
+            catch (e) {
+              if (e instanceof Error) {
+                log('weeklyAward#tick:', `failed to start thread in ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
+                return;
+              }
+              throw e;
+            }
 
             for (const { title, embeds } of restContents) {
-              // attach upto 10 embeds per message because of discord api limitation
-              await thread.send({ content: title, embeds: embeds.splice(0, 10) });
+              try {
+                // attach upto 10 embeds per message because of discord api limitation
+                await thread.send({ content: title, embeds: embeds.splice(0, 10) });
 
-              while (embeds.length > 0) {
-                await thread.send({ embeds: embeds.splice(0, 10) });
+                while (embeds.length > 0) {
+                  await thread.send({ embeds: embeds.splice(0, 10) });
+                }
+              }
+              catch (e) {
+                if (e instanceof Error) {
+                  log('weeklyAward#tick:', `failed to send to ${guildName}/${thread.name}`, e.stack ?? `${e.name}: ${e.message}`);
+                  continue;
+                }
+                throw e;
               }
             }
           }
         }
       }
       else {
-        await channel.send('【リアクション大賞】\n先週はリアクションが付いた投稿はありませんでした！！');
+        try {
+          await channel.send('【リアクション大賞】\n先週はリアクションが付いた投稿はありませんでした！！');
+        }
+        catch (e) {
+          if (e instanceof Error) {
+            log('weeklyAward#tick:', `failed to send to ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
+            return;
+          }
+          throw e;
+        }
       }
     }
 

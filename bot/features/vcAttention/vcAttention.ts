@@ -1,4 +1,4 @@
-import { Events, ChannelType, Snowflake, Channel, VoiceState } from 'discord.js';
+import { Channel, ChannelType, Events, Snowflake, TextChannel, VoiceState } from 'discord.js';
 import { addHandler } from 'bot/listeners';
 import { log } from '@lib/log';
 import { db } from './db';
@@ -14,6 +14,8 @@ addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
   const configRecord = db.get(newState.guild.id);
   if (configRecord == null) return;
 
+  const { guildName, channelName, threshold } = configRecord;
+
   const { channelId: oldChannelId } = oldState;
   const { channelId: newChannelId } = newState;
 
@@ -24,15 +26,35 @@ addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
 
     log(newState.guild.name, 'member joined:', newChannel?.name, { membersCount });
 
-    if (membersCount >= configRecord.threshold) {
-      const isTargetChannel = (channel: Channel): boolean => channel.type === ChannelType.GuildText && channel.name === configRecord.channelName;
+    if (membersCount >= threshold) {
+      const isTargetChannel =
+        (channel: Channel): channel is TextChannel => channel.type === ChannelType.GuildText && channel.name === channelName;
 
       if (!thrivingVoiceChannels.has(getId(newState))) {
-        const targetChannel = await newState.guild.channels.cache.find(isTargetChannel)?.fetch();
+        let targetChannel: TextChannel | undefined;
+        try {
+          targetChannel = await newState.guild.channels.cache.find(isTargetChannel)?.fetch();
+        }
+        catch (e) {
+          if (e instanceof Error) {
+            log('vcAttention:', `failed to fetch target channel of ${guildName}`, e.stack ?? `${e.name}: ${e.message}`);
+            return;
+          }
+          throw e;
+        }
 
         if (targetChannel?.type === ChannelType.GuildText && newChannel?.name != null) {
           thrivingVoiceChannels.add(getId(newState));
-          await targetChannel.send(`@here <#${newChannelId}> が盛り上がっているみたい！`);
+          try {
+            await targetChannel.send(`@here <#${newChannelId}> が盛り上がっているみたい！`);
+          }
+          catch (e) {
+            if (e instanceof Error) {
+              log('vcAttention:', `failed to send message to ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
+              return;
+            }
+            throw e;
+          }
         }
       }
     }
