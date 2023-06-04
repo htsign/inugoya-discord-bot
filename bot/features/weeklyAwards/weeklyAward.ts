@@ -157,9 +157,16 @@ const tick = async (
             catch (e) {
               if (e instanceof Error) {
                 log('weeklyAward#tick:', `failed to start thread in ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
-                return;
+                if (firstMessage.thread == null) {
+                  return;
+                }
+                else {
+                  thread = firstMessage.thread;
+                }
               }
-              throw e;
+              else {
+                throw e;
+              }
             }
 
             for (const { title, embeds } of restContents) {
