@@ -184,9 +184,16 @@ const resolveJMAQuake = async response => {
       catch (e) {
         if (e instanceof Error) {
           log('earthquake#resolveJMAQuake:', `failed to start thread in ${guildName}/${channel.name}`, e.stack ?? `${e.name}: ${e.message}`);
-          continue;
+          if (message.thread == null) {
+            continue;
+          }
+          else {
+            thread = message.thread;
+          }
         }
-        throw e;
+        else {
+          throw e;
+        }
       }
 
       for (const [intensity, groupedByPrefPoints] of groupedByIntensityAreas) {
