@@ -27,7 +27,7 @@ const getId = message => `${message.guildId},${message.channelId},${message.id}`
 const replyToHage = (guildId, messageHandler, id) => {
   const configRecord = db.get(guildId);
   if (configRecord == null) {
-    log('replyToHage:', 'not registered', guildId);
+    log(`${replyToHage.name}:`, 'not registered', guildId);
     return;
   }
 

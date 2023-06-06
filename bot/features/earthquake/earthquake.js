@@ -56,7 +56,7 @@ connectWebSocket(ENDPOINT, data => {
  */
 export const intensityFromNumber = number =>
   intensityFromNumberCore(number, n => {
-    log('earthquake#intensityFromNumber', 'unexpected value:', n);
+    log(`earthquake#${intensityFromNumber.name}`, 'unexpected value:', n);
     return '不明';
   });
 /**
@@ -65,7 +65,7 @@ export const intensityFromNumber = number =>
  */
 export const intensityFromNumberWithException = number =>
   intensityFromNumberCore(number, n => {
-    log('earthquake#intensityFromNumberWithException', 'unexpected value:', n);
+    log(`earthquake#${intensityFromNumberWithException.name}`, 'unexpected value:', n);
     throw new UnexpectedIntensityError(n);
   });
 /**
@@ -117,12 +117,12 @@ const resolveJMAQuake = async response => {
   );
 
   if (groupedByIntensityAreas.size === 0 || response.earthquake.hypocenter == null) {
-    return log('earthquake#resolveJMAQuake:', 'no data', JSON.stringify(response));
+    return log(`earthquake#${resolveJMAQuake.name}:`, 'no data', JSON.stringify(response));
   }
 
   const { hypocenter: { name, magnitude, depth, latitude, longitude }, maxScale } = response.earthquake;
   if (name === '' || latitude === -200 || longitude === -200 || depth === -1 || magnitude === -1) {
-    return log('earthquake#resolveJMAQuake:', 'insufficient hypocenter data', JSON.stringify(response));
+    return log(`earthquake#${resolveJMAQuake.name}:`, 'insufficient hypocenter data', JSON.stringify(response));
   }
 
   const maxIntensity = intensityFromNumber(maxScale);
@@ -165,7 +165,7 @@ const resolveJMAQuake = async response => {
       }
       catch (e) {
         if (e instanceof Error) {
-          log('earthquake#resolveJMAQuake:', `failed to send to ${guildName}/${channel.name}`, e.stack ?? `${e.name}: ${e.message}`);
+          log(`earthquake#${resolveJMAQuake.name}:`, `failed to send to ${guildName}/${channel.name}`, e.stack ?? `${e.name}: ${e.message}`);
           continue;
         }
         throw e;
@@ -181,7 +181,7 @@ const resolveJMAQuake = async response => {
       }
       catch (e) {
         if (e instanceof Error) {
-          log('earthquake#resolveJMAQuake:', `failed to start thread in ${guildName}/${channel.name}`, e.stack ?? `${e.name}: ${e.message}`);
+          log(`earthquake#${resolveJMAQuake.name}:`, `failed to start thread in ${guildName}/${channel.name}`, e.stack ?? `${e.name}: ${e.message}`);
           if (message.thread == null) {
             continue;
           }
@@ -207,14 +207,14 @@ const resolveJMAQuake = async response => {
         }
         catch (e) {
           if (e instanceof Error) {
-            log('earthquake#resolveJMAQuake:', `failed to send to ${guildName}/${thread.name}`, e.stack ?? `${e.name}: ${e.message}`);
+            log(`earthquake#${resolveJMAQuake.name}:`, `failed to send to ${guildName}/${thread.name}`, e.stack ?? `${e.name}: ${e.message}`);
             continue;
           }
           throw e;
         }
       }
 
-      log('earthquake#resolveJMAQuake:', `sent to ${guildName}`, JSON.stringify(response));
+      log(`earthquake#${resolveJMAQuake.name}:`, `sent to ${guildName}`, JSON.stringify(response));
     }
   }
 };
@@ -263,13 +263,13 @@ const resolveEEW = async response => {
     .sort((a, b) => a.pref > b.pref ? 1 : -1);
 
   if (maxIntensityAreas.length === 0 || response.earthquake == null) {
-    return log('earthquake#resolveEEW:', 'no data', JSON.stringify(response));
+    return log(`earthquake#${resolveEEW.name}:`, 'no data', JSON.stringify(response));
   }
 
   const maxIntensity = Math.max(...maxIntensityAreas.map(x => x.scaleTo));
   const intensity = intensityFromNumber(maxIntensity);
   if (maxIntensity < 10 || intensity === '不明') {
-    log('earthquake#resolveEEW:', 'insufficient intensity data', JSON.stringify(response));
+    log(`earthquake#${resolveEEW.name}:`, 'insufficient intensity data', JSON.stringify(response));
     return;
   }
 
@@ -310,13 +310,13 @@ const resolveEEW = async response => {
       }
       catch (e) {
         if (e instanceof Error) {
-          log('earthquake#resolveEEW:', `failed to send to ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
+          log(`earthquake#${resolveEEW.name}:`, `failed to send to ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
           continue;
         }
         throw e;
       }
 
-      log('earthquake#resolveEEW:', `sent to ${guildName}/${channelName}`, JSON.stringify(response.earthquake));
+      log(`earthquake#${resolveEEW.name}:`, `sent to ${guildName}/${channelName}`, JSON.stringify(response.earthquake));
     }
   }
 };
@@ -363,7 +363,7 @@ const getMapImageAsBuffer = async (latitude, longitude) => {
   }
   catch (e) {
     if (e instanceof Error) {
-      log('earthquake#getMapImageAsBuffer:', `failed to fetch ${url}`, e.stack ?? `${e.name}: ${e.message}`);
+      log(`earthquake#${getMapImageAsBuffer.name}:`, `failed to fetch ${url}`, e.stack ?? `${e.name}: ${e.message}`);
       return null;
     }
     throw e;

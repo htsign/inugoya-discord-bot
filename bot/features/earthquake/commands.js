@@ -195,7 +195,7 @@ const subCommands = {
           return;
         }
       }
-      log('register earthquake:', user.username, guildName);
+      log('update earthquake:', user.username, guildName);
 
       const response = await interaction.deferReply();
 

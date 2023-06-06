@@ -153,7 +153,7 @@ const tick = async (guildId, guildName, channelName, showsRankCount, minReacted,
           }
           catch (e) {
             if (e instanceof Error) {
-              log('weeklyAward#tick:', `failed to send to ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
+              log(`weeklyAward#${tick.name}:`, `failed to send to ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
               return;
             }
             throw e;
@@ -167,7 +167,7 @@ const tick = async (guildId, guildName, channelName, showsRankCount, minReacted,
             }
             catch (e) {
               if (e instanceof Error) {
-                log('weeklyAward#tick:', `failed to start thread in ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
+                log(`weeklyAward#${tick.name}:`, `failed to start thread in ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
                 if (firstMessage.thread == null) {
                   return;
                 }
@@ -191,7 +191,7 @@ const tick = async (guildId, guildName, channelName, showsRankCount, minReacted,
               }
               catch (e) {
                 if (e instanceof Error) {
-                  log('weeklyAward#tick:', `failed to send to ${guildName}/${thread.name}`, e.stack ?? `${e.name}: ${e.message}`);
+                  log(`weeklyAward#${tick.name}:`, `failed to send to ${guildName}/${thread.name}`, e.stack ?? `${e.name}: ${e.message}`);
                   continue;
                 }
                 throw e;
@@ -206,7 +206,7 @@ const tick = async (guildId, guildName, channelName, showsRankCount, minReacted,
         }
         catch (e) {
           if (e instanceof Error) {
-            log('weeklyAward#tick:', `failed to send to ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
+            log(`weeklyAward#${tick.name}:`, `failed to send to ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
             return;
           }
           throw e;
