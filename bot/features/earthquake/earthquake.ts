@@ -28,8 +28,6 @@ import type {
 
 const ENDPOINT = 'wss://api.p2pquake.net/v2/ws';
 
-const quakeCache: Map<string, JMAQuake> = new Map();
-
 const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => void): WebSocket => {
   const ws = new WebSocket(address);
 
@@ -98,8 +96,6 @@ const intensityFromNumberCore = <S>(
 };
 
 const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
-  quakeCache.set(response.id, response);
-
   let groupedByIntensityAreas = (response.points ?? [])
     .reduce<Map<number, Map<string, string[]>>>((acc, curr) => {
       const group = acc.get(curr.scale) ?? new Map<string, string[]>();
