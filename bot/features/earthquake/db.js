@@ -35,6 +35,7 @@ class EEWConfig {
         channelId: row.channel_id,
         channelName: row.channel_name,
         minIntensity: row.min_intensity,
+        alertThreshold: row.alert_threshold,
         createdAt: dayjs.utc(row.created_at).tz(),
         updatedAt: dayjs.utc(row.updated_at).tz(),
       }));
@@ -48,6 +49,7 @@ class EEWConfig {
         channel_id text not null,
         channel_name text not null,
         min_intensity integer not null,
+        alert_threshold integer not null,
         created_at text not null default (datetime('now')),
         updated_at text not null default (datetime('now'))
       )
@@ -60,22 +62,25 @@ class EEWConfig {
    * @param {string} channelId
    * @param {string} channelName
    * @param {number} minIntensity
+   * @param {number} alertThreshold
    * @returns {Promise<void>}
    */
-  async register(guildId, guildName, channelId, channelName, minIntensity) {
+  async register(guildId, guildName, channelId, channelName, minIntensity, alertThreshold) {
     const stmt = db.prepare(`
       insert into ${this.#TABLE} (
         guild_id,
         guild_name,
         channel_id,
         channel_name,
-        min_intensity
+        min_intensity,
+        alert_threshold
       ) values (
         @guildId,
         @guildName,
         @channelId,
         @channelName,
-        @minIntensity
+        @minIntensity,
+        @alertThreshold
       )
       on conflict (guild_id) do
         update set
@@ -83,16 +88,17 @@ class EEWConfig {
           channel_id = @channelId,
           channel_name = @channelName,
           min_intensity = @minIntensity,
+          alert_threshold = @alertThreshold,
           updated_at = datetime('now')
     `);
 
     try {
-      stmt.run({ guildId, guildName, channelId, channelName, minIntensity });
+      stmt.run({ guildId, guildName, channelId, channelName, minIntensity, alertThreshold });
     }
     catch (e) {
       if (e instanceof TypeError && e.message.includes('database connection is busy')) {
         await setTimeout();
-        return this.register(guildId, guildName, channelId, channelName, minIntensity);
+        return this.register(guildId, guildName, channelId, channelName, minIntensity, alertThreshold);
       }
       throw e;
     }
@@ -142,6 +148,7 @@ class EEWConfig {
       channelId: row.channel_id,
       channelName: row.channel_name,
       minIntensity: row.min_intensity,
+      alertThreshold: row.alert_threshold,
       createdAt: dayjs.utc(row.created_at).tz(),
       updatedAt: dayjs.utc(row.updated_at).tz(),
     };

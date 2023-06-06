@@ -31,6 +31,7 @@ export interface EEWConfigRecord {
   channelId: string;
   channelName: string;
   minIntensity: number;
+  alertThreshold: number;
   createdAt: Dayjs;
   updatedAt: Dayjs;
 }
@@ -41,6 +42,7 @@ export interface EEWConfigRow {
   channel_id: string;
   channel_name: string;
   min_intensity: number;
+  alert_threshold: number;
   created_at: string;
   updated_at: string;
 }

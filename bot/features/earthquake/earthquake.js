@@ -135,7 +135,7 @@ const resolveJMAQuake = async response => {
   const mapBuffer = await getMapImageAsBuffer(latitude, longitude);
   const mapAttachment = mapBuffer != null ? new AttachmentBuilder(mapBuffer, { name: `${response.id}.png` }) : null;
 
-  for (const { guildId, guildName, channelId, minIntensity } of db.records) {
+  for (const { guildId, guildName, channelId, minIntensity, alertThreshold } of db.records) {
     if (maxScale < minIntensity) continue;
 
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
@@ -146,6 +146,9 @@ const resolveJMAQuake = async response => {
         `[${name}](https://www.google.com/maps/@${latitude},${longitude},8z)で最大${maxIntensity}の地震が発生しました。`,
         `マグニチュードは ${magnitude}、震源の深さはおよそ ${depth}km です。`,
       ];
+      if (maxScale >= alertThreshold) {
+        sentences.unshift('@here');
+      }
 
       const embed = new EmbedBuilder()
         .setTitle('地震情報')
