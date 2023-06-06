@@ -10,9 +10,6 @@ import { db } from './db.js';
 
 const ENDPOINT = 'wss://api.p2pquake.net/v2/ws';
 
-/** @type {Map<string, import('types/bot/features/earthquake').JMAQuake>} */
-const quakeCache = new Map();
-
 /**
  * @param {string} address
  * @param {(data: WebSocket.RawData, isBinary: boolean) => void} onMessage
@@ -100,8 +97,6 @@ const intensityFromNumberCore = (number, ifUnexpected) => {
  * @returns {Promise<void>}
  */
 const resolveJMAQuake = async response => {
-  quakeCache.set(response.id, response);
-
   let groupedByIntensityAreas = (response.points ?? [])
     .reduce((/** @type {Map<number, Map<string, string[]>>} */ acc, curr) => {
       /** @type {Map<string, string[]>} */
