@@ -216,7 +216,7 @@ class HageKeyword {
 
   async add(guildId: string, keyword: string): Promise<void> {
     if (this.get(guildId, keyword) != null) {
-      return log('HageKeyword#add:', 'already added', guildId, keyword);
+      return log(`${HageKeyword.name}#${this.add.name}:`, 'already added', guildId, keyword);
     }
 
     const stmt = db.prepare(`
@@ -246,7 +246,7 @@ class HageKeyword {
 
   async delete(guildId: string, keyword: string): Promise<void> {
     if (this.get(guildId, keyword) == null) {
-      return log('HageKeyword#delete:', 'not found', guildId, keyword);
+      return log(`${HageKeyword.name}#${this.delete.name}:`, 'not found', guildId, keyword);
     }
 
     const stmt = db.prepare(`
@@ -365,7 +365,7 @@ class HageReactionKeyword {
 
   async add(guildId: string, reaction: string): Promise<void> {
     if (this.get(guildId, reaction) != null) {
-      return log('HageReactionKeyword#add:', 'already added', guildId, reaction);
+      return log(`${HageReactionKeyword.name}#${this.add.name}:`, 'already added', guildId, reaction);
     }
 
     const stmt = db.prepare(`
@@ -395,7 +395,7 @@ class HageReactionKeyword {
 
   async delete(guildId: string, reaction: string): Promise<void> {
     if (this.get(guildId, reaction) == null) {
-      return log('HageReactionKeyword#delete:', 'not found', guildId, reaction);
+      return log(`${HageReactionKeyword.name}#${this.delete.name}:`, 'not found', guildId, reaction);
     }
 
     const stmt = db.prepare(`

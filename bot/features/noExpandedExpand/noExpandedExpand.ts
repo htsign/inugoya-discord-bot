@@ -37,7 +37,7 @@ const getFavicon = async (url: Url, index: number): Promise<string | ReturnType<
       }
       catch (e) {
         if (e instanceof Error) {
-          log('noExpandedExpand#getFavicon#fetchIco:', e.stack ?? `${e.name}: ${e.message}`);
+          log(`noExpandedExpand#${getFavicon.name}#${fetchIco.name}:`, e.stack ?? `${e.name}: ${e.message}`);
         }
       }
     }
@@ -145,7 +145,7 @@ const getColorAsInt = async (resource: string | Buffer): Promise<number> => {
   }
   catch (e) {
     if (e instanceof Error) {
-      log('noExpandedExpand#getColorAsInt:', e.stack ?? `${e.name}: ${e.message}`);
+      log(`noExpandedExpand#${getColorAsInt.name}:`, e.stack ?? `${e.name}: ${e.message}`);
     }
     return 0x000000;
   }
@@ -164,7 +164,7 @@ const core = async (url: Url, index: number): Promise<{ embeds: APIEmbed[], atta
       .setImage(getImage(document));
 
     if (embed.data.title == null && embed.data.description == null) {
-      log( 'noExpandedExpand#core:', realUrl, 'no title and description');
+      log( `noExpandedExpand#${core.name}:`, realUrl, 'no title and description');
       return { embeds: [], attachment: null };
     }
 
@@ -206,7 +206,7 @@ const core = async (url: Url, index: number): Promise<{ embeds: APIEmbed[], atta
   }
   catch (e) {
     if (e instanceof Error) {
-      log('noExpandedExpand:', e.stack ?? `${e.name}: ${e.message}`);
+      log(`noExpandedExpand#${core.name}:`, e.stack ?? `${e.name}: ${e.message}`);
       return { embeds: [], attachment: null };
     }
     throw e;

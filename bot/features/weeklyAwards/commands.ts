@@ -229,7 +229,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
         interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
         return;
       }
-      log('register weeklyAward:', user.username, guildName);
+      log('update weeklyAward:', user.username, guildName);
 
       const response = await interaction.deferReply();
 

@@ -39,6 +39,6 @@ export const toEmojis = (text: string): RegionalIndicatorsResult => {
     throw new Error('unexpected procedure');
   };
 
-  log('emojify:', text);
+  log(`${toEmojis.name}:`, text);
   return { success: true, values: codePoints.map(toEmoji) };
 };

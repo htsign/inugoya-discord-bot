@@ -21,7 +21,7 @@ const replyToHage = (
 ) => {
   const configRecord = db.get(guildId);
   if (configRecord == null) {
-    log('replyToHage:', 'not registered', guildId);
+    log(`${replyToHage.name}:`, 'not registered', guildId);
     return;
   }
 
