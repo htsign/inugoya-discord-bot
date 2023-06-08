@@ -120,7 +120,7 @@ const resolveJMAQuake = async response => {
     return log(`earthquake#${resolveJMAQuake.name}:`, 'no data', JSON.stringify(response));
   }
 
-  const { hypocenter: { name, magnitude, depth, latitude, longitude }, maxScale } = response.earthquake;
+  const { hypocenter: { name, magnitude, depth, latitude, longitude }, maxScale, time } = response.earthquake;
   if (name === '' || latitude === -200 || longitude === -200 || depth === -1 || magnitude === -1) {
     return log(`earthquake#${resolveJMAQuake.name}:`, 'insufficient hypocenter data', JSON.stringify(response));
   }
@@ -148,7 +148,7 @@ const resolveJMAQuake = async response => {
       const embed = new EmbedBuilder()
         .setTitle('地震情報')
         .setDescription(sentences.join('\n'))
-        .setTimestamp(dayjs(response.time).tz().valueOf());
+        .setTimestamp(dayjs(time).tz().valueOf());
 
       /** @type {import('discord.js').MessageCreateOptions} */
       const payload = { embeds: [embed] };
@@ -286,6 +286,8 @@ const resolveEEW = async response => {
   const maxIntensityAreaNames =
     Object.entries(areaNames).map(([pref, names]) => `${pref}: ${names.join('、')}`);
 
+  const { arrivalTime, originTime } = response.earthquake;
+
   for (const { guildId, guildName, channelId, channelName, minIntensity } of db.records) {
     if (maxIntensity < minIntensity) continue;
 
@@ -296,14 +298,14 @@ const resolveEEW = async response => {
       const embed = new EmbedBuilder()
         .setTitle('緊急地震速報')
         .setColor(Colors.Red)
-        .setTimestamp(dayjs(response.time).tz().valueOf());
+        .setTimestamp(dayjs(arrivalTime).tz().valueOf());
 
       embed.addFields({ name: '最大予測震度', value: intensity });
       embed.addFields({
         name: '最大震度観測予定地',
         value: maxIntensityAreaNames.join('\n'),
       });
-      embed.addFields({ name: '発生日時', value: response.earthquake.originTime });
+      embed.addFields({ name: '発生日時', value: originTime });
 
       try {
         await channel.send({ embeds: [embed] });
