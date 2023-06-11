@@ -95,6 +95,25 @@ const intensityFromNumberCore = <S>(
   }
 };
 
+const getColorsOfIntensity = (
+  intensity: ReturnType<typeof intensityFromNumber>,
+): typeof Colors[keyof typeof Colors] => {
+  switch (intensity) {
+    case '不明'         : return Colors.Default;
+    case '震度0'        : return Colors.Default;
+    case '震度1'        : return Colors.Green;
+    case '震度2'        : return Colors.Green;
+    case '震度3'        : return Colors.Yellow;
+    case '震度4'        : return Colors.Yellow;
+    case '震度5弱'      : return Colors.Orange;
+    case '震度5強'      : return Colors.Orange;
+    case '震度6弱'      : return Colors.Red;
+    case '震度6強'      : return Colors.Red;
+    case '震度7'        : return Colors.Red;
+    case '震度7程度以上': return Colors.Red;
+  }
+};
+
 const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
   let groupedByIntensityAreas = (response.points ?? [])
     .reduce<Map<number, Map<string, string[]>>>((acc, curr) => {
@@ -146,6 +165,7 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
       const embed = new EmbedBuilder()
         .setTitle('地震情報')
         .setDescription(sentences.join('\n'))
+        .setColor(getColorsOfIntensity(maxIntensity))
         .setTimestamp(dayjs(time).tz().valueOf());
 
       const payload: MessageCreateOptions = { embeds: [embed] };
@@ -188,9 +208,11 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
         }
       }
 
-      for (const [intensity, groupedByPrefPoints] of groupedByIntensityAreas) {
+      for (const [intensityNum, groupedByPrefPoints] of groupedByIntensityAreas) {
+        const intensity = intensityFromNumber(intensityNum);
         const embed = new EmbedBuilder()
-          .setTitle(intensityFromNumber(intensity));
+          .setTitle(intensity)
+          .setColor(getColorsOfIntensity(intensity));
 
         for (const [pref, points] of groupedByPrefPoints) {
           embed.addFields({ name: pref, value: points.join('、') });
