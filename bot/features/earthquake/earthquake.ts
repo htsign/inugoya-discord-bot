@@ -158,9 +158,6 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
         `[${name}](https://www.google.com/maps/@${latitude},${longitude},8z)で最大${maxIntensity}の地震が発生しました。`,
         `マグニチュードは ${magnitude}、震源の深さはおよそ ${depth}km です。`,
       ];
-      if (maxScale >= alertThreshold) {
-        sentences.unshift('@here');
-      }
 
       const embed = new EmbedBuilder()
         .setTitle('地震情報')
@@ -169,6 +166,10 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
         .setTimestamp(dayjs(time).tz().valueOf());
 
       const payload: MessageCreateOptions = { embeds: [embed] };
+
+      if (maxScale >= alertThreshold) {
+        payload.content = '@here';
+      }
       if (mapAttachment != null) {
         payload.files = [mapAttachment];
         embed.setImage(`attachment://${response.id}.png`);
