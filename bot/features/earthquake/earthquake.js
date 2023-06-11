@@ -93,6 +93,27 @@ const intensityFromNumberCore = (number, ifUnexpected) => {
 };
 
 /**
+ * @param {ReturnType<typeof intensityFromNumber>} intensity
+ * @returns {typeof Colors[keyof typeof Colors]}
+ */
+const getColorsOfIntensity = intensity => {
+  switch (intensity) {
+    case '不明'         : return Colors.Default;
+    case '震度0'        : return Colors.Default;
+    case '震度1'        : return Colors.Green;
+    case '震度2'        : return Colors.Green;
+    case '震度3'        : return Colors.Yellow;
+    case '震度4'        : return Colors.Yellow;
+    case '震度5弱'      : return Colors.Orange;
+    case '震度5強'      : return Colors.Orange;
+    case '震度6弱'      : return Colors.Red;
+    case '震度6強'      : return Colors.Red;
+    case '震度7'        : return Colors.Red;
+    case '震度7程度以上': return Colors.Red;
+  }
+};
+
+/**
  * @param {import('types/bot/features/earthquake').JMAQuake} response
  * @returns {Promise<void>}
  */
@@ -148,6 +169,7 @@ const resolveJMAQuake = async response => {
       const embed = new EmbedBuilder()
         .setTitle('地震情報')
         .setDescription(sentences.join('\n'))
+        .setColor(getColorsOfIntensity(maxIntensity))
         .setTimestamp(dayjs(time).tz().valueOf());
 
       /** @type {import('discord.js').MessageCreateOptions} */
@@ -194,9 +216,11 @@ const resolveJMAQuake = async response => {
         }
       }
 
-      for (const [intensity, groupedByPrefPoints] of groupedByIntensityAreas) {
+      for (const [intensityNum, groupedByPrefPoints] of groupedByIntensityAreas) {
+        const intensity = intensityFromNumber(intensityNum);
         const embed = new EmbedBuilder()
-          .setTitle(intensityFromNumber(intensity));
+          .setTitle(intensity)
+          .setColor(getColorsOfIntensity(intensity));
 
         for (const [pref, points] of groupedByPrefPoints) {
           embed.addFields({ name: pref, value: points.join('、') });
