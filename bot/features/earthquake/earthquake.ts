@@ -231,7 +231,7 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
         }
       }
 
-      log(`earthquake#${resolveJMAQuake.name}:`, `sent to ${guildName}`, JSON.stringify(response));
+      log(`earthquake#${resolveJMAQuake.name}:`, `sent to ${guildName}/${channel.name}`, JSON.stringify(response));
     }
   }
 };
