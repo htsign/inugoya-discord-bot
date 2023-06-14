@@ -238,7 +238,7 @@ const resolveJMAQuake = async response => {
         }
       }
 
-      log(`earthquake#${resolveJMAQuake.name}:`, `sent to ${guildName}`, JSON.stringify(response));
+      log(`earthquake#${resolveJMAQuake.name}:`, `sent to ${guildName}/${channel.name}`, JSON.stringify(response));
     }
   }
 };
