@@ -231,7 +231,8 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
         }
       }
 
-      log(`earthquake#${resolveJMAQuake.name}:`, `sent to ${guildName}/${channel.name}`, JSON.stringify(response));
+      const { points, ...restResponse } = response;
+      log(`earthquake#${resolveJMAQuake.name}:`, `sent to ${guildName}/${channel.name}`, JSON.stringify(restResponse));
     }
   }
 };
@@ -318,7 +319,8 @@ const resolveEEW = async (response: EEW): Promise<void> => {
         throw e;
       }
 
-      log(`earthquake#${resolveEEW.name}:`, `sent to ${guildName}/${channelName}`, JSON.stringify(response.earthquake));
+      const { areas, ...restResponse } = response;
+      log(`earthquake#${resolveEEW.name}:`, `sent to ${guildName}/${channelName}`, JSON.stringify(restResponse));
     }
   }
 };
