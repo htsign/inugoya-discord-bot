@@ -97,20 +97,20 @@ const intensityFromNumberCore = <S>(
 
 const getColorsOfIntensity = (
   intensity: ReturnType<typeof intensityFromNumber>,
-): typeof Colors[keyof typeof Colors] => {
+): number | null => {
   switch (intensity) {
-    case '不明'         : return Colors.Default;
-    case '震度0'        : return Colors.Default;
-    case '震度1'        : return Colors.Green;
-    case '震度2'        : return Colors.Green;
-    case '震度3'        : return Colors.Yellow;
-    case '震度4'        : return Colors.Yellow;
-    case '震度5弱'      : return Colors.Orange;
-    case '震度5強'      : return Colors.Orange;
-    case '震度6弱'      : return Colors.Red;
-    case '震度6強'      : return Colors.Red;
-    case '震度7'        : return Colors.Red;
-    case '震度7程度以上': return Colors.Red;
+    case '不明'         : return null;
+    case '震度0'        : return null;
+    case '震度1'        : return 0x00ff00; // Green
+    case '震度2'        : return 0x3ed800;
+    case '震度3'        : return 0x80e000;
+    case '震度4'        : return 0xc0ff00;
+    case '震度5弱'      : return 0xffff00; // Yellow
+    case '震度5強'      : return 0xffc000;
+    case '震度6弱'      : return 0xff8000;
+    case '震度6強'      : return 0xf03e00;
+    case '震度7'        : return 0xff0000; // Red
+    case '震度7程度以上': return 0xff0000; // Red
   }
 };
 
