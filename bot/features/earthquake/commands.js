@@ -76,7 +76,7 @@ const subCommands = {
       }
       catch (e) {
         if (e instanceof UnexpectedIntensityError) {
-          interaction.reply({ content: `alertthreshold に不正の値が与えられました。 [${e.intensity}]`, ephemeral: true });
+          interaction.reply({ content: `alertthreshold に不正な値が与えられました。 [${e.intensity}]`, ephemeral: true });
           return;
         }
       }
@@ -191,7 +191,7 @@ const subCommands = {
       }
       catch (e) {
         if (e instanceof UnexpectedIntensityError) {
-          interaction.reply({ content: `alertthreshold に不正の値が与えられました。 [${e.intensity}]`, ephemeral: true });
+          interaction.reply({ content: `alertthreshold に不正な値が与えられました。 [${e.intensity}]`, ephemeral: true });
           return;
         }
       }
