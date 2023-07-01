@@ -80,7 +80,8 @@ const getTitle = document => {
     'meta[name="twitter:title"]',
   ]
     .reduce(
-      (/** @type {string | null | undefined} */ acc, selector) => acc || document.querySelector(selector)?.getAttribute('content'),
+      (/** @type {import('types').Nullable<string>} */ acc, selector) =>
+        acc || document.querySelector(selector)?.getAttribute('content'),
       null,
     );
 
@@ -99,7 +100,8 @@ const getDescription = document => {
     'meta[name="description"]',
   ]
     .reduce(
-      (/** @type {string | null | undefined} */ acc, selector) => acc || document.querySelector(selector)?.getAttribute('content'),
+      (/** @type {import('types').Nullable<string>} */ acc, selector) =>
+        acc || document.querySelector(selector)?.getAttribute('content'),
       null,
     );
 

@@ -66,7 +66,7 @@ export const messageToEmbeds = async (message, options) => {
       }
     }
 
-    /** @type {(avatarUrl: string | null | undefined) => Promise<number | null>} */
+    /** @type {(avatarUrl: import('types').Nullable<string>) => Promise<number | null>} */
     const getAverageColor = async avatarUrl => {
       if (avatarUrl == null) return null;
 
