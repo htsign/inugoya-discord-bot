@@ -11,4 +11,4 @@ export interface ChatInputCommandCollection<FuncResult, AdditionalProperties, TC
   [commandName: string]: ChatInputCommand<FuncResult, AdditionalProperties, TCacheType>;
 }
 
-export type EmbedMessageOptions = ('reactions' | 'originalUrl')[];
+export type EmbedMessageOptions = ('reactions' | 'originalLink')[];

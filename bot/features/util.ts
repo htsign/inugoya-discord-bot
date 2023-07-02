@@ -86,8 +86,8 @@ export const messageToEmbeds = async (message: Message<boolean>, options: EmbedM
           }
           break;
         }
-        case 'originalUrl': {
-          embed.addFields({ name: 'OriginalURL', value: message.url, inline: true });
+        case 'originalLink': {
+          embed.addFields({ name: 'Original Link', value: message.url, inline: true });
           break;
         }
         default: {
