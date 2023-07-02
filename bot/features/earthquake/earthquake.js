@@ -158,8 +158,10 @@ const resolveJMAQuake = async response => {
     const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
 
     if (channel?.isTextBased()) {
+      const ll = `${latitude},${longitude}`;
+      const mapParams = new URLSearchParams({ ll, z: '8', q: ll });
       const sentences = [
-        `[${name}](https://www.google.com/maps/@${latitude},${longitude},8z)で最大${maxIntensity}の地震が発生しました。`,
+        `[${name}](https://www.google.com/maps?${mapParams})で最大${maxIntensity}の地震が発生しました。`,
         `マグニチュードは ${magnitude}、震源の深さはおよそ ${depth}km です。`,
       ];
 
