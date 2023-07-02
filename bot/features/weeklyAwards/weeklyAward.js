@@ -133,7 +133,7 @@ const tick = async (guildId, guildName, channelName, showsRankCount, minReacted,
             const embeds = [];
 
             for (const message of messages) {
-              embeds.push(...await messageToEmbeds(message, ['originalUrl']));
+              embeds.push(...await messageToEmbeds(message, ['originalLink']));
             }
             contents.push({
               title: `**先週${rankText}リアクションが多かった投稿${messages.length >= 2 ? 'たち' : ''}です！！** [${count}個]`,
