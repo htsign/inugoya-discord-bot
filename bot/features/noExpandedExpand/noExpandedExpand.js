@@ -11,12 +11,6 @@ import { getUrlDomain, isUrl, retrieveRealUrl, urlsOfText, urlToDocument } from 
 const THRESHOLD_DELAY = 5 * 1000;
 const THRESHOLD_FOR_DELETE = 5;
 
-const IGNORING_URLS = [
-  'https://discord.com/channels/',
-  'https://discord.com/api/',
-  'https://discord.com/invite/',
-];
-
 /**
  * @param {import('types').Url} url
  * @param {number} index
@@ -277,9 +271,10 @@ addHandler(Events.MessageCreate, async message => {
     const embedUrls = message.embeds
       .map(embed => embed.url)
       .filter(/** @type {(url: string?) => url is string} */ url => url != null);
+    const { default: ignoringUrls } = await import('./ignoringUrls.json', { assert: { type: 'json' } });
     const targetUrls = urls
       .filter(url => !embedUrls.includes(url))
-      .filter(url => !IGNORING_URLS.some(ignoringUrl => url.startsWith(ignoringUrl)));
+      .filter(url => !ignoringUrls.some(ignoringUrl => url.startsWith(ignoringUrl)));
 
     /** @type {ReturnType<typeof core>[]} */
     const expandingPromises = [];
