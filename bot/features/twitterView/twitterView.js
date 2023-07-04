@@ -30,6 +30,8 @@ const getLaunchOptions = async () => {
 };
 
 const login = async () => {
+  log(`twitterView#${login.name}:`, 'try to login');
+
   const browser = await puppeteer.launch(await getLaunchOptions());
   const page = await browser.newPage();
 
@@ -46,9 +48,13 @@ const login = async () => {
   await page.keyboard.press('Enter');
   await page.waitForNavigation();
 
+  log(`twitterView#${login.name}:`, 'login success');
+
   // save cookies
   const cookies = await page.cookies();
   await fs.writeFile('twitter.cookies', JSON.stringify(cookies, null, 2));
+
+  await browser.close();
 
   return cookies;
 };
@@ -70,7 +76,12 @@ addHandler(Events.MessageCreate, async message => {
       await page.setCookie(...cookies);
     }
     catch (e) {
-      log('twitterView:', 'failed to open cookie file');
+      if (e instanceof Error) {
+        log('twitterView:', 'failed to open cookie file', e.stack ?? `${e.name}: ${e.message}`);
+      }
+      else {
+        throw e;
+      }
     }
 
     for (const url of twitterUrls) {
