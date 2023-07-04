@@ -1,10 +1,17 @@
 import fs from 'node:fs/promises';
 import { APIEmbed, AttachmentBuilder, EmbedBuilder, Events } from 'discord.js';
-import puppeteer, { Browser, PuppeteerLaunchOptions, TimeoutError } from 'puppeteer';
+import puppeteer, { Browser, ElementHandle, PuppeteerLaunchOptions, TimeoutError } from 'puppeteer';
 import { addHandler } from 'bot/listeners';
 import { dayjs } from '@lib/dayjsSetup';
 import { log } from '@lib/log';
 import { getEnv, urlsOfText } from '@lib/util';
+
+const BLOCK_URLS = [
+  'https://abs-0.twimg.com/',
+  'https://twitter.com/i/api/1.1/dm/inbox_initial_state.json?',
+  'https://twitter.com/i/api/2/guide.json?',
+  'https://twitter.com/i/api/fleets/v1/fleetline?',
+];
 
 const ARTICLE_SELECTOR = 'article[data-testid="tweet"]';
 
@@ -41,15 +48,26 @@ const login = async () => {
   await page.goto('https://twitter.com/login');
 
   // type username
-  await page.waitForSelector('input[autocomplete="username"]');
-  await page.type('input[autocomplete="username"]', getEnv('TWITTER_USERNAME'));
+  const usernameInput = await page.waitForSelector('input[autocomplete="username"]');
+  if (usernameInput == null) {
+    log(`twitterView#${login.name}:`, 'failed to find username input');
+    await page.close();
+    return [];
+  }
+  await usernameInput.type(getEnv('TWITTER_USERNAME'));
   await page.keyboard.press('Enter');
 
   // type password
-  await page.waitForSelector('input[autocomplete="current-password"]');
-  await page.type('input[autocomplete="current-password"]', getEnv('TWITTER_PASSWORD'));
+  const passwordInput = await page.waitForSelector('input[autocomplete="current-password"]');
+  if (passwordInput == null) {
+    log(`twitterView#${login.name}:`, 'failed to find password input');
+    await page.close();
+    return [];
+  }
+  await passwordInput.type(getEnv('TWITTER_PASSWORD'));
   await page.keyboard.press('Enter');
-  await page.waitForNavigation();
+
+  await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
 
   log(`twitterView#${login.name}:`, 'login success');
 
@@ -69,15 +87,27 @@ addHandler(Events.MessageCreate, async message => {
   if (author.bot || guild == null || channel.isVoiceBased() || !('name' in channel)) return;
 
   const urls = urlsOfText(content);
-  const twitterUrls = urls.filter(url => url.startsWith('https://twitter.com/'));
+  const twitterUrls = urls.filter(url => /^https:\/\/(?:mobile\.)?twitter\.com\/\w+?\/status\/\d+?\??/.test(url));
 
   if (twitterUrls.length > 0) {
     log('twitterView:', 'urls detected', twitterUrls);
 
     const page = await browser.newPage();
+    page.setRequestInterception(true);
+
+    page.on('request', request => {
+      const url = request.url();
+      const resourceType = request.resourceType();
+
+      if (BLOCK_URLS.some(x => url.startsWith(x)) || resourceType === 'font') {
+        request.abort();
+      }
+      else {
+        request.continue();
+      }
+    });
 
     let name: string | undefined;
-    let id: string | undefined;
     let profileImageUrl: string | undefined;
     let createdAt: string | undefined;
     let likesCount: number | undefined;
@@ -105,9 +135,9 @@ addHandler(Events.MessageCreate, async message => {
 
             if (core != null) {
               const { legacy: userDetails } = core.user_results?.result ?? {};
+
               if (userDetails != null) {
                 name = userDetails.name;
-                id = userDetails.screen_name;
                 profileImageUrl = userDetails.profile_image_url_https;
               }
             }
@@ -139,33 +169,38 @@ addHandler(Events.MessageCreate, async message => {
     for (const url of twitterUrls) {
       log('twitterView:', 'try to access', url);
 
+      let article: ElementHandle<HTMLElement> | null = null;
+
       await page.goto(url);
       try {
-        await page.waitForSelector(ARTICLE_SELECTOR, { timeout: 10000 });
+        article = await page.waitForSelector(ARTICLE_SELECTOR, { timeout: 10000 });
       }
       catch (e) {
         if (e instanceof TimeoutError) {
           const cookies = await login();
           await page.setCookie(...cookies);
           await page.goto(url);
-          await page.waitForSelector(ARTICLE_SELECTOR);
+          article = await page.waitForSelector(ARTICLE_SELECTOR);
         }
         else {
           throw e;
         }
       }
+
+      if (article == null) {
+        log('twitterView:', 'access failed', url);
+        continue;
+      }
       log('twitterView:', 'access succeeded', url);
 
-      const article = await page.$(ARTICLE_SELECTOR);
-      if (article == null) continue;
-
-      const [user, userId] = name != null && id != null ? [name, id] : await Promise.all((await article.$$('[data-testid="User-Name"] a')).map(el => el.evaluate(x => x.textContent)));
+      const { id = '' } = url.match(/^https:\/\/(?:mobile\.)?twitter\.com\/(?<id>\w+?)\/status\/\d+?\??/)?.groups ?? {};
+      const user = name ?? await page.evaluate(el => el?.textContent ?? '', await article.$('[data-testid="User-Name"] a'));
       const userPic = profileImageUrl ?? await page.evaluate(el => el?.src ?? '', await article.$('[data-testid|="UserAvatar-Container"] img'));
       const tweet = await page.evaluate(el => el?.textContent ?? '', await article.$('[data-testid="tweetText"]'));
       const [firstPic, ...restPics] = await Promise.all((await article.$$('[data-testid="tweetPhoto"] img')).map(el => el.evaluate(x => x.src)));
       const timestamp = createdAt ?? await page.evaluate(el => el?.dateTime, await article.$('time'));
       const likes = likesCount != null ? String(likesCount) : await page.evaluate(el => el?.textContent, await article.$('[href$="/likes"] [data-testid="app-text-transition-container"]'));
-      const retweets = retweetsCount ? String(retweetsCount) : await page.evaluate(el => el?.textContent, await article.$('[href$="/retweets"] [data-testid="app-text-transition-container"]'));
+      const retweets = retweetsCount != null ? String(retweetsCount) : await page.evaluate(el => el?.textContent, await article.$('[href$="/retweets"] [data-testid="app-text-transition-container"]'));
 
       log('twitterView:', 'scraping processed');
 
@@ -176,16 +211,16 @@ addHandler(Events.MessageCreate, async message => {
       embed.setColor(0x1d9bf0);
       embed.setFooter({ text: 'Twitter', iconURL: 'attachment://logo.png' });
 
-      if (user != null && userId != null) {
-        embed.setAuthor({ name: `${user} (${userId})`, iconURL: userPic });
+      if (user != null) {
+        embed.setAuthor({ name: `${user} (@${id})`, url: `https://twitter.com/${id}`, iconURL: userPic });
       }
       if (timestamp != null) {
         embed.setTimestamp(dayjs.utc(timestamp).tz().valueOf());
       }
-      if (likes != null) {
+      if (likes != null && likes !== '0') {
         embed.addFields({ name: 'Likes', value: likes, inline: true });
       }
-      if (retweets != null) {
+      if (retweets != null && retweets !== '0') {
         embed.addFields({ name: 'Retweets', value: retweets, inline: true });
       }
 
