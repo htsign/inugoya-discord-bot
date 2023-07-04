@@ -8,8 +8,29 @@ import { getEnv, urlsOfText } from '../../lib/util.js';
 
 const ARTICLE_SELECTOR = 'article[data-testid="tweet"]';
 
+/**
+ * @returns {Promise<import('puppeteer').PuppeteerLaunchOptions>}
+ */
+const getLaunchOptions = async () => {
+  try {
+    const { default: options } = await import(
+      // @ts-ignore
+      './launchOptions.json',
+      { assert: { type: 'json' },
+    });
+    return options;
+  }
+  catch (e) {
+    if (e instanceof Error && 'code' in e && e.code === 'ERR_MODULE_NOT_FOUND') {
+      log(`twitterView#${getLaunchOptions.name}:`, 'failed to load launchOptions.json');
+      return { headless: 'new' };
+    }
+    throw e;
+  }
+};
+
 const login = async () => {
-  const browser = await puppeteer.launch({ headless: 'new' });
+  const browser = await puppeteer.launch(await getLaunchOptions());
   const page = await browser.newPage();
 
   await page.goto('https://twitter.com/login');
@@ -36,7 +57,7 @@ addHandler(Events.MessageCreate, async message => {
   const { author, content, guild, channel } = message;
   if (author.bot || guild == null || channel.isVoiceBased() || !('name' in channel)) return;
 
-  const browser = await puppeteer.launch({ headless: 'new' });
+  const browser = await puppeteer.launch(await getLaunchOptions());
   const page = await browser.newPage();
   page.setViewport({ width: 640, height: 480 });
 
