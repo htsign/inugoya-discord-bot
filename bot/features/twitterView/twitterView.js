@@ -65,12 +65,14 @@ addHandler(Events.MessageCreate, async message => {
 
   const browser = await puppeteer.launch(await getLaunchOptions());
   const page = await browser.newPage();
-  page.setViewport({ width: 640, height: 480 });
+  await page.setViewport({ width: 640, height: 480 });
 
   const urls = urlsOfText(content);
   const twitterUrls = urls.filter(url => url.startsWith('https://twitter.com/'));
 
   if (twitterUrls.length > 0) {
+    log('twitterView:', 'urls detected', twitterUrls);
+
     try {
       const cookies = await fs.readFile('twitter.cookies', 'utf8').then(JSON.parse);
       await page.setCookie(...cookies);
@@ -85,6 +87,8 @@ addHandler(Events.MessageCreate, async message => {
     }
 
     for (const url of twitterUrls) {
+      log('twitterView:', 'try to access', url);
+
       await page.goto(url);
       try {
         await page.waitForSelector(ARTICLE_SELECTOR, { timeout: 5000 });
@@ -99,6 +103,7 @@ addHandler(Events.MessageCreate, async message => {
           throw e;
         }
       }
+      log('twitterView:', 'access succeeded', url);
 
       const article = await page.$(ARTICLE_SELECTOR);
       if (article == null) continue;
@@ -110,6 +115,8 @@ addHandler(Events.MessageCreate, async message => {
       const timestamp = await page.evaluate(el => el?.dateTime, await article.$('time'));
       const retweets = await page.evaluate(el => el?.textContent, await article.$('[href$="/retweets"] [data-testid="app-text-transition-container"]'));
       const likes = await page.evaluate(el => el?.textContent, await article.$('[href$="/likes"] [data-testid="app-text-transition-container"]'));
+
+      log('twitterView:', 'scraping processed');
 
       /** @type {import('discord.js').APIEmbed[]} */
       const embeds = [];
