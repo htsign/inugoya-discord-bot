@@ -12,12 +12,6 @@ import type { Nullable, Url } from 'types';
 const THRESHOLD_DELAY = 5 * 1000;
 const THRESHOLD_FOR_DELETE = 5;
 
-const IGNORING_URLS = [
-  'https://discord.com/channels/',
-  'https://discord.com/api/',
-  'https://discord.com/invite/',
-];
-
 const getFavicon = async (url: Url, index: number): Promise<string | ReturnType<typeof fetchIco>> => {
   const fetchIco = async (iconUrl: string): Promise<[`attachment://favicon${number}.png`, Buffer] | null> => {
     const res = await fetch(iconUrl);
@@ -228,9 +222,10 @@ addHandler(Events.MessageCreate, async message => {
     const embedUrls = message.embeds
       .map(embed => embed.url)
       .filter((url: string | null): url is string => url != null);
+    const { default: ignoringUrls } = await import('./ignoringUrls.json', { assert: { type: 'json' } });
     const targetUrls = urls
       .filter(url => !embedUrls.includes(url))
-      .filter(url => !IGNORING_URLS.some(ignoringUrl => url.startsWith(ignoringUrl)));
+      .filter(url => !ignoringUrls.some(ignoringUrl => url.startsWith(ignoringUrl)));
 
     const expandingPromises: ReturnType<typeof core>[] = [];
 
