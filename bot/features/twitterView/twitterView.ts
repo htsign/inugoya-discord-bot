@@ -1,5 +1,5 @@
 import fs from 'node:fs/promises';
-import { APIEmbed, EmbedBuilder, Events } from 'discord.js';
+import { APIEmbed, AttachmentBuilder, EmbedBuilder, Events } from 'discord.js';
 import puppeteer, { Browser, PuppeteerLaunchOptions, TimeoutError } from 'puppeteer';
 import { addHandler } from 'bot/listeners';
 import { dayjs } from '@lib/dayjsSetup';
@@ -76,6 +76,53 @@ addHandler(Events.MessageCreate, async message => {
 
     const page = await browser.newPage();
 
+    let name: string | undefined;
+    let id: string | undefined;
+    let profileImageUrl: string | undefined;
+    let createdAt: string | undefined;
+    let likesCount: number | undefined;
+    let retweetsCount: number | undefined;
+    page.on('response', async response => {
+      const url = response.url();
+
+      if (url.startsWith('https://twitter.com/i/api/') && url.includes('TweetDetail?')) {
+        const { data } = await response.json();
+
+        if (data == null) return;
+
+        for (const value of Object.values(data)) {
+          if (value == null || typeof value !== 'object' || !('instructions' in value)) continue;
+
+          const { instructions } = value;
+
+          if (Array.isArray(instructions)) {
+            const { entries } = instructions.find(x => x.type === 'TimelineAddEntries') ?? {};
+
+            if (entries == null) continue;
+
+            const [tweet] = entries;
+            const { core, legacy: tweetDetails } = tweet?.content?.itemContent?.tweet_results?.result ?? {};
+
+            if (core != null) {
+              const { legacy: userDetails } = core.user_results?.result ?? {};
+              if (userDetails != null) {
+                name = userDetails.name;
+                id = userDetails.screen_name;
+                profileImageUrl = userDetails.profile_image_url_https;
+              }
+            }
+
+            if (tweetDetails != null) {
+              createdAt = tweetDetails.created_at;
+              likesCount = tweetDetails.favorite_count;
+              retweetsCount = tweetDetails.retweet_count;
+              return;
+            }
+          }
+        }
+      }
+    });
+
     try {
       const cookies = await fs.readFile('twitter.cookies', 'utf8').then(JSON.parse);
       await page.setCookie(...cookies);
@@ -112,13 +159,13 @@ addHandler(Events.MessageCreate, async message => {
       const article = await page.$(ARTICLE_SELECTOR);
       if (article == null) continue;
 
-      const [user, userId] = await Promise.all((await article.$$('[data-testid="User-Name"] a')).map(el => el.evaluate(x => x.textContent)));
-      const userPic = await page.evaluate(el => el?.src ?? '', await article.$('[data-testid|="UserAvatar-Container"] img'));
+      const [user, userId] = name != null && id != null ? [name, id] : await Promise.all((await article.$$('[data-testid="User-Name"] a')).map(el => el.evaluate(x => x.textContent)));
+      const userPic = profileImageUrl ?? await page.evaluate(el => el?.src ?? '', await article.$('[data-testid|="UserAvatar-Container"] img'));
       const tweet = await page.evaluate(el => el?.textContent ?? '', await article.$('[data-testid="tweetText"]'));
       const [firstPic, ...restPics] = await Promise.all((await article.$$('[data-testid="tweetPhoto"] img')).map(el => el.evaluate(x => x.src)));
-      const timestamp = await page.evaluate(el => el?.dateTime, await article.$('time'));
-      const retweets = await page.evaluate(el => el?.textContent, await article.$('[href$="/retweets"] [data-testid="app-text-transition-container"]'));
-      const likes = await page.evaluate(el => el?.textContent, await article.$('[href$="/likes"] [data-testid="app-text-transition-container"]'));
+      const timestamp = createdAt ?? await page.evaluate(el => el?.dateTime, await article.$('time'));
+      const likes = likesCount != null ? String(likesCount) : await page.evaluate(el => el?.textContent, await article.$('[href$="/likes"] [data-testid="app-text-transition-container"]'));
+      const retweets = retweetsCount ? String(retweetsCount) : await page.evaluate(el => el?.textContent, await article.$('[href$="/retweets"] [data-testid="app-text-transition-container"]'));
 
       log('twitterView:', 'scraping processed');
 
@@ -127,6 +174,7 @@ addHandler(Events.MessageCreate, async message => {
       const embed = new EmbedBuilder({ url });
       embed.setDescription(tweet);
       embed.setColor(0x1d9bf0);
+      embed.setFooter({ text: 'Twitter', iconURL: 'attachment://logo.png' });
 
       if (user != null && userId != null) {
         embed.setAuthor({ name: `${user} (${userId})`, iconURL: userPic });
@@ -134,11 +182,11 @@ addHandler(Events.MessageCreate, async message => {
       if (timestamp != null) {
         embed.setTimestamp(dayjs.utc(timestamp).tz().valueOf());
       }
-      if (retweets != null) {
-        embed.addFields({ name: 'Retweets', value: retweets, inline: true });
-      }
       if (likes != null) {
         embed.addFields({ name: 'Likes', value: likes, inline: true });
+      }
+      if (retweets != null) {
+        embed.addFields({ name: 'Retweets', value: retweets, inline: true });
       }
 
       if (firstPic != null) {
@@ -154,7 +202,8 @@ addHandler(Events.MessageCreate, async message => {
       }
 
       try {
-        await channel.send({ embeds });
+        const attachment = new AttachmentBuilder(await fs.readFile('./assets/logo/twitter_24x24.png'), { name: 'logo.png' });
+        await channel.send({ embeds, files: [attachment] });
       }
       catch (e) {
         if (e instanceof Error) {
