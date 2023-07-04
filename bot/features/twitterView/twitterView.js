@@ -91,7 +91,7 @@ addHandler(Events.MessageCreate, async message => {
 
       await page.goto(url);
       try {
-        await page.waitForSelector(ARTICLE_SELECTOR, { timeout: 5000 });
+        await page.waitForSelector(ARTICLE_SELECTOR, { timeout: 10000 });
       }
       catch (e) {
         if (e instanceof TimeoutError) {
