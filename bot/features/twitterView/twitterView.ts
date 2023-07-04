@@ -1,12 +1,14 @@
 import fs from 'node:fs/promises';
 import { APIEmbed, EmbedBuilder, Events } from 'discord.js';
-import puppeteer, { PuppeteerLaunchOptions, TimeoutError } from 'puppeteer';
+import puppeteer, { Browser, PuppeteerLaunchOptions, TimeoutError } from 'puppeteer';
 import { addHandler } from 'bot/listeners';
 import { dayjs } from '@lib/dayjsSetup';
 import { log } from '@lib/log';
 import { getEnv, urlsOfText } from '@lib/util';
 
 const ARTICLE_SELECTOR = 'article[data-testid="tweet"]';
+
+let browser: Browser;
 
 const getLaunchOptions = async (): Promise<PuppeteerLaunchOptions> => {
   try {
@@ -26,10 +28,14 @@ const getLaunchOptions = async (): Promise<PuppeteerLaunchOptions> => {
   }
 };
 
+const initialize = async () => {
+  const launchOptions = await getLaunchOptions();
+  browser = await puppeteer.launch(launchOptions);
+};
+
 const login = async () => {
   log(`twitterView#${login.name}:`, 'try to login');
 
-  const browser = await puppeteer.launch(await getLaunchOptions());
   const page = await browser.newPage();
 
   await page.goto('https://twitter.com/login');
@@ -51,24 +57,24 @@ const login = async () => {
   const cookies = await page.cookies();
   await fs.writeFile('twitter.cookies', JSON.stringify(cookies, null, 2));
 
-  await browser.close();
+  await page.close();
 
   return cookies;
 };
 
+addHandler(Events.ClientReady, initialize);
+
 addHandler(Events.MessageCreate, async message => {
   const { author, content, guild, channel } = message;
   if (author.bot || guild == null || channel.isVoiceBased() || !('name' in channel)) return;
-
-  const browser = await puppeteer.launch(await getLaunchOptions());
-  const page = await browser.newPage();
-  await page.setViewport({ width: 640, height: 480 });
 
   const urls = urlsOfText(content);
   const twitterUrls = urls.filter(url => url.startsWith('https://twitter.com/'));
 
   if (twitterUrls.length > 0) {
     log('twitterView:', 'urls detected', twitterUrls);
+
+    const page = await browser.newPage();
 
     try {
       const cookies = await fs.readFile('twitter.cookies', 'utf8').then(JSON.parse);
@@ -92,7 +98,8 @@ addHandler(Events.MessageCreate, async message => {
       }
       catch (e) {
         if (e instanceof TimeoutError) {
-          await page.setCookie(...await login());
+          const cookies = await login();
+          await page.setCookie(...cookies);
           await page.goto(url);
           await page.waitForSelector(ARTICLE_SELECTOR);
         }
@@ -159,7 +166,7 @@ addHandler(Events.MessageCreate, async message => {
 
       log('twitterView:', `sent to ${guild.name}/${channel.name}`, url, tweet);
     }
-  }
 
-  await browser.close();
+    await page.close();
+  }
 });
