@@ -106,3 +106,6 @@ dist
 # sqlite
 *.db
 *.sqlite*
+
+# puppeteer cookies
+*.cookies
