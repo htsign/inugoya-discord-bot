@@ -11,8 +11,7 @@
     "grapheme-splitter": "^1.0.4",
     "icojs": "^0.17.1",
     "jsdom": "^22.0.0",
-    "mersenne-twister": "^1.1.0",
-    "puppeteer": "^20.7.4"
+    "mersenne-twister": "^1.1.0"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.1",
