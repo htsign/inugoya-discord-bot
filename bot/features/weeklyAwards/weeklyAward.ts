@@ -30,7 +30,17 @@ addHandler(Events.GuildDelete, async guild => {
   ]);
 });
 addHandler(Events.MessageReactionAdd, async (reaction, user) => {
-  const message = await reaction.message.fetch();
+  let message: Message<boolean>;
+  try {
+    message = await reaction.message.fetch();
+  }
+  catch (e) {
+    if (e instanceof Error) {
+      log('hage:', `failed to fetch message: reacted by ${user.username}`, e.stack ?? `${e.name}: ${e.message}`);
+      return;
+    }
+    throw e;
+  }
   const { author, reactions } = message;
 
   if (author.bot || !message.inGuild()) return;
@@ -42,7 +52,17 @@ addHandler(Events.MessageReactionAdd, async (reaction, user) => {
   await db.set(message, reactionsCount);
 });
 addHandler(Events.MessageReactionRemove, async (reaction, user) => {
-  const message = await reaction.message.fetch();
+  let message: Message<boolean>;
+  try {
+    message = await reaction.message.fetch();
+  }
+  catch (e) {
+    if (e instanceof Error) {
+      log('hage:', `failed to fetch message: react removed by ${user.username}`, e.stack ?? `${e.name}: ${e.message}`);
+      return;
+    }
+    throw e;
+  }
   const { author, reactions } = message;
 
   if (author.bot || !message.inGuild()) return;
