@@ -440,7 +440,7 @@ class HageReactionKeyword {
       delete from ${this.#TABLE}
       where
         guild_id = @guildId and
-        keyword  = @reaction
+        reaction = @reaction
     `);
 
     try {
