@@ -64,15 +64,15 @@ export const removeUnregisteredKeywords = async guild => {
   const emojis = guild.emojis.cache ?? await guild.emojis.fetch();
   const availableEmojiSymbols = emojis.filter(emoji => emoji.available).map(emoji => emoji.toString());
 
-  const keywords = db.keywords.getRecords(guild.id)
+  const forDeletionKeywords = db.keywords.getRecords(guild.id)
     .map(record => record.keyword)
-    .filter(keyword => !availableEmojiSymbols.includes(keyword));
-  const reactions = db.reactionKeywords.getRecords(guild.id)
+    .filter(keyword => /^<:\w+:\d+>$/.test(keyword) && !availableEmojiSymbols.includes(keyword));
+  const forDeletionReactions = db.reactionKeywords.getRecords(guild.id)
     .map(record => record.reaction)
-    .filter(reaction => !availableEmojiSymbols.includes(reaction));
+    .filter(reaction => /^<:\w+:\d+>$/.test(reaction) && !availableEmojiSymbols.includes(reaction));
 
-  await db.keywords.delete(guild.id, ...keywords);
-  await db.reactionKeywords.delete(guild.id, ...reactions);
+  await db.keywords.delete(guild.id, ...forDeletionKeywords);
+  await db.reactionKeywords.delete(guild.id, ...forDeletionReactions);
 };
 
 addHandler(Events.ClientReady, () => {
