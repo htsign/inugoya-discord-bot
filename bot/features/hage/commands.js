@@ -363,7 +363,7 @@ const subCommands = {
       const addReactionPromises = [];
 
       const { default: reactions } = await import('./keywordReactions.json', { assert: { type: 'json' } });
-      const newReactions = reactions.filter(reaction => db.keywords.get(guildId, reaction) == null);
+      const newReactions = reactions.filter(reaction => db.reactionKeywords.get(guildId, reaction) == null);
 
       if (newReactions.length > 0) {
         for (const reaction of newReactions) {
@@ -401,7 +401,7 @@ const subCommands = {
         interaction.reply({ content: 'reaction には一つの絵文字のみ指定してください。', ephemeral: true });
         return;
       }
-      if (db.keywords.get(guildId, reaction) != null) {
+      if (db.reactionKeywords.get(guildId, reaction) != null) {
         interaction.reply({ content: 'そのリアクションキーワードは登録済みです。', ephemeral: true });
         return;
       }
