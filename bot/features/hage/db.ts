@@ -244,11 +244,7 @@ class HageKeyword {
     }
   }
 
-  async delete(guildId: string, keyword: string): Promise<void> {
-    if (this.get(guildId, keyword) == null) {
-      return log(`${HageKeyword.name}#${this.delete.name}:`, 'not found', guildId, keyword);
-    }
-
+  async delete(guildId: string, ...keywords: string[]): Promise<void> {
     const stmt = db.prepare(`
       delete from ${this.#TABLE}
       where
@@ -256,16 +252,27 @@ class HageKeyword {
         keyword  = $keyword
     `);
 
+    const deleteKeywords = db.transaction((keywords: string[]) => {
+      for (const keyword of keywords) {
+        if (this.get(guildId, keyword) == null) {
+          return log(`${HageKeyword.name}#${this.delete.name}:`, 'not found', guildId, keyword);
+        }
+
+        stmt.run({
+          $guildId: guildId,
+          $keyword: keyword,
+        });
+      }
+      return;
+    });
+
     try {
-      stmt.run({
-        $guildId: guildId,
-        $keyword: keyword,
-      });
+      deleteKeywords(keywords);
     }
     catch (e) {
       if (e instanceof TypeError && e.message.includes('database connection is busy')) {
         await setTimeout();
-        return this.delete(guildId, keyword);
+        return this.delete(guildId, ...keywords);
       }
       throw e;
     }
@@ -393,11 +400,7 @@ class HageReactionKeyword {
     }
   }
 
-  async delete(guildId: string, reaction: string): Promise<void> {
-    if (this.get(guildId, reaction) == null) {
-      return log(`${HageReactionKeyword.name}#${this.delete.name}:`, 'not found', guildId, reaction);
-    }
-
+  async delete(guildId: string, ...reactions: string[]): Promise<void> {
     const stmt = db.prepare(`
       delete from ${this.#TABLE}
       where
@@ -405,16 +408,27 @@ class HageReactionKeyword {
         reaction = $reaction
     `);
 
+    const deleteReactions = db.transaction((reactions: string[]) => {
+      for (const reaction of reactions) {
+        if (this.get(guildId, reaction) == null) {
+          return log(`${HageReactionKeyword.name}#${this.delete.name}:`, 'not found', guildId, reaction);
+        }
+
+        stmt.run({
+          $guildId: guildId,
+          $reaction: reaction,
+        });
+      }
+      return;
+    });
+
     try {
-      stmt.run({
-        $guildId: guildId,
-        $reaction: reaction,
-      });
+      deleteReactions(reactions);
     }
     catch (e) {
       if (e instanceof TypeError && e.message.includes('database connection is busy')) {
         await setTimeout();
-        return this.delete(guildId, reaction);
+        return this.delete(guildId, ...reactions);
       }
       throw e;
     }

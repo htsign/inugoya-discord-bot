@@ -1,4 +1,4 @@
-import { Events, Message, PartialMessage, Snowflake } from 'discord.js';
+import { Events, Guild, Message, PartialMessage, Snowflake } from 'discord.js';
 import MersenneTwister from 'mersenne-twister';
 import { addHandler } from 'bot/listeners';
 import { dayjs } from '@lib/dayjsSetup';
@@ -48,6 +48,21 @@ const replyToHage = (
       set.forEach(x => x.fire());
     }
   }
+};
+
+export const removeUnregisteredKeywords = async (guild: Guild): Promise<void> => {
+  const emojis = guild.emojis.cache ?? await guild.emojis.fetch();
+  const availableEmojiSymbols = emojis.filter(emoji => emoji.available).map(emoji => emoji.toString());
+
+  const keywords = db.keywords.getRecords(guild.id)
+    .map(record => record.keyword)
+    .filter(keyword => !availableEmojiSymbols.includes(keyword));
+  const reactions = db.reactionKeywords.getRecords(guild.id)
+    .map(record => record.reaction)
+    .filter(reaction => !availableEmojiSymbols.includes(reaction));
+
+  await db.keywords.delete(guild.id, ...keywords);
+  await db.reactionKeywords.delete(guild.id, ...reactions);
 };
 
 addHandler(Events.ClientReady, () => {
