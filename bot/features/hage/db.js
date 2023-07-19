@@ -266,14 +266,10 @@ class HageKeyword {
 
   /**
    * @param {string} guildId
-   * @param {string} keyword
+   * @param {string[]} keywords
    * @returns {Promise<void>}
    */
-  async delete(guildId, keyword) {
-    if (this.get(guildId, keyword) == null) {
-      return log(`${HageKeyword.name}#${this.delete.name}:`, 'not found', guildId, keyword);
-    }
-
+  async delete(guildId, ...keywords) {
     const stmt = db.prepare(`
       delete from ${this.#TABLE}
       where
@@ -281,13 +277,25 @@ class HageKeyword {
         keyword  = @keyword
     `);
 
+    /** @type {import('better-sqlite3').Transaction<(keywords: string[]) => void>} */
+    const deleteKeywords = db.transaction(keywords => {
+      for (const keyword of keywords) {
+        if (this.get(guildId, keyword) == null) {
+          return log(`${HageKeyword.name}#${this.delete.name}:`, 'not found', guildId, keyword);
+        }
+
+        stmt.run({ guildId, keyword });
+      }
+      return;
+    });
+
     try {
-      stmt.run({ guildId, keyword });
+      deleteKeywords(keywords);
     }
     catch (e) {
       if (e instanceof TypeError && e.message.includes('database connection is busy')) {
         await setTimeout();
-        return this.delete(guildId, keyword);
+        return this.delete(guildId, ...keywords);
       }
       throw e;
     }
@@ -428,14 +436,10 @@ class HageReactionKeyword {
 
   /**
    * @param {string} guildId
-   * @param {string} reaction
+   * @param {string[]} reactions
    * @returns {Promise<void>}
    */
-  async delete(guildId, reaction) {
-    if (this.get(guildId, reaction) == null) {
-      return log(`${HageReactionKeyword.name}#${this.delete.name}:`, 'not found', guildId, reaction);
-    }
-
+  async delete(guildId, ...reactions) {
     const stmt = db.prepare(`
       delete from ${this.#TABLE}
       where
@@ -443,13 +447,25 @@ class HageReactionKeyword {
         reaction = @reaction
     `);
 
+    /** @type {import('better-sqlite3').Transaction<(reactions: string[]) => void>} */
+    const deleteReactions = db.transaction(reactions => {
+      for (const reaction of reactions) {
+        if (this.get(guildId, reaction) == null) {
+          return log(`${HageReactionKeyword.name}#${this.delete.name}:`, 'not found', guildId, reaction);
+        }
+
+        stmt.run({ guildId, reaction });
+      }
+      return;
+    });
+
     try {
-      stmt.run({ guildId, reaction });
+      deleteReactions(reactions);
     }
     catch (e) {
       if (e instanceof TypeError && e.message.includes('database connection is busy')) {
         await setTimeout();
-        return this.delete(guildId, reaction);
+        return this.delete(guildId, ...reactions);
       }
       throw e;
     }

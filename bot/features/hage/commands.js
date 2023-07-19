@@ -2,7 +2,7 @@ import { ApplicationCommandOptionType, ApplicationCommandType, Colors, EmbedBuil
 import { isNonEmpty } from 'ts-array-length';
 import { log } from '../../lib/log.js';
 import { DATETIME_FORMAT, emojiRegex, graphemeSplitter } from '../../lib/util.js';
-import { db } from './db.js';
+import { db, removeUnregisteredKeywords } from './index.js';
 
 const TEMPLATE = ` 彡⌒ミ
 (´･ω･\`)　また髪の話してる・・・`;
@@ -195,15 +195,18 @@ const subCommands = {
     description: '現在のこのサーバーの登録状況を確認します。',
     async func(interaction) {
       const { guildId, guild, user } = interaction;
-      const guildName = guild?.name;
 
-      if (guildName == null) {
+      if (guild == null) {
         interaction.reply({ content: '確認したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
+
+      const guildName = guild.name;
       log('peek status hage:', user.username, guildName);
 
       const response = await interaction.deferReply();
+
+      await removeUnregisteredKeywords(guild);
 
       const configRecord = db.get(guildId);
       const embed = new EmbedBuilder({ title: '登録状況' });
@@ -225,8 +228,8 @@ const subCommands = {
         const reactions = db.reactionKeywords.getRecords(guildId);
         embed.addFields(
           { name: ' ', value: '----------------' },
-          { name: '登録されたキーワード', value: keywords.map(record => `「${record.keyword}」`).join('') },
-          { name: '登録されたリアクションキーワード', value: reactions.map(record => record.reaction).join(' ') },
+          { name: '登録されたキーワード', value: keywords.map(record => `「${record.keyword}」`).join('') || 'なし' },
+          { name: '登録されたリアクションキーワード', value: reactions.map(record => record.reaction).join(' ') || 'なし' },
         );
 
         if (isNonEmpty(keywords)) {

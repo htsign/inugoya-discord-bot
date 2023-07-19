@@ -56,6 +56,25 @@ const replyToHage = (guildId, messageHandler, id) => {
   }
 };
 
+/**
+ * @param {import('discord.js').Guild} guild
+ * @returns {Promise<void>}
+ */
+export const removeUnregisteredKeywords = async guild => {
+  const emojis = guild.emojis.cache ?? await guild.emojis.fetch();
+  const availableEmojiSymbols = emojis.filter(emoji => emoji.available).map(emoji => emoji.toString());
+
+  const keywords = db.keywords.getRecords(guild.id)
+    .map(record => record.keyword)
+    .filter(keyword => !availableEmojiSymbols.includes(keyword));
+  const reactions = db.reactionKeywords.getRecords(guild.id)
+    .map(record => record.reaction)
+    .filter(reaction => !availableEmojiSymbols.includes(reaction));
+
+  await db.keywords.delete(guild.id, ...keywords);
+  await db.reactionKeywords.delete(guild.id, ...reactions);
+};
+
 addHandler(Events.ClientReady, () => {
   log('random generator initialized by', mtSeed.format('YYYY/MM/DD HH:mm:ss'), mtSeed.unix());
 });
