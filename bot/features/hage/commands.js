@@ -1,8 +1,9 @@
 import { ApplicationCommandOptionType, ApplicationCommandType, Colors, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { runes } from 'runes2';
+import emojiRegex from 'emoji-regex';
 import { isNonEmpty } from 'ts-array-length';
 import { log } from '../../lib/log.js';
-import { DATETIME_FORMAT, emojiRegex } from '../../lib/util.js';
+import { DATETIME_FORMAT } from '../../lib/util.js';
 import { db, removeUnregisteredKeywords } from './index.js';
 
 const TEMPLATE = ` 彡⌒ミ
@@ -29,7 +30,7 @@ const STACK_SIZE = 5;
  * @param {string} s
  * @returns {boolean}
  */
-const isSingleEmoji = s => /^<:\w+?:[0-9]+?>$/.test(s) || (runes(s).length === 1 && emojiRegex.test(s));
+const isSingleEmoji = s => /^<:\w+?:[0-9]+?>$/.test(s) || (runes(s).length === 1 && emojiRegex().test(s));
 
 /** @type {import('types/bot').ChatInputCommandCollection<void, {}, 'cached' | 'raw'>} */
 const subCommands = {

@@ -3,13 +3,10 @@ import { setTimeout as delay } from 'node:timers/promises';
 import dotenv from 'dotenv';
 import chardet from 'chardet';
 import { JSDOM } from 'jsdom';
-import _emojiRegex from 'emoji-regex';
 
 export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
 export const DATETIME_FORMAT = 'YYYY/MM/DD HH:mm:ss';
 const configOutput = dotenv.config();
-
-export const emojiRegex = _emojiRegex();
 
 /**
  * @param {string} key
