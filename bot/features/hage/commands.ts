@@ -7,9 +7,10 @@ import {
   EmbedBuilder,
   PermissionFlagsBits,
 } from 'discord.js';
+import { runes } from 'runes2';
 import { isNonEmpty } from 'ts-array-length';
 import { log } from '@lib/log';
-import { DATETIME_FORMAT, emojiRegex, graphemeSplitter } from '../../lib/util';
+import { DATETIME_FORMAT, emojiRegex } from '../../lib/util';
 import { db, removeUnregisteredKeywords } from '.';
 import type { ChatInputCommandCollection } from 'types/bot';
 
@@ -33,8 +34,7 @@ const HAGE_TIMEOUT = 10;
 
 const STACK_SIZE = 5;
 
-const isSingleEmoji = (s: string): boolean =>
-  /^<:\w+?:[0-9]+?>$/.test(s) || (graphemeSplitter.countGraphemes(s) === 1 && emojiRegex.test(s));
+const isSingleEmoji = (s: string): boolean => /^<:\w+?:[0-9]+?>$/.test(s) || (runes(s).length === 1 && emojiRegex.test(s));
 
 const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
   register: {
