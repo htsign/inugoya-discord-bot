@@ -9,10 +9,10 @@
     "dotenv": "^16.0.3",
     "emoji-regex": "^10.2.1",
     "fast-average-color-node": "^2.6.0",
-    "grapheme-splitter": "^1.0.4",
     "icojs": "^0.17.1",
     "jsdom": "^22.0.0",
     "mersenne-twister": "^1.1.0",
+    "runes2": "^1.1.2",
     "ws": "^8.13.0"
   },
   "devDependencies": {

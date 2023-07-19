@@ -4,14 +4,12 @@ import dotenv from 'dotenv';
 import chardet from 'chardet';
 import { JSDOM } from 'jsdom';
 import _emojiRegex from 'emoji-regex';
-import GraphemeSplitter from 'grapheme-splitter';
 
 export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
 export const DATETIME_FORMAT = 'YYYY/MM/DD HH:mm:ss';
 const configOutput = dotenv.config();
 
 export const emojiRegex = _emojiRegex();
-export const graphemeSplitter = new GraphemeSplitter();
 
 /**
  * @param {string} key
