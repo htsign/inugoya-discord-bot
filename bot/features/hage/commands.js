@@ -297,7 +297,7 @@ const subCommands = {
     async func(interaction) {
       const { guildId, guild, user } = interaction;
       const guildName = guild?.name;
-      const keyword = interaction.options.getString('keyword', true);
+      const keyword = interaction.options.getString('keyword', true).trim();
 
       if (guildName == null) {
         interaction.reply({ content: 'キーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
@@ -329,7 +329,7 @@ const subCommands = {
     async func(interaction) {
       const { guildId, guild, user } = interaction;
       const guildName = guild?.name;
-      const keyword = interaction.options.getString('keyword', true);
+      const keyword = interaction.options.getString('keyword', true).trim();
 
       if (guildName == null) {
         interaction.reply({ content: 'キーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
@@ -394,7 +394,7 @@ const subCommands = {
     async func(interaction) {
       const { guildId, guild, user } = interaction;
       const guildName = guild?.name;
-      const reaction = interaction.options.getString('reaction', true);
+      const reaction = interaction.options.getString('reaction', true).trim();
 
       if (guildName == null) {
         interaction.reply({ content: 'リアクションキーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
@@ -430,7 +430,7 @@ const subCommands = {
     async func(interaction) {
       const { guildId, guild, user } = interaction;
       const guildName = guild?.name;
-      const reaction = interaction.options.getString('keyword', true);
+      const reaction = interaction.options.getString('keyword', true).trim();
 
       if (guildName == null) {
         interaction.reply({ content: 'リアクションキーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
