@@ -1,8 +1,8 @@
 import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
 import ico from 'icojs';
 import fastAvgColor from 'fast-average-color-node';
-import { log } from 'bot/lib/log.js';
-import { getUrlDomain, isUrl, retrieveRealUrl, urlToDocument } from 'bot/lib/util.js';
+import { log } from '../../../../lib/log.js';
+import { getUrlDomain, isUrl, retrieveRealUrl, urlToDocument } from '../../../../lib/util.js';
 
 /**
  * @param {import('types').Url} url
