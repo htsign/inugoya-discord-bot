@@ -1,4 +1,6 @@
-import { URL } from 'node:url';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { URL, fileURLToPath } from 'node:url';
 import { setTimeout } from 'node:timers/promises';
 import { AttachmentBuilder, Events, EmbedBuilder } from 'discord.js';
 import ico from 'icojs';
@@ -10,6 +12,34 @@ import { getUrlDomain, isUrl, retrieveRealUrl, urlsOfText, urlToDocument } from 
 
 const THRESHOLD_DELAY = 5 * 1000;
 const THRESHOLD_FOR_DELETE = 5;
+
+/** @type {import('types/bot/features/noExpandedExpand').Plugin[]} */
+const plugins = [];
+
+(async () => {
+  const selfPath = fileURLToPath(import.meta.url);
+  const dirPath = path.dirname(selfPath);
+  const pluginDir = path.join(dirPath, 'plugins');
+
+  for (const dir of (await fs.readdir(pluginDir, { withFileTypes: true })).filter(ent => ent.isDirectory())) {
+    const indexPath = path.join(pluginDir, dir.name, 'index.js');
+    const indexStat = await fs.stat(indexPath);
+
+    if (indexStat.isFile()) {
+      const relativePath = './' + path.relative(dirPath, indexPath);
+      plugins.push(await import(relativePath));
+
+      log('noExpandedExpand:', 'plugin loaded', relativePath);
+    }
+  }
+
+  for (const plugin of plugins) {
+    for (const [event, handler] of Object.entries(plugin.handlers)) {
+      // @ts-ignore
+      addHandler(event, handler);
+    }
+  }
+})();
 
 /**
  * @param {import('types').Url} url
@@ -189,7 +219,7 @@ const getColorAsInt = async resource => {
 /**
  * @param {import('types').Url} url
  * @param {number} index
- * @returns {Promise<{ embeds: import('discord.js').APIEmbed[], attachment: import('discord.js').AttachmentBuilder? }>}
+ * @returns {Promise<import('types/bot/features/noExpandedExpand').HookResult>}
  */
 const core = async (url, index) => {
   try {
@@ -276,10 +306,17 @@ addHandler(Events.MessageCreate, async message => {
       .filter(url => !embedUrls.includes(url))
       .filter(url => !ignoringUrls.some(ignoringUrl => url.startsWith(ignoringUrl)));
 
-    /** @type {ReturnType<typeof core>[]} */
+    /** @type {Promise<import('types/bot/features/noExpandedExpand').HookResult>[]} */
     const expandingPromises = [];
 
+    process:
     for (const [index, url] of targetUrls.entries()) {
+      for (const [pattern, hook] of plugins.flatMap(plugin => plugin.hooks)) {
+        if ((typeof pattern === 'string' && url.startsWith(pattern)) || (typeof pattern === 'object' && pattern.test(url))) {
+          expandingPromises.push(hook(url, index));
+          continue process;
+        }
+      }
       expandingPromises.push(core(url, index));
     }
 

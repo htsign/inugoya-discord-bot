@@ -1,10 +1,9 @@
 import fs from 'node:fs/promises';
 import { AttachmentBuilder, EmbedBuilder, Events } from 'discord.js';
 import puppeteer, { Browser, ElementHandle, TimeoutError } from 'puppeteer';
-import { addHandler } from '../../listeners.js';
-import dayjs from '../../lib/dayjsSetup.js';
-import { log } from '../../lib/log.js';
-import { getEnv, urlsOfText } from '../../lib/util.js';
+import dayjs from '../../../../lib/dayjsSetup.js';
+import { log } from '../../../../lib/log.js';
+import { getEnv } from '../../../../lib/util.js';
 
 const BLOCK_URLS = [
   'https://abs-0.twimg.com/',
@@ -25,7 +24,7 @@ const getLaunchOptions = async () => {
   try {
     const { default: options } = await import(
       // @ts-ignore
-      './launchOptions.json',
+      '../../../noExpandedExpand/plugins/X/launchOptions.json',
       { assert: { type: 'json' },
     });
     return options;
@@ -39,7 +38,10 @@ const getLaunchOptions = async () => {
   }
 };
 
-const initialize = async () => {
+/**
+ * @param {import('discord.js').Client<true>} client
+ */
+const initialize = async client => {
   const launchOptions = await getLaunchOptions();
   browser = await puppeteer.launch(launchOptions);
 };
@@ -84,116 +86,120 @@ const login = async () => {
   return cookies;
 };
 
-addHandler(Events.ClientReady, initialize);
+/** @type {import('types/bot/features/noExpandedExpand').PluginHandlers} */
+export const handlers = {
+  [Events.ClientReady]: initialize,
+};
 
-addHandler(Events.MessageCreate, async message => {
-  const { author, content, guild, channel } = message;
-  if (author.bot || guild == null || channel.isVoiceBased() || !('name' in channel)) return;
+/** @type {import('types/bot/features/noExpandedExpand').PluginHooks} */
+export const hooks = [
+  [
+    /^https:\/\/(?:mobile\.)?twitter\.com\/\w+?\/status\/\d+?\??/,
+    async url => {
+      log('twitterView:', 'urls detected', url);
 
-  const urls = urlsOfText(content);
-  const twitterUrls = urls.filter(url => /^https:\/\/(?:mobile\.)?twitter\.com\/\w+?\/status\/\d+?\??/.test(url));
+      const page = await browser.newPage();
+      page.setRequestInterception(true);
 
-  if (twitterUrls.length > 0) {
-    log('twitterView:', 'urls detected', twitterUrls);
+      page.on('request', request => {
+        const url = request.url();
+        const resourceType = request.resourceType();
 
-    const page = await browser.newPage();
-    page.setRequestInterception(true);
+        if (BLOCK_URLS.some(x => url.startsWith(x)) || resourceType === 'font') {
+          request.abort();
+        }
+        else {
+          request.continue();
+        }
+      });
 
-    page.on('request', request => {
-      const url = request.url();
-      const resourceType = request.resourceType();
+      /** @type {string | undefined} */
+      let name;
+      /** @type {string | undefined} */
+      let profileImageUrl;
+      /** @type {string | undefined} */
+      let tweetBody;
+      /** @type {string[]} */
+      let pictureUrls = [];
+      /** @type {string | undefined} */
+      let createdAt;
+      /** @type {number | undefined} */
+      let likesCount;
+      /** @type {number | undefined} */
+      let retweetsCount;
+      page.on('response', async response => {
+        const url = response.url();
 
-      if (BLOCK_URLS.some(x => url.startsWith(x)) || resourceType === 'font') {
-        request.abort();
-      }
-      else {
-        request.continue();
-      }
-    });
+        if (url.startsWith('https://twitter.com/i/api/') && url.includes('TweetDetail?')) {
+          const { data } = await response.json();
 
-    /** @type {string | undefined} */
-    let name;
-    /** @type {string | undefined} */
-    let profileImageUrl;
-    /** @type {string | undefined} */
-    let tweetBody;
-    /** @type {string[]} */
-    let pictureUrls = [];
-    /** @type {string | undefined} */
-    let createdAt;
-    /** @type {number | undefined} */
-    let likesCount;
-    /** @type {number | undefined} */
-    let retweetsCount;
-    page.on('response', async response => {
-      const url = response.url();
+          if (data == null) return;
 
-      if (url.startsWith('https://twitter.com/i/api/') && url.includes('TweetDetail?')) {
-        const { data } = await response.json();
+          for (const { instructions } of Object.values(data)) {
+            if (Array.isArray(instructions)) {
+              const { entries } = instructions.find(x => x.type === 'TimelineAddEntries') ?? {};
 
-        if (data == null) return;
+              if (entries == null) continue;
 
-        for (const { instructions } of Object.values(data)) {
-          if (Array.isArray(instructions)) {
-            const { entries } = instructions.find(x => x.type === 'TimelineAddEntries') ?? {};
+              const [tweet] = entries;
+              const { core, legacy: tweetDetails } = tweet?.content?.itemContent?.tweet_results?.result ?? {};
 
-            if (entries == null) continue;
+              if (core != null) {
+                const { legacy: userDetails } = core.user_results?.result ?? {};
 
-            const [tweet] = entries;
-            const { core, legacy: tweetDetails } = tweet?.content?.itemContent?.tweet_results?.result ?? {};
-
-            if (core != null) {
-              const { legacy: userDetails } = core.user_results?.result ?? {};
-
-              if (userDetails != null) {
-                name = userDetails.name;
-                profileImageUrl = userDetails.profile_image_url_https;
-              }
-            }
-
-            if (tweetDetails != null) {
-              tweetBody = tweetDetails.full_text;
-              createdAt = tweetDetails.created_at;
-              likesCount = tweetDetails.favorite_count;
-              retweetsCount = tweetDetails.retweet_count;
-
-              /** @type {{ media: import('types/bot/features/twitterView').TweetDetail.Media[], urls: import('types/bot/features/twitterView').TweetDetail.Url[] }} */
-              const { media = [], urls = [] } = tweetDetails.entities ?? {};
-              for (const x of media) {
-                if (tweetBody != null) {
-                  tweetBody = tweetBody.replace(' ' + x.url, '');
-                }
-                pictureUrls.push(x.media_url_https);
-              }
-              for (const x of urls) {
-                if (tweetBody != null) {
-                  tweetBody = tweetBody.replace(x.url, `[${x.display_url}](${x.expanded_url})`);
+                if (userDetails != null) {
+                  name = userDetails.name;
+                  profileImageUrl = userDetails.profile_image_url_https;
                 }
               }
-              return;
+
+              if (tweetDetails != null) {
+                tweetBody = tweetDetails.full_text;
+                createdAt = tweetDetails.created_at;
+                likesCount = tweetDetails.favorite_count;
+                retweetsCount = tweetDetails.retweet_count;
+
+                /**
+                 * @type {{
+                 *   media: import('types/bot/features/noExpandedExpand/twitterView').TweetDetail.Media[],
+                 *   urls: import('types/bot/features/noExpandedExpand/twitterView').TweetDetail.Url[],
+                 * }}
+                 */
+                const { media = [], urls = [] } = tweetDetails.entities ?? {};
+                for (const x of media) {
+                  if (tweetBody != null) {
+                    tweetBody = tweetBody.replace(' ' + x.url, '');
+                  }
+                  pictureUrls.push(x.media_url_https);
+                }
+                for (const x of urls) {
+                  if (tweetBody != null) {
+                    tweetBody = tweetBody.replace(x.url, `[${x.display_url}](${x.expanded_url})`);
+                  }
+                }
+                return;
+              }
             }
           }
         }
-      }
-    });
+      });
 
-    try {
-      const cookies = await fs.readFile('twitter.cookies', 'utf8').then(JSON.parse);
-      await page.setCookie(...cookies);
-    }
-    catch (e) {
-      if (e instanceof Error) {
-        log('twitterView:', 'failed to open cookie file', e.stack ?? `${e.name}: ${e.message}`);
+      try {
+        const cookies = await fs.readFile('twitter.cookies', 'utf8').then(JSON.parse);
+        await page.setCookie(...cookies);
       }
-      else {
-        throw e;
+      catch (e) {
+        if (e instanceof Error) {
+          log('twitterView:', 'failed to open cookie file', e.stack ?? `${e.name}: ${e.message}`);
+        }
+        else {
+          throw e;
+        }
       }
-    }
 
-    for (const url of twitterUrls) {
       await page.goto(url);
 
-      /** @type {(signal: AbortSignal) => Promise<import('types/bot/features/twitterView').TweetInfo>} */
+      /** @type {(signal: AbortSignal) => Promise<import('types/bot/features/noExpandedExpand/twitterView').TweetInfo>} */
       const pParsing = signal => new Promise((resolve, reject) => {
         const f = () => {
           if (name != null && profileImageUrl != null && tweetBody != null && createdAt != null && likesCount != null && retweetsCount != null) {
@@ -217,7 +223,7 @@ addHandler(Events.MessageCreate, async message => {
         }
         f();
       });
-      /** @type {(signal: AbortSignal) => Promise<import('types/bot/features/twitterView').TweetInfo>} */
+      /** @type {(signal: AbortSignal) => Promise<import('types/bot/features/noExpandedExpand/twitterView').TweetInfo>} */
       const pFetching = signal => new Promise(async (resolve, reject) => {
         const abortIfFilled = () => {
           if (signal.aborted) {
@@ -310,21 +316,14 @@ addHandler(Events.MessageCreate, async message => {
         embeds.push(embed.toJSON());
       }
 
+      const attachment = new AttachmentBuilder(await fs.readFile('./assets/logo/twitter_24x24.png'), { name: 'logo.png' });
+
       try {
-        const attachment = new AttachmentBuilder(await fs.readFile('./assets/logo/twitter_24x24.png'), { name: 'logo.png' });
-        await channel.send({ embeds, files: [attachment] });
+        return { embeds, attachment };
       }
-      catch (e) {
-        if (e instanceof Error) {
-          log('twitterView:', `failed to send to ${guild.name}/${channel.name}`, e.stack ?? `${e.name}: ${e.message}`);
-          return;
-        }
-        throw e;
+      finally {
+        await page.close();
       }
-
-      log('twitterView:', `sent to ${guild.name}/${channel.name}`, url, tweet);
     }
-
-    await page.close();
-  }
-});
+  ],
+];

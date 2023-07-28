@@ -9,4 +9,3 @@ import './bot/features/noExpandedExpand/index.js';
 import './bot/features/vcAttention/index.js';
 import './bot/features/shortenUrl/index.js';
 import './bot/features/discordUrlExpand/index.js';
-import './bot/features/twitterView/index.js';
