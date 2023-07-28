@@ -1,6 +1,8 @@
-import { URL } from 'node:url';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { URL, fileURLToPath } from 'node:url';
 import { setTimeout } from 'node:timers/promises';
-import { AttachmentBuilder, APIEmbed, EmbedBuilder, EmbedAuthorOptions, Events, Message, PartialMessage } from 'discord.js';
+import { AttachmentBuilder, EmbedAuthorOptions, EmbedBuilder, Events, Message, PartialMessage } from 'discord.js';
 import ico from 'icojs';
 import fastAvgColor from 'fast-average-color-node';
 import { addHandler } from 'bot/listeners';
@@ -8,9 +10,37 @@ import { dayjs } from '@lib/dayjsSetup';
 import { log } from '@lib/log';
 import { getUrlDomain, isUrl, retrieveRealUrl, urlsOfText, urlToDocument } from '@lib/util';
 import type { Nullable, Url } from 'types';
+import { HookResult, Plugin } from 'types/bot/features/noExpandedExpand';
 
 const THRESHOLD_DELAY = 5 * 1000;
 const THRESHOLD_FOR_DELETE = 5;
+
+const plugins: Plugin[] = [];
+
+(async () => {
+  const selfPath = fileURLToPath(import.meta.url);
+  const dirPath = path.dirname(selfPath);
+  const pluginDir = path.join(dirPath, 'plugins');
+
+  for (const dir of (await fs.readdir(pluginDir, { withFileTypes: true })).filter(ent => ent.isDirectory())) {
+    const indexPath = path.join(pluginDir, dir.name, 'index.js');
+    const indexStat = await fs.stat(indexPath);
+
+    if (indexStat.isFile()) {
+      const relativePath = './' + path.relative(dirPath, indexPath);
+      plugins.push(await import(relativePath));
+
+      log('noExpandedExpand:', 'plugin loaded', relativePath);
+    }
+  }
+
+  for (const plugin of plugins) {
+    for (const [event, handler] of Object.entries(plugin.handlers)) {
+      // @ts-ignore
+      addHandler(event, handler);
+    }
+  }
+})();
 
 const getFavicon = async (url: Url, index: number): Promise<string | ReturnType<typeof fetchIco>> => {
   const fetchIco = async (iconUrl: string): Promise<[`attachment://favicon${number}.png`, Buffer] | null> => {
@@ -145,7 +175,7 @@ const getColorAsInt = async (resource: string | Buffer): Promise<number> => {
   }
 };
 
-const core = async (url: Url, index: number): Promise<{ embeds: APIEmbed[], attachment: AttachmentBuilder | null }> => {
+const core = async (url: Url, index: number): Promise<HookResult> => {
   try {
     let attachment: AttachmentBuilder | null = null;
 
@@ -227,9 +257,16 @@ addHandler(Events.MessageCreate, async message => {
       .filter(url => !embedUrls.includes(url))
       .filter(url => !ignoringUrls.some(ignoringUrl => url.startsWith(ignoringUrl)));
 
-    const expandingPromises: ReturnType<typeof core>[] = [];
+    const expandingPromises: Promise<HookResult>[] = [];
 
+    process:
     for (const [index, url] of targetUrls.entries()) {
+      for (const [pattern, hook] of plugins.flatMap(plugin => plugin.hooks)) {
+        if ((typeof pattern === 'string' && url.startsWith(pattern)) || (typeof pattern === 'object' && pattern.test(url))) {
+          expandingPromises.push(hook(url, index));
+          continue process;
+        }
+      }
       expandingPromises.push(core(url, index));
     }
 
