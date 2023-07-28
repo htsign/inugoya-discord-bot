@@ -11,6 +11,7 @@
     "icojs": "^0.17.1",
     "jsdom": "^22.0.0",
     "mersenne-twister": "^1.1.0",
+    "puppeteer": "^20.7.4",
     "runes2": "^1.1.2"
   },
   "devDependencies": {
