@@ -78,7 +78,14 @@ addHandler(Events.MessageCreate, async message => {
       }
     }
 
-    const results = await Promise.all(expandingPromises);
+    let results: HookResult[];
+    try {
+      results = await Promise.all(expandingPromises);
+    }
+    catch (e) {
+      log('noExpandedExpand:', `failed to expand urls`, e);
+      return;
+    }
 
     const embeds = results.flatMap(res => res.embeds);
     const files = results.map(res => res.attachment)

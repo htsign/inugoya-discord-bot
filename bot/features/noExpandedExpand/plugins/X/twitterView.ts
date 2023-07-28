@@ -207,10 +207,19 @@ export const hooks: PluginHooks = [
         f();
       });
       const pFetching = (signal: AbortSignal): Promise<TweetInfo> => new Promise(async (resolve, reject) => {
-        const abortIfFilled = () => {
+        /**
+         * @returns {boolean} rejected
+         */
+        const rejectIfAborted = (): boolean => {
           if (signal.aborted) {
             reject(`abort ${pFetching.name} because of ${pParsing.name} is filled`);
+            return true;
           }
+          if (page.isClosed()) {
+            reject('page is closed');
+            return true;
+          }
+          return false;
         };
         log('twitterView:', 'try to access', url);
 
@@ -220,16 +229,24 @@ export const hooks: PluginHooks = [
           article = await page.waitForSelector(ARTICLE_SELECTOR, { timeout: 10000 });
         }
         catch (e) {
-          abortIfFilled();
+          if (rejectIfAborted()) return;
 
           if (e instanceof TimeoutError) {
             const cookies = await login();
-            await page.setCookie(...cookies);
-            await page.goto(url);
 
-            abortIfFilled();
+            try {
+              await page.setCookie(...cookies);
+              await page.goto(url);
 
-            article = await page.waitForSelector(ARTICLE_SELECTOR);
+              if (rejectIfAborted()) return;
+
+              article = await page.waitForSelector(ARTICLE_SELECTOR);
+            }
+            catch {
+              if (page.isClosed()) {
+                reject('page is closed');
+              }
+            }
           }
           else {
             throw e;
@@ -237,23 +254,30 @@ export const hooks: PluginHooks = [
         }
         log('twitterView:', 'access succeeded', url);
 
-        abortIfFilled();
+        if (rejectIfAborted()) return;
 
         if (article == null) {
           throw new Error('article is null');
         }
 
-        resolve({
-          user: await page.evaluate(el => el?.textContent ?? '', await article.$('[data-testid="User-Name"] a')),
-          userPic: await page.evaluate(el => el?.src ?? '', await article.$('[data-testid|="UserAvatar-Container"] img')),
-          tweet: await page.evaluate(el => el?.textContent ?? '', await article.$('[data-testid="tweetText"]')),
-          pics: await Promise.all((await article.$$('[data-testid="tweetPhoto"] img')).map(el => el.evaluate(x => x.src))),
-          timestamp: await page.evaluate(el => el?.dateTime ?? '', await article.$('time')),
-          likes: await page.evaluate(el => +(el?.textContent?.replaceAll(',', '') ?? 0), await article.$('[href$="/likes"] [data-testid="app-text-transition-container"]')),
-          retweets: await page.evaluate(el => +(el?.textContent?.replaceAll(',', '') ?? 0), await article.$('[href$="/retweets"] [data-testid="app-text-transition-container"]')),
-        });
+        try {
+          resolve({
+            user: await page.evaluate(el => el?.textContent ?? '', await article.$('[data-testid="User-Name"] a')),
+            userPic: await page.evaluate(el => el?.src ?? '', await article.$('[data-testid|="UserAvatar-Container"] img')),
+            tweet: await page.evaluate(el => el?.textContent ?? '', await article.$('[data-testid="tweetText"]')),
+            pics: await Promise.all((await article.$$('[data-testid="tweetPhoto"] img')).map(el => el.evaluate(x => x.src))),
+            timestamp: await page.evaluate(el => el?.dateTime ?? '', await article.$('time')),
+            likes: await page.evaluate(el => +(el?.textContent?.replaceAll(',', '') ?? 0), await article.$('[href$="/likes"] [data-testid="app-text-transition-container"]')),
+            retweets: await page.evaluate(el => +(el?.textContent?.replaceAll(',', '') ?? 0), await article.$('[href$="/retweets"] [data-testid="app-text-transition-container"]')),
+          });
 
-        log('twitterView:', 'scraping processed');
+          log('twitterView:', 'scraping processed');
+        }
+        catch {
+          if (page.isClosed()) {
+            reject('page is closed');
+          }
+        }
       });
 
       const ac = new AbortController();
