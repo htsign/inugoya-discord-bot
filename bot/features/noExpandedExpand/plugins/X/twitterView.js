@@ -230,11 +230,15 @@ export const hooks = [
          */
         const rejectIfAborted = () => {
           if (signal.aborted) {
-            reject(`abort ${pFetching.name} because of ${pParsing.name} is filled`);
+            const message = `abort ${pFetching.name} because of ${pParsing.name} is filled`;
+            reject(message);
+            log(message);
             return true;
           }
           if (page.isClosed()) {
-            reject('page is closed');
+            const message = 'page is closed';
+            reject(message);
+            log(message);
             return true;
           }
           return false;
@@ -263,9 +267,15 @@ export const hooks = [
             }
             catch {
               if (page.isClosed()) {
-                reject('page is closed');
+                const message = 'page is closed';
+                reject(message);
+                log(message);
               }
             }
+          }
+          else if (e instanceof Error) {
+            log('twitterView:', 'access failed', e.stack ?? `${e.name}: ${e.message}`);
+            return reject('access failed');
           }
           else {
             throw e;

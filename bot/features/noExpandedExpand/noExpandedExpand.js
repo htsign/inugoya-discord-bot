@@ -84,15 +84,7 @@ addHandler(Events.MessageCreate, async message => {
       }
     }
 
-    /** @type {import('types/bot/features/noExpandedExpand').HookResult[]} */
-    let results;
-    try {
-      results = await Promise.all(expandingPromises);
-    }
-    catch (e) {
-      log('noExpandedExpand:', `failed to expand urls`, e);
-      return;
-    }
+    const results = await Promise.all(expandingPromises);
 
     const embeds = results.flatMap(res => res.embeds);
     const files = results.map(res => res.attachment)
