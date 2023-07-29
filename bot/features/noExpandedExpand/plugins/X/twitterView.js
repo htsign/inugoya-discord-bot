@@ -39,11 +39,11 @@ const getLaunchOptions = async () => {
 };
 
 /**
- * @param {import('discord.js').Client<true>} client
+ * @returns {Promise<Browser>}
  */
-const initialize = async client => {
+const initialize = async () => {
   const launchOptions = await getLaunchOptions();
-  browser = await puppeteer.launch(launchOptions);
+  return browser = await puppeteer.launch(launchOptions);
 };
 
 const login = async () => {
@@ -88,7 +88,9 @@ const login = async () => {
 
 /** @type {import('types/bot/features/noExpandedExpand').PluginHandlers} */
 export const handlers = {
-  [Events.ClientReady]: initialize,
+  [Events.ClientReady]: _ => {
+    initialize();
+  },
 };
 
 /** @type {import('types/bot/features/noExpandedExpand').PluginHooks} */
@@ -98,7 +100,7 @@ export const hooks = [
     async url => {
       log('twitterView:', 'urls detected', url);
 
-      const page = await browser.newPage();
+      const page = await (browser ??= await initialize()).newPage();
       page.setRequestInterception(true);
 
       page.on('request', request => {
