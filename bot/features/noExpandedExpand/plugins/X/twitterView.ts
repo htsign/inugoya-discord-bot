@@ -36,9 +36,9 @@ const getLaunchOptions = async (): Promise<PuppeteerLaunchOptions> => {
   }
 };
 
-const initialize = async (client: Client<true>) => {
+const initialize = async (): Promise<Browser> => {
   const launchOptions = await getLaunchOptions();
-  browser = await puppeteer.launch(launchOptions);
+  return browser = await puppeteer.launch(launchOptions);
 };
 
 const login = async () => {
@@ -82,7 +82,9 @@ const login = async () => {
 };
 
 export const handlers: PluginHandlers = {
-  [Events.ClientReady]: initialize,
+  [Events.ClientReady]: (_: Client<true>) => {
+    initialize();
+  },
 };
 
 export const hooks: PluginHooks = [
@@ -91,7 +93,7 @@ export const hooks: PluginHooks = [
     async url => {
       log('twitterView:', 'urls detected', url);
 
-      const page = await browser.newPage();
+      const page = await (browser ??= await initialize()).newPage();
       page.setRequestInterception(true);
 
       page.on('request', request => {
