@@ -49,33 +49,45 @@ const initialize = async () => {
 const login = async () => {
   log(`twitterView#${login.name}:`, 'try to login');
 
-  const page = await browser.newPage();
+  const page = await (browser ??= await initialize()).newPage();
 
-  await page.goto('https://twitter.com/login');
+  try {
+    await page.goto('https://twitter.com/login');
 
-  // type username
-  const usernameInput = await page.waitForSelector('input[autocomplete="username"]');
-  if (usernameInput == null) {
-    log(`twitterView#${login.name}:`, 'failed to find username input');
+    // type username
+    const usernameInput = await page.waitForSelector('input[autocomplete="username"]');
+    if (usernameInput == null) {
+      log(`twitterView#${login.name}:`, 'failed to find username input');
+      await page.close();
+      return [];
+    }
+    await usernameInput.type(getEnv('TWITTER_USERNAME'));
+    await page.keyboard.press('Enter');
+
+    // type password
+    const passwordInput = await page.waitForSelector('input[autocomplete="current-password"]');
+    if (passwordInput == null) {
+      log(`twitterView#${login.name}:`, 'failed to find password input');
+      await page.close();
+      return [];
+    }
+    await passwordInput.type(getEnv('TWITTER_PASSWORD'));
+    await page.keyboard.press('Enter');
+
+    await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+
+    log(`twitterView#${login.name}:`, 'login success');
+  }
+  catch (e) {
+    if (e instanceof TimeoutError) {
+      log(`twitterView#${login.name}:`, 'login timeout');
+    }
+    else {
+      log(`twitterView#${login.name}:`, 'login failed', e);
+    }
     await page.close();
     return [];
   }
-  await usernameInput.type(getEnv('TWITTER_USERNAME'));
-  await page.keyboard.press('Enter');
-
-  // type password
-  const passwordInput = await page.waitForSelector('input[autocomplete="current-password"]');
-  if (passwordInput == null) {
-    log(`twitterView#${login.name}:`, 'failed to find password input');
-    await page.close();
-    return [];
-  }
-  await passwordInput.type(getEnv('TWITTER_PASSWORD'));
-  await page.keyboard.press('Enter');
-
-  await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
-
-  log(`twitterView#${login.name}:`, 'login success');
 
   // save cookies
   const cookies = await page.cookies();
@@ -258,6 +270,11 @@ export const hooks = [
 
           if (e instanceof TimeoutError) {
             const cookies = await login();
+
+            if (cookies.length === 0) {
+              log('failed to login');
+              return reject('failed to login');
+            }
 
             try {
               await page.setCookie(...cookies);
