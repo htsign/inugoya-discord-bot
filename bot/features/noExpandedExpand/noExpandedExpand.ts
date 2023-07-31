@@ -20,7 +20,7 @@ const plugins: Plugin[] = [];
   const pluginDir = path.join(dirPath, 'plugins');
 
   const addPlugin = async (dirName: string): Promise<void> => {
-    const defaultIndexPath = path.join(pluginDir, dirName, 'index.js');
+    const defaultIndexPath = path.join(pluginDir, dirName, 'index.ts');
     const defaultIndexStat = await fs.stat(defaultIndexPath);
 
     if (defaultIndexStat.isFile()) {
