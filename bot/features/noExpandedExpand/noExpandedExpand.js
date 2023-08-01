@@ -78,7 +78,11 @@ addHandler(Events.MessageCreate, async message => {
     for (const [index, url] of targetUrls.entries()) {
       for (const [pattern, hook] of plugins.flatMap(plugin => plugin.hooks ?? [])) {
         if ((typeof pattern === 'string' && url.startsWith(pattern)) || (typeof pattern === 'object' && pattern.test(url))) {
-          expandingPromises.push(hook(url, index));
+          const p = hook(url, index).catch(e => {
+            log(e);
+            return { embeds: [], attachment: null };
+          });
+          expandingPromises.push(p);
           continue process;
         }
       }

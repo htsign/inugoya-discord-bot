@@ -272,8 +272,9 @@ export const hooks = [
             const cookies = await login();
 
             if (cookies.length === 0) {
+              reject('failed to login');
               log('failed to login');
-              return reject('failed to login');
+              return;
             }
 
             try {
@@ -331,7 +332,8 @@ export const hooks = [
       const ac = new AbortController();
 
       const { id = '' } = url.match(/^https:\/\/(?:mobile\.)?twitter\.com\/(?<id>\w+?)\/status\/\d+?\??/)?.groups ?? {};
-      const { user, userPic, tweet, pics, timestamp, likes, retweets } = await Promise.race([pParsing(ac.signal), pFetching(ac.signal)]).finally(() => ac.abort());
+      const { user, userPic, tweet, pics, timestamp, likes, retweets } =
+        await Promise.race([pParsing(ac.signal), pFetching(ac.signal)]).finally(() => ac.abort());
       const [firstPic, ...restPics] = pics;
 
       /** @type {import('discord.js').APIEmbed[]} */
