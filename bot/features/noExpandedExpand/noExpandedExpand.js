@@ -124,7 +124,7 @@ addHandler(Events.MessageCreate, async message => {
       do {
         await setTimeout();
 
-        if (replied.embeds.every(re => message.embeds.some(me => me.url === re.url))) {
+        if (!targetMessages.has(message) || replied.embeds.every(re => message.embeds.some(me => me.url === re.url))) {
           log(
             [
               guild != null ? [guild.name] : [],
