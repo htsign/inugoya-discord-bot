@@ -145,7 +145,14 @@ export const hooks = [
         const url = response.url();
 
         if (url.startsWith('https://twitter.com/i/api/') && url.includes('TweetDetail?')) {
-          const { data } = await response.json();
+          const { data, errors } = await response.json();
+
+          if (Array.isArray(errors)) {
+            for (const { name, code, message } of errors) {
+              log('twitterView:', 'failed to get tweet details', `${name}: [${code}] ${message}`);
+            }
+            return;
+          }
 
           if (data == null) return;
 
