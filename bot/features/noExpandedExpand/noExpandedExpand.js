@@ -62,7 +62,6 @@ addHandler(Events.MessageCreate, async message => {
 
   const urls = urlsOfText(content);
   if (targetMessages.has(message) && message.embeds.length < urls.length) {
-
     const embedUrls = message.embeds
       .map(embed => embed.url)
       .filter(/** @type {(url: string?) => url is string} */ url => url != null);
@@ -70,6 +69,10 @@ addHandler(Events.MessageCreate, async message => {
     const targetUrls = urls
       .filter(url => !embedUrls.includes(url))
       .filter(url => !ignoringUrls.some(ignoringUrl => url.startsWith(ignoringUrl)));
+
+    if (targetUrls.length > 0) {
+      log('noExpandedExpand:', 'start expanding process', targetUrls);
+    }
 
     /** @type {Promise<import('types/bot/features/noExpandedExpand').HookResult>[]} */
     const expandingPromises = [];
