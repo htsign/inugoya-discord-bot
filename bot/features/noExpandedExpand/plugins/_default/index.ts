@@ -145,7 +145,7 @@ export const hooks: PluginHooks = [
     /.+/,
     async function core(url, index) {
       try {
-        let attachment: AttachmentBuilder | null = null;
+        const attachments: AttachmentBuilder[] = []
 
         const realUrl = await retrieveRealUrl(url);
         const document = await urlToDocument(realUrl);
@@ -157,7 +157,7 @@ export const hooks: PluginHooks = [
 
         if (embed.data.title == null && embed.data.description == null) {
           log( `noExpandedExpand#${core.name}:`, realUrl, 'no title and description');
-          return { embeds: [], attachment: null };
+          return { embeds: [], attachments: [] };
         }
 
         {
@@ -187,19 +187,19 @@ export const hooks: PluginHooks = [
               options.iconURL = url;
               embed.setColor(await getColorAsInt(buffer));
 
-              attachment = new AttachmentBuilder(buffer, { name: `favicon${index}.png` });
+              attachments.push(new AttachmentBuilder(buffer, { name: `favicon${index}.png` }));
             }
 
             embed.setAuthor(options);
           }
         }
 
-        return { embeds: [embed.toJSON()], attachment };
+        return { embeds: [embed.toJSON()], attachments };
       }
       catch (e) {
         if (e instanceof Error) {
           log(`noExpandedExpand#${core.name}:`, e.stack ?? `${e.name}: ${e.message}`);
-          return { embeds: [], attachment: null };
+          return { embeds: [], attachments: [] };
         }
         throw e;
       }

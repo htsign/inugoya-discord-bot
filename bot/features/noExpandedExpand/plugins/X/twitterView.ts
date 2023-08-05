@@ -325,6 +325,7 @@ export const hooks: PluginHooks = [
       const [firstPic, ...restPics] = pics;
 
       const embeds: APIEmbed[] = [];
+      const attachments: AttachmentBuilder[] = [];
 
       const embed = new EmbedBuilder({ url });
       embed.setColor(0x1d9bf0);
@@ -351,6 +352,7 @@ export const hooks: PluginHooks = [
       }
 
       embeds.push(embed.toJSON());
+      attachments.push(new AttachmentBuilder(await fs.readFile('./assets/logo/twitter_24x24.png'), { name: 'logo.png' }));
 
       for (const pic of restPics) {
         const embed = new EmbedBuilder({ url });
@@ -358,10 +360,8 @@ export const hooks: PluginHooks = [
         embeds.push(embed.toJSON());
       }
 
-      const attachment = new AttachmentBuilder(await fs.readFile('./assets/logo/twitter_24x24.png'), { name: 'logo.png' });
-
       try {
-        return { embeds, attachment };
+        return { embeds, attachments };
       }
       finally {
         await page.close();
