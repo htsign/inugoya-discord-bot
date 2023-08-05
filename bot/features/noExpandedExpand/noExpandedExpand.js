@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout } from 'node:timers/promises';
-import { AttachmentBuilder, Events } from 'discord.js';
+import { Events } from 'discord.js';
 import dayjs from '../../lib/dayjsSetup.js';
 import { addHandler } from '../../listeners.js';
 import { log } from '../../lib/log.js';
@@ -83,7 +83,7 @@ addHandler(Events.MessageCreate, async message => {
         if ((typeof pattern === 'string' && url.startsWith(pattern)) || (typeof pattern === 'object' && pattern.test(url))) {
           const p = hook(url, index).catch(e => {
             log(e);
-            return { embeds: [], attachment: null };
+            return { embeds: [], attachments: [] };
           });
           expandingPromises.push(p);
           continue process;
@@ -94,8 +94,7 @@ addHandler(Events.MessageCreate, async message => {
     const results = await Promise.all(expandingPromises);
 
     const embeds = results.flatMap(res => res.embeds);
-    const files = results.map(res => res.attachment)
-      .filter(/** @type {(x: import('discord.js').AttachmentBuilder?) => x is AttachmentBuilder} */ x => x != null);
+    const files = results.flatMap(res => res.attachments);
 
     if (targetMessages.has(message) && embeds.length > 0) {
       log(

@@ -185,8 +185,8 @@ export const hooks = [
     /.+/,
     async function core(url, index) {
       try {
-        /** @type {import('discord.js').AttachmentBuilder?} */
-        let attachment = null;
+        /** @type {AttachmentBuilder[]} */
+        const attachments = []
 
         const realUrl = await retrieveRealUrl(url);
         const document = await urlToDocument(realUrl);
@@ -198,7 +198,7 @@ export const hooks = [
 
         if (embed.data.title == null && embed.data.description == null) {
           log( `noExpandedExpand#${core.name}:`, realUrl, 'no title and description');
-          return { embeds: [], attachment: null };
+          return { embeds: [], attachments: [] };
         }
 
         {
@@ -229,19 +229,19 @@ export const hooks = [
               options.iconURL = url;
               embed.setColor(await getColorAsInt(buffer));
 
-              attachment = new AttachmentBuilder(buffer, { name: `favicon${index}.png` });
+              attachments.push(new AttachmentBuilder(buffer, { name: `favicon${index}.png` }));
             }
 
             embed.setAuthor(options);
           }
         }
 
-        return { embeds: [embed.toJSON()], attachment };
+        return { embeds: [embed.toJSON()], attachments };
       }
       catch (e) {
         if (e instanceof Error) {
           log(`noExpandedExpand#${core.name}:`, e.stack ?? `${e.name}: ${e.message}`);
-          return { embeds: [], attachment: null };
+          return { embeds: [], attachments: [] };
         }
         throw e;
       }

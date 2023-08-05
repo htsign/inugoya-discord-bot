@@ -345,6 +345,8 @@ export const hooks = [
 
       /** @type {import('discord.js').APIEmbed[]} */
       const embeds = [];
+      /** @type {import('discord.js').AttachmentBuilder[]} */
+      const attachments = [];
 
       const embed = new EmbedBuilder({ url });
       embed.setColor(0x1d9bf0);
@@ -371,6 +373,7 @@ export const hooks = [
       }
 
       embeds.push(embed.toJSON());
+      attachments.push(new AttachmentBuilder(await fs.readFile('./assets/logo/twitter_24x24.png'), { name: 'logo.png' }));
 
       for (const pic of restPics) {
         const embed = new EmbedBuilder({ url });
@@ -378,10 +381,8 @@ export const hooks = [
         embeds.push(embed.toJSON());
       }
 
-      const attachment = new AttachmentBuilder(await fs.readFile('./assets/logo/twitter_24x24.png'), { name: 'logo.png' });
-
       try {
-        return { embeds, attachment };
+        return { embeds, attachments };
       }
       finally {
         await page.close();

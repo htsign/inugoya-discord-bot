@@ -9,5 +9,5 @@ export type PluginHandlers = Partial<{ [K in keyof ClientEvents]: (...args: Clie
 export type PluginHooks = [string | RegExp, (url: Url, index: number) => Promise<HookResult>][];
 export interface HookResult {
   embeds: APIEmbed[];
-  attachment: AttachmentBuilder | null;
+  attachments: AttachmentBuilder[];
 }
