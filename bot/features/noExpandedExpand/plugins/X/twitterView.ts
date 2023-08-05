@@ -24,7 +24,7 @@ const getLaunchOptions = async (): Promise<PuppeteerLaunchOptions> => {
       // @ts-ignore
       '../../../noExpandedExpand/plugins/X/launchOptions.json',
       { assert: { type: 'json' },
-    });
+    }) as { default: PuppeteerLaunchOptions };
     return options;
   }
   catch (e) {
