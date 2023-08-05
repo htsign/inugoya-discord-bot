@@ -22,11 +22,11 @@ let browser;
  */
 const getLaunchOptions = async () => {
   try {
-    const { default: options } = await import(
+    const { default: options } = /** @type {{ default: import('puppeteer').PuppeteerLaunchOptions }} */ (await import(
       // @ts-ignore
       '../../../noExpandedExpand/plugins/X/launchOptions.json',
       { assert: { type: 'json' },
-    });
+    }));
     return options;
   }
   catch (e) {
