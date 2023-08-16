@@ -34,7 +34,7 @@ export const fetchMessageByIds = async (guildId: string, channelId: string, mess
   }
 };
 
-export const messageToEmbeds = async (message: Message<boolean>, options: EmbedMessageOptions): Promise<APIEmbed[]> => {
+export const messageToEmbeds = async (message: Message<boolean>, options: EmbedMessageOptions[]): Promise<APIEmbed[]> => {
   const { channel } = message;
 
   if (channel.isTextBased()) {
