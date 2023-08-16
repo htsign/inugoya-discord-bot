@@ -40,7 +40,7 @@ export const fetchMessageByIds = async (guildId, channelId, messageId) => {
 
 /**
  * @param {import('discord.js').Message<boolean>} message
- * @param {import('types/bot').EmbedMessageOptions} options
+ * @param {import('types/bot').EmbedMessageOptions[]} options
  * @returns {Promise<import('discord.js').APIEmbed[]>}
  */
 export const messageToEmbeds = async (message, options) => {
