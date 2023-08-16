@@ -101,7 +101,7 @@ export const handlers: PluginHandlers = {
 
 export const hooks: PluginHooks = [
   [
-    /^https:\/\/(?:mobile\.)?twitter\.com\/\w+?\/status\/\d+?\??/,
+    /^https:\/\/(?:mobile\.)?(?:twitter|x)\.com\/\w+?\/status\/\d+?\??/,
     async url => {
       log('twitterView:', 'urls detected', url);
 
