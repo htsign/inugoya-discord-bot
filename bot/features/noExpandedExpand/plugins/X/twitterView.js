@@ -108,7 +108,7 @@ export const handlers = {
 /** @type {import('types/bot/features/noExpandedExpand').PluginHooks} */
 export const hooks = [
   [
-    /^https:\/\/(?:mobile\.)?twitter\.com\/\w+?\/status\/\d+?\??/,
+    /^https:\/\/(?:mobile\.)?(?:twitter|x)\.com\/\w+?\/status\/\d+?\??/,
     async url => {
       log('twitterView:', 'urls detected', url);
 
