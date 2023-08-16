@@ -175,7 +175,7 @@ export const hooks = [
               }
 
               if (tweetDetails != null) {
-                tweetBody = tweetDetails.full_text;
+                tweetBody = tweetDetails.full_text?.replaceAll('&amp;', '&');
                 createdAt = tweetDetails.created_at;
                 likesCount = tweetDetails.favorite_count;
                 retweetsCount = tweetDetails.retweet_count;
