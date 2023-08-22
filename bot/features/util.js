@@ -46,117 +46,114 @@ export const fetchMessageByIds = async (guildId, channelId, messageId) => {
 export const messageToEmbeds = async (message, options) => {
   const { channel } = message;
 
-  if (channel.isTextBased()) {
-    const optionsSet = new Set(options);
+  if (!channel.isTextBased()) return [];
 
-    /** @type {import('discord.js').APIEmbed[]} */
-    const embeds = [];
+  const optionsSet = new Set(options);
 
-    /** @type {import('discord.js').User | null} */
-    let author = null;
-    try {
-      author = await message.author?.fetch();
-    }
-    catch (e) {
-      if (e instanceof Error) {
-        log(`${messageToEmbeds.name}:`, 'failed to fetch author', e.stack ?? `${e.name}: ${e.message}`);
-      }
-      else {
-        throw e;
-      }
-    }
+  /** @type {import('discord.js').APIEmbed[]} */
+  const embeds = [];
 
-    /** @type {(avatarUrl: import('types').Nullable<string>) => Promise<number | null>} */
-    const getAverageColor = async avatarUrl => {
-      if (avatarUrl == null) return null;
-
-      const { value: [red, green, blue] } = await fastAvgColor.getAverageColor(avatarUrl, { silent: true });
-      return (red << 16) + (green << 8) + blue;
-    };
-
-    const embed = new EmbedBuilder()
-      .setURL(message.url)
-      .setTimestamp(message.editedTimestamp ?? message.createdTimestamp)
-      .setColor(author?.accentColor ?? await getAverageColor(author?.avatarURL()));
-
-    if (author != null) {
-      embed.setAuthor({ name: author.username, url: message.url, iconURL: author.displayAvatarURL() });
-    }
-
-    if (message.content !== '') {
-      embed.setDescription(message.content);
-    }
-
-    for (const option of optionsSet) {
-      switch (option) {
-        case 'reactions': {
-          const reactions = message.reactions.cache;
-          const reactionsCount = reactions.reduce((acc, x) => acc + x.count, 0);
-
-          if (reactionsCount > 0) {
-            embed.addFields({ name: 'Reactions', value: String(reactionsCount), inline: true });
-          }
-          break;
-        }
-        case 'originalLink': {
-          embed.addFields({ name: 'Original Link', value: message.url, inline: true });
-          break;
-        }
-        default: {
-          /** @type {never} */
-          const x = option;
-          throw new RangeError(`exhaustive check: ${x} is invalid`);
-        }
-      }
-    }
-
-    const [attachments, spoilerAttachments] = message.attachments.partition(x => !x.spoiler);
-
-    if (spoilerAttachments.size > 0) {
-      embed.addFields({ name: 'Spoilers', value: String(spoilerAttachments.size) });
-    }
-
-    if (!channel.isDMBased()) {
-      const text = channel.name;
-      const iconURL = message.guild?.iconURL();
-
-      if (iconURL != null) {
-        embed.setFooter({ text, iconURL });
-      }
-      else {
-        embed.setFooter({ text });
-      }
-    }
-
-    /**
-     * @param {import('discord.js').Attachment} attachment
-     * @returns {'image' | 'video'}
-     */
-    const getEmbedMediaType = attachment => {
-      const [type] = attachment.contentType?.split('/') ?? [];
-      return type === 'video' ? 'video' : 'image';
-    };
-
-    const attachmentArray = attachments.toJSON();
-    if (isNonEmpty(attachmentArray)) {
-      const attachment = attachmentArray[0];
-      const { url } = attachment;
-
-      embeds.push({ ...embed.toJSON(), [getEmbedMediaType(attachment)]: { url } });
+  /** @type {import('discord.js').User | null} */
+  let author = null;
+  try {
+    author = await message.author?.fetch();
+  }
+  catch (e) {
+    if (e instanceof Error) {
+      log(`${messageToEmbeds.name}:`, 'failed to fetch author', e.stack ?? `${e.name}: ${e.message}`);
     }
     else {
-      embeds.push(embed.toJSON());
+      throw e;
     }
+  }
 
-    for (const attachment of attachmentArray.slice(1)) {
-      const { url } = attachment;
+  /** @type {(avatarUrl: import('types').Nullable<string>) => Promise<number | null>} */
+  const getAverageColor = async avatarUrl => {
+    if (avatarUrl == null) return null;
 
-      embeds.push({ url: message.url, [getEmbedMediaType(attachment)]: { url } });
+    const { value: [red, green, blue] } = await fastAvgColor.getAverageColor(avatarUrl, { silent: true });
+    return (red << 16) + (green << 8) + blue;
+  };
+
+  const embed = new EmbedBuilder()
+    .setURL(message.url)
+    .setTimestamp(message.editedTimestamp ?? message.createdTimestamp)
+    .setColor(author?.accentColor ?? await getAverageColor(author?.avatarURL()));
+
+  if (author != null) {
+    embed.setAuthor({ name: author.username, url: message.url, iconURL: author.displayAvatarURL() });
+  }
+
+  if (message.content !== '') {
+    embed.setDescription(message.content);
+  }
+
+  for (const option of optionsSet) {
+    switch (option) {
+      case 'reactions': {
+        const reactions = message.reactions.cache;
+        const reactionsCount = reactions.reduce((acc, x) => acc + x.count, 0);
+
+        if (reactionsCount > 0) {
+          embed.addFields({ name: 'Reactions', value: String(reactionsCount), inline: true });
+        }
+        break;
+      }
+      case 'originalLink': {
+        embed.addFields({ name: 'Original Link', value: message.url, inline: true });
+        break;
+      }
+      default: {
+        /** @type {never} */
+        const x = option;
+        throw new RangeError(`exhaustive check: ${x} is invalid`);
+      }
     }
+  }
 
-    return embeds;
+  const [attachments, spoilerAttachments] = message.attachments.partition(x => !x.spoiler);
+
+  if (spoilerAttachments.size > 0) {
+    embed.addFields({ name: 'Spoilers', value: String(spoilerAttachments.size) });
+  }
+
+  if (!channel.isDMBased()) {
+    const text = channel.name;
+    const iconURL = message.guild?.iconURL();
+
+    if (iconURL != null) {
+      embed.setFooter({ text, iconURL });
+    }
+    else {
+      embed.setFooter({ text });
+    }
+  }
+
+  /**
+   * @param {import('discord.js').Attachment} attachment
+   * @returns {'image' | 'video'}
+   */
+  const getEmbedMediaType = attachment => {
+    const [type] = attachment.contentType?.split('/') ?? [];
+    return type === 'video' ? 'video' : 'image';
+  };
+
+  const attachmentArray = attachments.toJSON();
+  if (isNonEmpty(attachmentArray)) {
+    const attachment = attachmentArray[0];
+    const { url } = attachment;
+
+    embeds.push({ ...embed.toJSON(), [getEmbedMediaType(attachment)]: { url } });
   }
   else {
-    return [];
+    embeds.push(embed.toJSON());
   }
+
+  for (const attachment of attachmentArray.slice(1)) {
+    const { url } = attachment;
+
+    embeds.push({ url: message.url, [getEmbedMediaType(attachment)]: { url } });
+  }
+
+  return embeds;
 };
