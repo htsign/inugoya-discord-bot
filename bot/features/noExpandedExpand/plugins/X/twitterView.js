@@ -141,6 +141,8 @@ export const hooks = [
       let likesCount;
       /** @type {number | undefined} */
       let retweetsCount;
+      /** @type {string | undefined} */
+      let impressionsCount;
       page.on('response', async response => {
         const url = response.url();
 
@@ -163,7 +165,7 @@ export const hooks = [
               if (entries == null) continue;
 
               const [tweet] = entries;
-              const { core, legacy: tweetDetails } = tweet?.content?.itemContent?.tweet_results?.result ?? {};
+              const { core, views, legacy: tweetDetails } = tweet?.content?.itemContent?.tweet_results?.result ?? {};
 
               if (core != null) {
                 const { legacy: userDetails } = core.user_results?.result ?? {};
@@ -172,6 +174,10 @@ export const hooks = [
                   name = userDetails.name;
                   profileImageUrl = userDetails.profile_image_url_https;
                 }
+              }
+
+              if (views?.count != null) {
+                impressionsCount = views.count;
               }
 
               if (tweetDetails != null) {
@@ -234,6 +240,7 @@ export const hooks = [
               timestamp: createdAt,
               likes: likesCount,
               retweets: retweetsCount,
+              impressions: impressionsCount,
             });
           }
 
@@ -339,7 +346,7 @@ export const hooks = [
       const ac = new AbortController();
 
       const { id = '' } = url.match(/^https:\/\/(?:mobile\.)?twitter\.com\/(?<id>\w+?)\/status\/\d+?\??/)?.groups ?? {};
-      const { user, userPic, tweet, pics, timestamp, likes, retweets } =
+      const { user, userPic, tweet, pics, timestamp, likes, retweets, impressions } =
         await Promise.race([pParsing(ac.signal), pFetching(ac.signal)]).finally(() => ac.abort());
       const [firstPic, ...restPics] = pics;
 
@@ -366,6 +373,9 @@ export const hooks = [
       }
       if (retweets !== 0) {
         embed.addFields({ name: 'Retweets', value: String(retweets), inline: true });
+      }
+      if (impressions != null && impressions !== '0') {
+        embed.addFields({ name: 'Impressions', value: impressions, inline: true });
       }
 
       if (firstPic != null) {

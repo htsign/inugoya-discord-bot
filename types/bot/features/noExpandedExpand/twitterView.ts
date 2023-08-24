@@ -58,4 +58,5 @@ export interface TweetInfo {
   timestamp: string;
   likes: number;
   retweets: number;
+  impressions?: string | undefined;
 }
