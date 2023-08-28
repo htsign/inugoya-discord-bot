@@ -106,7 +106,7 @@ export const hooks: PluginHooks = [
       log('twitterView:', 'urls detected', url);
 
       const page = await (browser ??= await initialize()).newPage();
-      page.setRequestInterception(true);
+      await page.setRequestInterception(true);
 
       page.on('request', request => {
         const url = request.url();
@@ -132,6 +132,11 @@ export const hooks: PluginHooks = [
         const url = response.url();
 
         if (url.startsWith('https://twitter.com/i/api/') && url.includes('TweetDetail?')) {
+          // response.json() runs failure if redirect
+          if ((response.status() / 100 | 0) === 3 && response.headers()['location'] != null) {
+            return;
+          }
+
           const { data, errors } = await response.json();
 
           if (Array.isArray(errors)) {
