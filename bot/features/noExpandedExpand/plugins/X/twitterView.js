@@ -128,6 +128,15 @@ export const hooks = [
           }
         });
 
+        const htmlEntities = /** @type {const} */ ({
+          'amp': '&',
+          'apos': '\'',
+          'quot': '"',
+          'nbsp': ' ',
+          'lt': '<',
+          'gt': '>',
+        });
+
         /** @type {string | undefined} */
         let name;
         /** @type {string | undefined} */
@@ -187,7 +196,8 @@ export const hooks = [
                 }
 
                 if (tweetDetails != null) {
-                  tweetBody = tweetDetails.full_text?.replaceAll('&amp;', '&');
+                  tweetBody = Object.entries(htmlEntities)
+                    .reduce((acc, [entity, sym]) => acc.replaceAll(`&${entity};`, sym), tweetDetails.full_text ?? '');
                   createdAt = tweetDetails.created_at;
                   likesCount = tweetDetails.favorite_count;
                   retweetsCount = tweetDetails.retweet_count;
