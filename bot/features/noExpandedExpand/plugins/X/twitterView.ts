@@ -121,6 +121,15 @@ export const hooks: PluginHooks = [
           }
         });
 
+        const htmlEntities = {
+          'amp': '&',
+          'apos': '\'',
+          'quot': '"',
+          'nbsp': ' ',
+          'lt': '<',
+          'gt': '>',
+        } as const;
+
         let name: string | undefined;
         let profileImageUrl: string | undefined;
         let tweetBody: string | undefined;
@@ -176,7 +185,8 @@ export const hooks: PluginHooks = [
                 }
 
                 if (tweetDetails != null) {
-                  tweetBody = tweetDetails.full_text?.replaceAll('&amp;', '&');
+                  tweetBody = Object.entries(htmlEntities)
+                    .reduce((acc, [entity, sym]) => acc.replaceAll(`&${entity};`, sym), tweetDetails.full_text ?? '');
                   createdAt = tweetDetails.created_at;
                   likesCount = tweetDetails.favorite_count;
                   retweetsCount = tweetDetails.retweet_count;
