@@ -142,12 +142,9 @@ export const hooks: PluginHooks = [
           const url = response.url();
 
           if (url.startsWith('https://twitter.com/i/api/') && url.includes('TweetDetail?')) {
-            // response.json() runs failure if redirect
-            if ((response.status() / 100 | 0) === 3 && response.headers()['location'] != null) {
-              return;
-            }
-
-            const { data, errors } = await response.json();
+            const { data, errors } = await response.json()
+              // if redirect response is returned, it's an error
+              .catch(_ => ({ errors: [{ name: 'ParseError', code: response.status(), message: url }] }));
 
             if (Array.isArray(errors)) {
               for (const { name, code, message } of errors) {
