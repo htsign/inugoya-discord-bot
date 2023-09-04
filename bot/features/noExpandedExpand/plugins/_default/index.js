@@ -164,6 +164,55 @@ const getImage = document => {
 };
 
 /**
+ * @param {Document} document
+ * @returns {{
+ *   availability: string | undefined,
+ *   condition: string | undefined,
+ *   brand: string | undefined,
+ *   prices: { amount: string, currency: string }[],
+ * }}
+ */
+const getProductInfo = document => {
+  const availability = /** @type {HTMLMetaElement?} */ (document.querySelector('meta[property="product:availability"]'))?.content;
+  const condition = /** @type {HTMLMetaElement?} */ (document.querySelector('meta[property="product:condition"]'))?.content;
+  const brand = /** @type {HTMLMetaElement?} */ (document.querySelector('meta[property="product:brand"]'))?.content;
+
+  const getPrices = function* () {
+    for (const el of /** @type {NodeListOf<HTMLMetaElement>} */ (document.querySelectorAll('meta[property^="product:price"]'))) {
+      switch (el.getAttribute('property')) {
+        case 'product:price:amount': {
+          if (el.nextElementSibling?.matches('meta[property="product:price:currency"]')) {
+            const amount = el.content;
+            const currency = /** @type {HTMLMetaElement} */ (el.nextElementSibling).content;
+
+            yield { amount, currency };
+          }
+          break;
+        }
+        case 'product:price:currency': {
+          // process in 'product:price:amount' case
+          break;
+        }
+        case 'product:price': {
+          const [amount, currency] = el.content.split(' ');
+
+          if (amount != null && amount !== '' && currency != null && currency !== '') {
+            yield { amount, currency };
+          }
+          break;
+        }
+        default: {
+          const message = `unhandled property '${el.getAttribute('property')}' on ${document.URL}`;
+          log(`noExpandedExpand#${getProductInfo.name}#${getPrices.name}: ${message}`);
+        }
+      }
+    }
+  };
+
+  return { availability, condition, brand, prices: [...getPrices()] };
+};
+
+/**
  * @param {string | Buffer} resource
  * @returns {Promise<number>}
  */
@@ -234,6 +283,49 @@ export const hooks = [
             }
 
             embed.setAuthor(options);
+          }
+        }
+
+        {
+          const { availability, condition, brand, prices } = getProductInfo(document);
+
+          /** @type {string?} */
+          const availabilityText = (() => {
+            switch (availability) {
+              case 'in stock'    : return '在庫あり';
+              case 'out of stock': return '在庫なし';
+              default: {
+                log(`noExpandedExpand#${core.name}:`, `unhandled availability '${availability}' on ${realUrl}`);
+                return null;
+              }
+            }
+          })();
+          if (availabilityText != null) {
+            embed.addFields({ name: '在庫', value: availabilityText });
+          }
+
+          /** @type {string?} */
+          const conditionText = (() => {
+            switch (condition) {
+              case 'new'        : return '新品';
+              case 'refurbished': return '再販品';
+              case 'used'       : return '中古品';
+              default: {
+                log(`noExpandedExpand#${core.name}:`, `unhandled condition '${condition}' on ${realUrl}`);
+                return null;
+              }
+            }
+          })();
+          if (conditionText != null) {
+            embed.addFields({ name: '状態', value: conditionText });
+          }
+
+          if (brand != null) {
+            embed.addFields({ name: 'ブランド', value: brand });
+          }
+
+          for (const { amount, currency } of prices) {
+            embed.addFields({ name: '価格', value: `${amount} ${currency}` });
           }
         }
 
