@@ -68,7 +68,7 @@ const getTitle = document => {
   ]
     .reduce(
       (/** @type {import('types').Nullable<string>} */ acc, selector) =>
-        acc || document.querySelector(selector)?.getAttribute('content'),
+        acc || /** @type {HTMLMetaElement?} */ (document.querySelector(selector))?.content,
       null,
     );
 
@@ -88,7 +88,7 @@ const getDescription = document => {
   ]
     .reduce(
       (/** @type {import('types').Nullable<string>} */ acc, selector) =>
-        acc || document.querySelector(selector)?.getAttribute('content'),
+        acc || /** @type {HTMLMetaElement?} */ (document.querySelector(selector))?.content,
       null,
     );
 
@@ -108,14 +108,14 @@ const getAuthor = async (document, url) => {
   const getAuthorInner = async url => {
     const document = await urlToDocument(url);
 
-    const name = document.querySelector('meta[property="og:site_name"]')?.getAttribute('content');
+    const name = /** @type {HTMLMetaElement?} */ (document.querySelector('meta[property="og:site_name"]'))?.content;
     if (name != null) return [name, url];
 
     const part = document.title.includes(' - ') ? document.title.split(' - ').at(-1) : null;
     return part != null ? [part.trim(), url] : null;
   };
 
-  const name = document.querySelector('meta[property="og:site_name"]')?.getAttribute('content');
+  const name = /** @type {HTMLMetaElement?} */ (document.querySelector('meta[property="og:site_name"]'))?.content;
   if (name != null) {
     const homeRef = document.querySelector('[rel="home"][href]')?.getAttribute('href');
     if (homeRef == null) return [name];
@@ -140,7 +140,7 @@ const getAuthor = async (document, url) => {
  * @returns {string?}
  */
 const getUrl = document => {
-  const url = document.querySelector('meta[property="og:url]')?.getAttribute('content') ?? null;
+  const url = /** @type {HTMLMetaElement?} */ (document.querySelector('meta[property="og:url]'))?.content ?? null;
 
   return url != null && isUrl(url) ? url : null;
 };
@@ -155,7 +155,8 @@ const getImage = document => {
     'meta[name="twitter:image:src"]',
   ]
     .reduce(
-      (/** @type {string?} */ acc, selector) => acc ?? document.querySelector(selector)?.getAttribute('content') ?? null,
+      (/** @type {string?} */ acc, selector) =>
+        acc ?? /** @type {HTMLMetaElement?} */ (document.querySelector(selector))?.content ?? null,
       null,
     ) ?? null;
 
