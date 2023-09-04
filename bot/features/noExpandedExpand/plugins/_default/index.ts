@@ -127,6 +127,51 @@ const getImage = (document: Document): string | null => {
   return imageUrl != null && isUrl(imageUrl) ? imageUrl : null;
 };
 
+const getProductInfo = (document: Document): {
+  availability: string | undefined,
+  condition: string | undefined,
+  brand: string | undefined,
+  prices: { amount: string, currency: string }[],
+} => {
+  const availability = document.querySelector<HTMLMetaElement>('meta[property="product:availability"]')?.content;
+  const condition = document.querySelector<HTMLMetaElement>('meta[property="product:condition"]')?.content;
+  const brand = document.querySelector<HTMLMetaElement>('meta[property="product:brand"]')?.content;
+
+  const getPrices = function* () {
+    for (const el of document.querySelectorAll<HTMLMetaElement>('meta[property^="product:price"]')) {
+      switch (el.getAttribute('property')) {
+        case 'product:price:amount': {
+          if (el.nextElementSibling?.matches('meta[property="product:price:currency"]')) {
+            const amount = el.content;
+            const currency = (el.nextElementSibling as HTMLMetaElement).content;
+
+            yield { amount, currency };
+          }
+          break;
+        }
+        case 'product:price:currency': {
+          // process in 'product:price:amount' case
+          break;
+        }
+        case 'product:price': {
+          const [amount, currency] = el.content.split(' ');
+
+          if (amount != null && amount !== '' && currency != null && currency !== '') {
+            yield { amount, currency };
+          }
+          break;
+        }
+        default: {
+          const message = `unhandled property '${el.getAttribute('property')}' on ${document.URL}`;
+          log(`noExpandedExpand#${getProductInfo.name}#${getPrices.name}: ${message}`);
+        }
+      }
+    }
+  };
+
+  return { availability, condition, brand, prices: [...getPrices()] };
+};
+
 const getColorAsInt = async (resource: string | Buffer): Promise<number> => {
   try {
     const { value: [red, green, blue] } = await fastAvgColor.getAverageColor(resource, { silent: true });
@@ -191,6 +236,47 @@ export const hooks: PluginHooks = [
             }
 
             embed.setAuthor(options);
+          }
+        }
+
+        {
+          const { availability, condition, brand, prices } = getProductInfo(document);
+
+          const availabilityText: string | null = (() => {
+            switch (availability) {
+              case 'in stock'    : return '在庫あり';
+              case 'out of stock': return '在庫なし';
+              default: {
+                log(`noExpandedExpand#${core.name}:`, `unhandled availability '${availability}' on ${realUrl}`);
+                return null;
+              }
+            }
+          })();
+          if (availabilityText != null) {
+            embed.addFields({ name: '在庫', value: availabilityText });
+          }
+
+          const conditionText: string | null = (() => {
+            switch (condition) {
+              case 'new'        : return '新品';
+              case 'refurbished': return '再販品';
+              case 'used'       : return '中古品';
+              default: {
+                log(`noExpandedExpand#${core.name}:`, `unhandled condition '${condition}' on ${realUrl}`);
+                return null;
+              }
+            }
+          })();
+          if (conditionText != null) {
+            embed.addFields({ name: '状態', value: conditionText });
+          }
+
+          if (brand != null) {
+            embed.addFields({ name: 'ブランド', value: brand });
+          }
+
+          for (const { amount, currency } of prices) {
+            embed.addFields({ name: '価格', value: `${amount} ${currency}` });
           }
         }
 
