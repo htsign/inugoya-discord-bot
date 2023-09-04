@@ -82,14 +82,14 @@ const getAuthor = async (document: Document, url: Url): ReturnType<typeof getAut
   const getAuthorInner = async (url: string): Promise<[name: string, url?: string] | null> => {
     const document = await urlToDocument(url);
 
-    const name = document.querySelector('meta[property="og:site_name"]')?.getAttribute('content');
+    const name = document.querySelector<HTMLMetaElement>('meta[property="og:site_name"]')?.content;
     if (name != null) return [name, url];
 
     const part = document.title.includes(' - ') ? document.title.split(' - ').at(-1) : null;
     return part != null ? [part.trim(), url] : null;
   };
 
-  const name = document.querySelector('meta[property="og:site_name"]')?.getAttribute('content');
+  const name = document.querySelector<HTMLMetaElement>('meta[property="og:site_name"]')?.content;
   if (name != null) {
     const homeRef = document.querySelector('[rel="home"][href]')?.getAttribute('href');
     if (homeRef == null) return [name];
