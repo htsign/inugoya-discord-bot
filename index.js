@@ -9,3 +9,10 @@ import './bot/features/noExpandedExpand/index.js';
 import './bot/features/vcAttention/index.js';
 import './bot/features/shortenUrl/index.js';
 import './bot/features/discordUrlExpand/index.js';
+
+import { instance as processManager } from './bot/lib/processManager.js';
+
+process.on('SIGINT', () => {
+  processManager.killAll();
+  process.exit();
+});

@@ -4,6 +4,7 @@ import puppeteer, { Browser, ElementHandle, TimeoutError } from 'puppeteer';
 import dayjs from '../../../../lib/dayjsSetup.js';
 import { log } from '../../../../lib/log.js';
 import { getEnv } from '../../../../lib/util.js';
+import { instance as processManager } from '../../../../lib/processManager.js';
 
 const BLOCK_URLS = [
   'https://abs-0.twimg.com/',
@@ -43,7 +44,15 @@ const getLaunchOptions = async () => {
  */
 const initialize = async () => {
   const launchOptions = await getLaunchOptions();
-  return browser = await puppeteer.launch(launchOptions);
+  try {
+    return browser = await puppeteer.launch(launchOptions);
+  }
+  finally {
+    const proc = browser.process();
+    if (proc != null) {
+      processManager.add(proc);
+    }
+  }
 };
 
 const login = async () => {
