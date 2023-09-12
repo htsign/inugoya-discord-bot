@@ -4,6 +4,7 @@ import puppeteer, { Browser, ElementHandle, PuppeteerLaunchOptions, TimeoutError
 import { dayjs } from '@lib/dayjsSetup';
 import { log } from '@lib/log';
 import { getEnv } from '@lib/util';
+import { instance as processManager } from '@lib/processManager';
 import type { PluginHandlers, PluginHooks } from 'types/bot/features/noExpandedExpand';
 import type { TweetDetail, TweetInfo } from 'types/bot/features/noExpandedExpand/twitterView';
 
@@ -38,7 +39,15 @@ const getLaunchOptions = async (): Promise<PuppeteerLaunchOptions> => {
 
 const initialize = async (): Promise<Browser> => {
   const launchOptions = await getLaunchOptions();
-  return browser = await puppeteer.launch(launchOptions);
+  try {
+    return browser = await puppeteer.launch(launchOptions);
+  }
+  finally {
+    const proc = browser.process();
+    if (proc != null) {
+      processManager.add(proc);
+    }
+  }
 };
 
 const login = async () => {

@@ -8,3 +8,10 @@ import './bot/features/noExpandedExpand';
 import './bot/features/vcAttention';
 import './bot/features/shortenUrl';
 import './bot/features/discordUrlExpand';
+
+import { instance as processManager } from '@lib/processManager';
+
+process.on('SIGINT', () => {
+  processManager.killAll();
+  process.exit();
+});
