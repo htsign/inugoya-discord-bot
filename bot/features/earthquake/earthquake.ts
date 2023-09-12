@@ -44,7 +44,16 @@ const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => v
 };
 
 connectWebSocket(ENDPOINT, ({ data }) => {
-  const response: WebSocketResponse = JSON.parse(data.toString());
+  let response: WebSocketResponse;
+  try {
+    response = JSON.parse(data.toString());
+  }
+  catch (e) {
+    if (e instanceof SyntaxError) {
+      log(`earthquake#${connectWebSocket.name}:`, 'failed to parse', data.toString());
+    }
+    throw e;
+  }
 
   // actual data does not have "id", but has "_id"
   if (response.id == null) {
