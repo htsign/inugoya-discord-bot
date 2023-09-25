@@ -1,11 +1,10 @@
 import fs from 'node:fs/promises';
-import { APIEmbed, AttachmentBuilder, Client, EmbedBuilder, Events } from 'discord.js';
+import { APIEmbed, AttachmentBuilder, EmbedBuilder } from 'discord.js';
 import puppeteer, { Browser, ElementHandle, PuppeteerLaunchOptions, TimeoutError } from 'puppeteer';
 import { dayjs } from '@lib/dayjsSetup';
 import { log } from '@lib/log';
 import { getEnv } from '@lib/util';
-import { instance as processManager } from '@lib/processManager';
-import type { PluginHandlers, PluginHooks } from 'types/bot/features/noExpandedExpand';
+import type { PluginHooks } from 'types/bot/features/noExpandedExpand';
 import type { TweetDetail, TweetInfo } from 'types/bot/features/noExpandedExpand/twitterView';
 
 const BLOCK_URLS = [
@@ -16,8 +15,6 @@ const BLOCK_URLS = [
 ];
 
 const ARTICLE_SELECTOR = 'article[data-testid="tweet"]';
-
-let browser: Browser;
 
 const getLaunchOptions = async (): Promise<PuppeteerLaunchOptions> => {
   try {
@@ -39,21 +36,14 @@ const getLaunchOptions = async (): Promise<PuppeteerLaunchOptions> => {
 
 const initialize = async (): Promise<Browser> => {
   const launchOptions = await getLaunchOptions();
-  try {
-    return browser = await puppeteer.launch(launchOptions);
-  }
-  finally {
-    const proc = browser.process();
-    if (proc != null) {
-      processManager.add(proc);
-    }
-  }
+  return await puppeteer.launch(launchOptions);
 };
 
 const login = async () => {
   log(`twitterView#${login.name}:`, 'try to login');
 
-  const page = await (browser ??= await initialize()).newPage();
+  const browser = await initialize();
+  const page = await browser.newPage();
 
   try {
     await page.goto('https://twitter.com/login');
@@ -102,19 +92,14 @@ const login = async () => {
   return cookies;
 };
 
-export const handlers: PluginHandlers = {
-  [Events.ClientReady]: (_: Client<true>) => {
-    initialize();
-  },
-};
-
 export const hooks: PluginHooks = [
   [
     /^https:\/\/(?:mobile\.)?(?:twitter|x)\.com\/\w+?\/status\/\d+?\??/,
     async url => {
       log('twitterView:', 'urls detected', url);
 
-      const page = await (browser ??= await initialize()).newPage();
+      const browser = await initialize();
+      const page = await browser.newPage();
       await page.setRequestInterception(true);
 
       try {
