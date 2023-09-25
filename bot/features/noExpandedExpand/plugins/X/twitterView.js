@@ -1,10 +1,9 @@
 import fs from 'node:fs/promises';
-import { AttachmentBuilder, EmbedBuilder, Events } from 'discord.js';
+import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
 import puppeteer, { Browser, ElementHandle, TimeoutError } from 'puppeteer';
 import dayjs from '../../../../lib/dayjsSetup.js';
 import { log } from '../../../../lib/log.js';
 import { getEnv } from '../../../../lib/util.js';
-import { instance as processManager } from '../../../../lib/processManager.js';
 
 const BLOCK_URLS = [
   'https://abs-0.twimg.com/',
@@ -14,9 +13,6 @@ const BLOCK_URLS = [
 ];
 
 const ARTICLE_SELECTOR = 'article[data-testid="tweet"]';
-
-/** @type {Browser} */
-let browser;
 
 /**
  * @returns {Promise<import('puppeteer').PuppeteerLaunchOptions>}
@@ -44,21 +40,14 @@ const getLaunchOptions = async () => {
  */
 const initialize = async () => {
   const launchOptions = await getLaunchOptions();
-  try {
-    return browser = await puppeteer.launch(launchOptions);
-  }
-  finally {
-    const proc = browser.process();
-    if (proc != null) {
-      processManager.add(proc);
-    }
-  }
+  return await puppeteer.launch(launchOptions);
 };
 
 const login = async () => {
   log(`twitterView#${login.name}:`, 'try to login');
 
-  const page = await (browser ??= await initialize()).newPage();
+  const browser = await initialize();
+  const page = await browser.newPage();
 
   try {
     await page.goto('https://twitter.com/login');
@@ -107,13 +96,6 @@ const login = async () => {
   return cookies;
 };
 
-/** @type {import('types/bot/features/noExpandedExpand').PluginHandlers} */
-export const handlers = {
-  [Events.ClientReady]: _ => {
-    initialize();
-  },
-};
-
 /** @type {import('types/bot/features/noExpandedExpand').PluginHooks} */
 export const hooks = [
   [
@@ -121,7 +103,8 @@ export const hooks = [
     async url => {
       log('twitterView:', 'urls detected', url);
 
-      const page = await (browser ??= await initialize()).newPage();
+      const browser = await initialize();
+      const page = await browser.newPage();
       await page.setRequestInterception(true);
 
       try {
