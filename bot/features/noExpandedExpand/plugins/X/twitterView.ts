@@ -79,8 +79,11 @@ const login = async () => {
     else {
       log(`twitterView#${login.name}:`, 'login failed', e);
     }
-    await page.close();
     return [];
+  }
+  finally {
+    await page.close();
+    await browser.close();
   }
 
   // save cookies
@@ -380,6 +383,7 @@ export const hooks: PluginHooks = [
       }
       finally {
         await page.close();
+        await browser.close();
       }
     }
   ],
