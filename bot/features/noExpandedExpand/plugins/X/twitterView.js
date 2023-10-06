@@ -353,7 +353,7 @@ export const hooks = [
 
         const ac = new AbortController();
 
-        const { id = '' } = url.match(/^https:\/\/(?:mobile\.)?twitter\.com\/(?<id>\w+?)\/status\/\d+?\??/)?.groups ?? {};
+        const { id = '' } = url.match(/^https:\/\/(?:mobile\.)?(?:twitter|x)\.com\/(?<id>\w+?)\/status\/\d+?\??/)?.groups ?? {};
         const { user, userPic, tweet, pics, timestamp, likes, retweets, impressions } =
           await Promise.race([pParsing(ac.signal), pFetching(ac.signal)]).finally(() => ac.abort());
         const [firstPic, ...restPics] = pics;
