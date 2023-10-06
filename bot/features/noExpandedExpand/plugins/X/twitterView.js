@@ -152,6 +152,12 @@ export const hooks = [
           const url = response.url();
 
           if (url.startsWith('https://twitter.com/i/api/') && url.includes('TweetDetail?')) {
+            const [, statusId] = url.match(/"focalTweetId":"(\d+?)"/) ?? [];
+            if (statusId == null) {
+              log('twitterView:', 'failed to get tweet details', 'no statusId');
+              return;
+            }
+
             const { data, errors } = await response.json()
               // if redirect response is returned, it's an error
               .catch(_ => ({ errors: [{ name: 'ParseError', code: response.status(), message: url }] }));
@@ -171,7 +177,7 @@ export const hooks = [
 
                 if (entries == null) continue;
 
-                const [tweet] = entries;
+                const tweet = [...entries].find(x => x.entryId === `tweet-${statusId}`);
                 const { core, views, legacy: tweetDetails } = tweet?.content?.itemContent?.tweet_results?.result ?? {};
 
                 if (core != null) {
