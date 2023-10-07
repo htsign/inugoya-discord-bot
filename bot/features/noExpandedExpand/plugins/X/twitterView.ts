@@ -81,13 +81,25 @@ const login = async (browser: Browser): Promise<Protocol.Network.Cookie[]> => {
     if (e instanceof TimeoutError) {
       log(`twitterView#${login.name}:`, 'login timeout');
     }
+    else if (e instanceof Error) {
+      log(`twitterView#${login.name}:`, 'login failed', e.stack ?? `${e.name}: ${e.message}`);
+    }
     else {
       log(`twitterView#${login.name}:`, 'login failed', e);
     }
     return [];
   }
   finally {
-    await page.close();
+    try {
+      await page.close();
+    }
+    catch (e) {
+      if (e instanceof Error && e.message.startsWith('Protocol error: Connection closed.')) {
+        log('twitterView:', 'failed to close page', e.stack ?? `${e.name}: ${e.message}`);
+        return [];
+      }
+      throw e;
+    }
   }
 };
 
