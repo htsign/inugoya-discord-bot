@@ -43,10 +43,13 @@ const initialize = async () => {
   return await puppeteer.launch(launchOptions);
 };
 
-const login = async () => {
+/**
+ * @param {Browser} browser
+ * @returns {Promise<import('puppeteer').Protocol.Network.Cookie[]>}
+ */
+const login = async browser => {
   log(`twitterView#${login.name}:`, 'try to login');
 
-  const browser = await initialize();
   const page = await browser.newPage();
 
   try {
@@ -75,6 +78,12 @@ const login = async () => {
     await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
 
     log(`twitterView#${login.name}:`, 'login success');
+
+    // save cookies
+    const cookies = await page.cookies();
+    await fs.writeFile('twitter.cookies', JSON.stringify(cookies, null, 2));
+
+    return cookies;
   }
   catch (e) {
     if (e instanceof TimeoutError) {
@@ -87,16 +96,7 @@ const login = async () => {
   }
   finally {
     await page.close();
-    await browser.close();
   }
-
-  // save cookies
-  const cookies = await page.cookies();
-  await fs.writeFile('twitter.cookies', JSON.stringify(cookies, null, 2));
-
-  await page.close();
-
-  return cookies;
 };
 
 /** @type {import('types/bot/features/noExpandedExpand').PluginHooks} */
@@ -297,7 +297,7 @@ export const hooks = [
             if (rejectIfAborted()) return;
 
             if (e instanceof TimeoutError) {
-              const cookies = await login();
+              const cookies = await login(browser);
 
               if (cookies.length === 0) {
                 reject('failed to login');
