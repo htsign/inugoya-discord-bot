@@ -21,8 +21,8 @@ const getLaunchOptions = async (): Promise<PuppeteerLaunchOptions> => {
     const { default: options } = await import(
       // @ts-ignore
       '../../../noExpandedExpand/plugins/X/launchOptions.json',
-      { assert: { type: 'json' },
-    }) as { default: PuppeteerLaunchOptions };
+      { assert: { type: 'json' } },
+    ) as { default: PuppeteerLaunchOptions };
     return options;
   }
   catch (e) {
