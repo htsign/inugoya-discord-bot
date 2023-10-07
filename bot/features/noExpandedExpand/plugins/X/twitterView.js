@@ -149,10 +149,10 @@ export const hooks = [
         /** @type {string | undefined} */
         let impressionsCount;
         page.on('response', async response => {
-          const url = response.url();
+          const apiUrl = response.url();
 
-          if (url.startsWith('https://twitter.com/i/api/') && url.includes('TweetDetail?')) {
-            const [, statusId] = url.match(/"focalTweetId":"(\d+?)"/) ?? [];
+          if (apiUrl.startsWith('https://twitter.com/i/api/') && apiUrl.includes('TweetDetail?')) {
+            const [, statusId] = url.match(/\/status\/(\d+?)$/) ?? [];
             if (statusId == null) {
               log('twitterView:', 'failed to get tweet details', 'no statusId');
               return;
@@ -160,7 +160,7 @@ export const hooks = [
 
             const { data, errors } = await response.json()
               // if redirect response is returned, it's an error
-              .catch(_ => ({ errors: [{ name: 'ParseError', code: response.status(), message: url }] }));
+              .catch(_ => ({ errors: [{ name: 'ParseError', code: response.status(), message: apiUrl }] }));
 
             if (Array.isArray(errors)) {
               for (const { name, code, message } of errors) {
