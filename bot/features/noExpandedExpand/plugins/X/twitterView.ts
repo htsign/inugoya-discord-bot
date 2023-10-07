@@ -135,7 +135,7 @@ export const hooks: PluginHooks = [
           const apiUrl = response.url();
 
           if (apiUrl.startsWith('https://twitter.com/i/api/') && apiUrl.includes('TweetDetail?')) {
-            const [, statusId] = url.match(/\/status\/(\d+?)$/) ?? [];
+            const [, statusId] = url.match(/\/status\/(\d+?)\D/) ?? [];
             if (statusId == null) {
               log('twitterView:', 'failed to get tweet details', 'no statusId');
               return;
