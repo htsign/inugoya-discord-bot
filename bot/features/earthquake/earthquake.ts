@@ -35,6 +35,10 @@ const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => v
     log('earthquake: connected');
   });
   ws.addEventListener('message', onMessage);
+  ws.addEventListener('error', error => {
+    log(`earthquake: error`, error);
+    ws.close();
+  });
   ws.addEventListener('close', ({ code, reason }) => {
     log('earthquake: disconnected', `[${code}] ${reason.toString()}`);
     setTimeout(() => connectWebSocket(address, onMessage), 1000);

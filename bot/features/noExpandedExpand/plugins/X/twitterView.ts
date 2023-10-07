@@ -387,6 +387,13 @@ export const hooks: PluginHooks = [
 
         return { embeds, attachments };
       }
+      catch (e) {
+        if (e instanceof Error) {
+          log('twitterView:', 'unknown error occurred', e.stack ?? `${e.name}: ${e.message}`);
+          return { embeds: [], attachments: [] };
+        }
+        throw e;
+      }
       finally {
         await page.close();
         await browser.close();
