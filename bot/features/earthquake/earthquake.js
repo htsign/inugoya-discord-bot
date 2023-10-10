@@ -44,12 +44,12 @@ connectWebSocket(ENDPOINT, data => {
   }
 
   switch (response.code) {
-    case 551: return resolveJMAQuake(response);
-    case 552: return resolveJMATsunami(response);
-    case 554: return resolveEEWDetection(response);
-    case 555: return resolveAreaPeers(response);
-    case 556: return resolveEEW(response);
-    case 561: return resolveUserQuake(response);
+    case  551: return resolveJMAQuake(response);
+    case  552: return resolveJMATsunami(response);
+    case  554: return resolveEEWDetection(response);
+    case  555: return resolveAreaPeers(response);
+    case  556: return resolveEEW(response);
+    case  561: return resolveUserQuake(response);
     case 9611: return resolveUserQuakeEvaluation(response);
   }
 });
