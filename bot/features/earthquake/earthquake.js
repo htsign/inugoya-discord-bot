@@ -173,7 +173,7 @@ const resolveJMAQuake = async response => {
         .setTitle('地震情報')
         .setDescription(sentences.join('\n'))
         .setColor(getColorsOfIntensity(maxIntensity))
-        .setTimestamp(dayjs(time).tz().valueOf());
+        .setTimestamp(dayjs.tz(time).valueOf());
 
       /** @type {import('discord.js').MessageCreateOptions} */
       const payload = { embeds: [embed] };
