@@ -178,7 +178,7 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
         .setTitle('地震情報')
         .setDescription(sentences.join('\n'))
         .setColor(getColorsOfIntensity(maxIntensity))
-        .setTimestamp(dayjs.tz(time).valueOf());
+        .setTimestamp(dayjs.tz(time, 'Asia/Tokyo').valueOf());
 
       const payload: MessageCreateOptions = { embeds: [embed] };
 
