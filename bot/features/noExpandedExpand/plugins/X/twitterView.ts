@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import { APIEmbed, AttachmentBuilder, EmbedBuilder } from 'discord.js';
-import puppeteer, { Browser, ElementHandle, Protocol, PuppeteerLaunchOptions, TimeoutError } from 'puppeteer';
+import puppeteer, { Browser, ElementHandle, Protocol, ProtocolError, PuppeteerLaunchOptions, TimeoutError } from 'puppeteer';
 import { dayjs } from '@lib/dayjsSetup';
 import { log } from '@lib/log';
 import { getEnv } from '@lib/util';
@@ -94,7 +94,7 @@ const login = async (browser: Browser): Promise<Protocol.Network.Cookie[]> => {
       await page.close();
     }
     catch (e) {
-      if (e instanceof Error && e.message.startsWith('Protocol error: Connection closed.')) {
+      if (e instanceof ProtocolError || (e instanceof Error && e.message.startsWith('Protocol error:'))) {
         log('twitterView:', 'failed to close page', e.stack ?? `${e.name}: ${e.message}`);
         return [];
       }
@@ -149,7 +149,7 @@ export const hooks: PluginHooks = [
           if (apiUrl.startsWith('https://twitter.com/i/api/') && apiUrl.includes('TweetDetail?')) {
             const [, statusId] = url.match(/\/status\/([0-9]+?)\b/) ?? [];
             if (statusId == null) {
-              log('twitterView:', 'failed to get tweet details', 'no statusId');
+              log(`twitterView[${url}]:`, 'failed to get tweet details', 'no statusId');
               return;
             }
 
@@ -159,7 +159,7 @@ export const hooks: PluginHooks = [
 
             if (Array.isArray(errors)) {
               for (const { name, code, message } of errors) {
-                log('twitterView:', 'failed to get tweet details', `${name}: [${code}] ${message}`);
+                log(`twitterView[${url}]:`, 'failed to get tweet details', `${name}: [${code}] ${message}`);
               }
               return;
             }
@@ -224,7 +224,7 @@ export const hooks: PluginHooks = [
         }
         catch (e) {
           if (e instanceof Error) {
-            log('twitterView:', 'failed to open cookie file', e.stack ?? `${e.name}: ${e.message}`);
+            log(`twitterView[${url}]:`, 'failed to open cookie file', e.stack ?? `${e.name}: ${e.message}`);
           }
           else {
             throw e;
@@ -236,7 +236,7 @@ export const hooks: PluginHooks = [
         const pParsing = (signal: AbortSignal): Promise<TweetInfo> => new Promise((resolve, reject) => {
           const f = () => {
             if (name != null && profileImageUrl != null && tweetBody != null && createdAt != null && likesCount != null && retweetsCount != null) {
-              log('parse TweetDetail is completed');
+              log(`twitterView[${url}]:`, 'parse TweetDetail is completed');
 
               return resolve({
                 user: name,
@@ -265,18 +265,18 @@ export const hooks: PluginHooks = [
             if (signal.aborted) {
               const message = `abort ${pFetching.name} because of ${pParsing.name} is filled`;
               reject(message);
-              log(message);
+              log(`twitterView[${url}]:`, message);
               return true;
             }
             if (page.isClosed()) {
               const message = 'page is closed';
               reject(message);
-              log(message);
+              log(`twitterView[${url}]:`, message);
               return true;
             }
             return false;
           };
-          log('twitterView:', 'try to access', url);
+          log(`twitterView[${url}]:`, 'try to access');
 
           let article: ElementHandle<HTMLElement> | null = null;
 
@@ -291,7 +291,7 @@ export const hooks: PluginHooks = [
 
               if (cookies.length === 0) {
                 reject('failed to login');
-                log('failed to login');
+                log(`twitterView[${url}]:`, 'failed to login');
                 return;
               }
 
@@ -307,19 +307,19 @@ export const hooks: PluginHooks = [
                 if (page.isClosed()) {
                   const message = 'page is closed';
                   reject(message);
-                  log(message);
+                  log(`twitterView[${url}]:`, message);
                 }
               }
             }
             else if (e instanceof Error) {
-              log('twitterView:', 'access failed', e.stack ?? `${e.name}: ${e.message}`);
+              log(`twitterView[${url}]:`, 'access failed', e.stack ?? `${e.name}: ${e.message}`);
               return reject('access failed');
             }
             else {
               throw e;
             }
           }
-          log('twitterView:', 'access succeeded', url);
+          log(`twitterView[${url}]:`, 'access succeeded');
 
           if (rejectIfAborted()) return;
 
@@ -338,7 +338,7 @@ export const hooks: PluginHooks = [
               retweets: await page.evaluate(el => +(el?.textContent?.replaceAll(',', '') ?? 0), await article.$('[href$="/retweets"] [data-testid="app-text-transition-container"]')),
             });
 
-            log('twitterView:', 'scraping processed');
+            log(`twitterView[${url}]:`, 'scraping processed');
           }
           catch {
             if (page.isClosed()) {
@@ -351,7 +351,14 @@ export const hooks: PluginHooks = [
 
         const { id = '' } = url.match(/^https:\/\/(?:mobile\.)?(?:twitter|x)\.com\/(?<id>\w+?)\/status\/\d+?\??/)?.groups ?? {};
         const { user, userPic, tweet, pics, timestamp, likes, retweets, impressions } =
-          await Promise.race([pParsing(ac.signal), pFetching(ac.signal)]).finally(() => ac.abort());
+          await Promise.race([pParsing(ac.signal), pFetching(ac.signal)])
+            .finally(() => ac.abort())
+            .catch(e => {
+              const logItem = e instanceof Error ? (e.stack ?? `${e.name}: ${e.message}`) : e;
+              log(`twitterView[${url}]:`, logItem);
+
+              return { user: '', userPic: '', tweet: '', pics: [], timestamp: '', likes: 0, retweets: 0 } as TweetInfo;
+            });
         const [firstPic, ...restPics] = pics;
 
         const embeds: APIEmbed[] = [];
@@ -377,7 +384,7 @@ export const hooks: PluginHooks = [
           embed.addFields({ name: 'Retweets', value: String(retweets), inline: true });
         }
         if (impressions != null && impressions !== '0') {
-          embed.addFields({ name: 'Impressions', value: impressions, inline: true });
+          embed.addFields({ name: 'Impressions', value: String(impressions), inline: true });
         }
 
         if (firstPic != null) {
@@ -397,7 +404,7 @@ export const hooks: PluginHooks = [
       }
       catch (e) {
         if (e instanceof Error) {
-          log('twitterView:', 'unknown error occurred', e.stack ?? `${e.name}: ${e.message}`);
+          log(`twitterView[${url}]:`, 'unknown error occurred', e.stack ?? `${e.name}: ${e.message}`);
           return { embeds: [], attachments: [] };
         }
         throw e;
