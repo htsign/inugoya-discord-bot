@@ -1,10 +1,10 @@
 import fs from 'node:fs/promises';
 import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
-import puppeteer, { Browser, ElementHandle, ProtocolError, TimeoutError } from 'puppeteer';
+import { Browser, ElementHandle, TimeoutError } from 'puppeteer';
 import dayjs from '../../../../lib/dayjsSetup.js';
 import { log } from '../../../../lib/log.js';
 import { getEnv } from '../../../../lib/util.js';
-import { instance as processManager } from '../../../../lib/processManager.js';
+import { closeBrowserIfNoPages, closePage, getBrowser } from '../../../../lib/fakeBrowser/index.js';
 
 const BLOCK_URLS = [
   'https://abs-0.twimg.com/',
@@ -14,42 +14,6 @@ const BLOCK_URLS = [
 ];
 
 const ARTICLE_SELECTOR = 'article[data-testid="tweet"]';
-
-/** @type {Browser | null} */
-let browser = null;
-
-/**
- * @returns {Promise<import('puppeteer').PuppeteerLaunchOptions>}
- */
-const getLaunchOptions = async () => {
-  try {
-    const { default: options } = /** @type {{ default: import('puppeteer').PuppeteerLaunchOptions }} */ (await import(
-      // @ts-ignore
-      '../../../noExpandedExpand/plugins/X/launchOptions.json',
-      { assert: { type: 'json' } },
-    ));
-    return options;
-  }
-  catch (e) {
-    if (e instanceof Error && 'code' in e && e.code === 'ERR_MODULE_NOT_FOUND') {
-      log(`twitterView#${getLaunchOptions.name}:`, 'failed to load launchOptions.json');
-      return { headless: 'new' };
-    }
-    throw e;
-  }
-};
-
-/**
- * @returns {Promise<Browser>}
- */
-const initialize = async () => {
-  const launchOptions = await getLaunchOptions();
-  const browser = await puppeteer.launch(launchOptions);
-
-  processManager.add(browser.process());
-
-  return browser;
-};
 
 /**
  * @param {Browser} browser
@@ -106,15 +70,8 @@ const login = async browser => {
     return [];
   }
   finally {
-    try {
-      await page.close();
-    }
-    catch (e) {
-      if (e instanceof ProtocolError || (e instanceof Error && e.message.startsWith('Protocol error:'))) {
-        log('twitterView:', 'failed to close page', e.stack ?? `${e.name}: ${e.message}`);
-        return [];
-      }
-      throw e;
+    if (!await closePage(page)) {
+      return [];
     }
   }
 };
@@ -126,7 +83,7 @@ export const hooks = [
     async url => {
       log('twitterView:', 'urls detected', url);
 
-      browser ??= await initialize();
+      const browser = await getBrowser();
       const page = await browser.newPage();
       await page.setRequestInterception(true);
 
@@ -317,7 +274,7 @@ export const hooks = [
             if (rejectIfAborted()) return;
 
             if (e instanceof TimeoutError) {
-              const cookies = await login(browser ??= await initialize());
+              const cookies = await login(browser);
 
               if (cookies.length === 0) {
                 reject('failed to login');
@@ -450,12 +407,8 @@ export const hooks = [
         throw e;
       }
       finally {
-        await page.close();
-
-        if ((await browser.pages()).length === 0) {
-          await browser.close();
-          browser = null;
-        }
+        await closePage(page);
+        await closeBrowserIfNoPages();
       }
     }
   ],
