@@ -4,6 +4,7 @@ import puppeteer, { Browser, ElementHandle, ProtocolError, TimeoutError } from '
 import dayjs from '../../../../lib/dayjsSetup.js';
 import { log } from '../../../../lib/log.js';
 import { getEnv } from '../../../../lib/util.js';
+import { instance as processManager } from '../../../../lib/processManager.js';
 
 const BLOCK_URLS = [
   'https://abs-0.twimg.com/',
@@ -13,6 +14,9 @@ const BLOCK_URLS = [
 ];
 
 const ARTICLE_SELECTOR = 'article[data-testid="tweet"]';
+
+/** @type {Browser | null} */
+let browser = null;
 
 /**
  * @returns {Promise<import('puppeteer').PuppeteerLaunchOptions>}
@@ -40,7 +44,11 @@ const getLaunchOptions = async () => {
  */
 const initialize = async () => {
   const launchOptions = await getLaunchOptions();
-  return await puppeteer.launch(launchOptions);
+  const browser = await puppeteer.launch(launchOptions);
+
+  processManager.add(browser.process());
+
+  return browser;
 };
 
 /**
@@ -118,7 +126,7 @@ export const hooks = [
     async url => {
       log('twitterView:', 'urls detected', url);
 
-      const browser = await initialize();
+      browser ??= await initialize();
       const page = await browser.newPage();
       await page.setRequestInterception(true);
 
@@ -309,7 +317,7 @@ export const hooks = [
             if (rejectIfAborted()) return;
 
             if (e instanceof TimeoutError) {
-              const cookies = await login(browser);
+              const cookies = await login(browser ??= await initialize());
 
               if (cookies.length === 0) {
                 reject('failed to login');
@@ -443,7 +451,11 @@ export const hooks = [
       }
       finally {
         await page.close();
-        await browser.close();
+
+        if ((await browser.pages()).length === 0) {
+          await browser.close();
+          browser = null;
+        }
       }
     }
   ],

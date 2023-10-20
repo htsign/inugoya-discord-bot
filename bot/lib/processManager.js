@@ -5,11 +5,11 @@ class ProcessManager {
   #processes = new Set();
 
   /**
-   * @param {ChildProcess} process
+   * @param {ChildProcess | null} process
    * @returns {boolean}
    */
   add(process) {
-    if (this.#processes.has(process)) {
+    if (process == null || this.#processes.has(process)) {
       return false;
     }
     this.#processes.add(process);
@@ -18,8 +18,9 @@ class ProcessManager {
 
   killAll() {
     for (const process of this.#processes) {
-      process.kill();
+      process?.kill();
     }
+    this.#processes.clear();
   }
 }
 
