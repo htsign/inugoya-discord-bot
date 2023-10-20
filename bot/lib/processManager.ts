@@ -3,8 +3,8 @@ import { ChildProcess } from 'node:child_process';
 class ProcessManager {
   #processes = new Set<ChildProcess>();
 
-  add(process: ChildProcess): boolean {
-    if (this.#processes.has(process)) {
+  add(process: ChildProcess | null): boolean {
+    if (process == null || this.#processes.has(process)) {
       return false;
     }
     this.#processes.add(process);
@@ -13,8 +13,9 @@ class ProcessManager {
 
   killAll() {
     for (const process of this.#processes) {
-      process.kill();
+      process?.kill();
     }
+    this.#processes.clear();
   }
 }
 

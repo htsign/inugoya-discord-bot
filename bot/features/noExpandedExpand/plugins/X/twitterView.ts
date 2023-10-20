@@ -4,6 +4,7 @@ import puppeteer, { Browser, ElementHandle, Protocol, ProtocolError, PuppeteerLa
 import { dayjs } from '@lib/dayjsSetup';
 import { log } from '@lib/log';
 import { getEnv } from '@lib/util';
+import { instance as processManager } from '@lib/processManager';
 import type { PluginHooks } from 'types/bot/features/noExpandedExpand';
 import type { TweetDetail, TweetInfo } from 'types/bot/features/noExpandedExpand/twitterView';
 
@@ -15,6 +16,8 @@ const BLOCK_URLS = [
 ];
 
 const ARTICLE_SELECTOR = 'article[data-testid="tweet"]';
+
+let browser: Browser | null = null;
 
 const getLaunchOptions = async (): Promise<PuppeteerLaunchOptions> => {
   try {
@@ -36,7 +39,11 @@ const getLaunchOptions = async (): Promise<PuppeteerLaunchOptions> => {
 
 const initialize = async (): Promise<Browser> => {
   const launchOptions = await getLaunchOptions();
-  return await puppeteer.launch(launchOptions);
+  const browser = await puppeteer.launch(launchOptions);
+
+  processManager.add(browser.process());
+
+  return browser;
 };
 
 const login = async (browser: Browser): Promise<Protocol.Network.Cookie[]> => {
@@ -109,7 +116,7 @@ export const hooks: PluginHooks = [
     async url => {
       log('twitterView:', 'urls detected', url);
 
-      const browser = await initialize();
+      browser ??= await initialize();
       const page = await browser.newPage();
       await page.setRequestInterception(true);
 
@@ -287,7 +294,7 @@ export const hooks: PluginHooks = [
             if (rejectIfAborted()) return;
 
             if (e instanceof TimeoutError) {
-              const cookies = await login(browser);
+              const cookies = await login(browser ??= await initialize());
 
               if (cookies.length === 0) {
                 reject('failed to login');
@@ -411,7 +418,11 @@ export const hooks: PluginHooks = [
       }
       finally {
         await page.close();
-        await browser.close();
+
+        if ((await browser.pages()).length === 0) {
+          await browser.close();
+          browser = null;
+        }
       }
     }
   ],
