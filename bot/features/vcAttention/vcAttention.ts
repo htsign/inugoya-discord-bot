@@ -14,7 +14,7 @@ addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
   const configRecord = db.get(newState.guild.id);
   if (configRecord == null) return;
 
-  const { guildName, channelName, threshold } = configRecord;
+  const { guildName, channelId, channelName, threshold } = configRecord;
 
   const { channelId: oldChannelId } = oldState;
   const { channelId: newChannelId } = newState;
@@ -28,7 +28,7 @@ addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
 
     if (membersCount >= threshold) {
       const isTargetChannel =
-        (channel: Channel): channel is TextChannel => channel.type === ChannelType.GuildText && channel.name === channelName;
+        (channel: Channel): channel is TextChannel => channel.type === ChannelType.GuildText && channel.id === channelId;
 
       if (!thrivingVoiceChannels.has(getId(newState))) {
         let targetChannel: TextChannel | undefined;

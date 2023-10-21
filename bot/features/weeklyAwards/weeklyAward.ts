@@ -79,6 +79,7 @@ addHandler(Events.MessageReactionRemove, async (reaction, user) => {
 const tick = async (
   guildId: string,
   guildName: string,
+  channelId: string,
   channelName: string,
   showsRankCount: number,
   minReacted: number,
@@ -92,7 +93,7 @@ const tick = async (
     log('WeeklyAward: report initiated', guildName);
 
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
-    const channel = guild.channels?.cache?.find(channel => channel.name === channelName);
+    const channel = guild.channels?.cache?.find(channel => channel.id === channelId);
 
     if (channel?.type === ChannelType.GuildText) {
       // remove messages sent over a week ago
@@ -226,12 +227,18 @@ const tick = async (
     log(guildName, 'WeeklyAward: report finished');
 
     // run again almost next week.
-    const timeout = setTimeout(() => tick(guildId, guildName, channelName, showsRankCount, minReacted, weekday, hour, minute), 86400 * 1000 * 6.9);
+    const timeout = setTimeout(
+      () => tick(guildId, guildName, channelId, channelName, showsRankCount, minReacted, weekday, hour, minute),
+      86400 * 1000 * 6.9,
+    );
     instances.set(guildId, timeout);
   }
   // or else, after 1 sec.
   else {
-    const timeout = setTimeout(() => tick(guildId, guildName, channelName, showsRankCount, minReacted, weekday, hour, minute), 1000);
+    const timeout = setTimeout(
+      () => tick(guildId, guildName, channelId, channelName, showsRankCount, minReacted, weekday, hour, minute),
+      1000,
+    );
     instances.set(guildId, timeout);
   }
 };
@@ -243,7 +250,7 @@ export const startAward = async (guildId: string): Promise<void> => {
     return log(`startAward: ${{ guildId }} is not registered.`);
   }
 
-  const { guildName, channelName, showsRankCount, minReacted, createdAt, updatedAt } = configRecord;
+  const { guildName, channelId, channelName, showsRankCount, minReacted, createdAt, updatedAt } = configRecord;
   const { weekday, hour, minute } = timeRecord;
   log('startAward:', {
     ...configRecord,
@@ -254,7 +261,7 @@ export const startAward = async (guildId: string): Promise<void> => {
   if (instances.has(guildId)) {
     await stopAward(guildId);
   }
-  return tick(guildId, guildName, channelName, showsRankCount, minReacted, weekday, hour, minute);
+  return tick(guildId, guildName, channelId, channelName, showsRankCount, minReacted, weekday, hour, minute);
 };
 
 export const stopAward = async (guildId: string): Promise<void> => {
