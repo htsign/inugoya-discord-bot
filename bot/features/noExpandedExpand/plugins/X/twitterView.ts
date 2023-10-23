@@ -97,11 +97,13 @@ export const hooks: PluginHooks = [
             .reduce((acc, [entity, sym]) => acc.replaceAll(`&${entity};`, sym), html)
             .replaceAll('<br>', '\n')
             .replace(/<a href="(https?:\/\/)([^"]+?)">(.*?)<\/a>/g, (_, scheme, url, text) => {
-              // replace to plain text if url is a hashtag
-              if (url.startsWith('twitter.com/hashtag/')) return text;
-
               // replace to empty text if text is an image link
               if (text.startsWith('<img src=')) return '';
+
+              // replace to hashtag link if url is a hashtag
+              if (url.startsWith('twitter.com/hashtag/')) {
+                return `[${text}](${scheme}${url})`;
+              }
 
               // replace to mention if url is a user
               if (text.startsWith('@') && url === `twitter.com/${text.slice(1)}`) {
@@ -110,6 +112,7 @@ export const hooks: PluginHooks = [
 
               return `[${url}](${scheme}${url})`;
             })
+            .replace(/(?<!\[)#(.+?)(?=[\s#])/g, `[$1](https://twitter.com/hashtag/$1)`)
             .replace(/<img src="[^"]+?"\/>/g, '');
           embed.setDescription(text);
         }
