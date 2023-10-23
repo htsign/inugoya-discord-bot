@@ -82,7 +82,7 @@ export const hooks: PluginHooks = [
           log(`twitterView[${url}]:`, `tweet not found at ${statusId}`);
           return { embeds: [], attachments: [] };
         }
-        const { username, name, html, photos, timeParsed, likes, retweets, views } = tweet;
+        const { username, name, html, photos, videos, timeParsed, likes, retweets, views } = tweet;
 
         const embed = new EmbedBuilder({ url });
         embed.setColor(0x1d9bf0);
@@ -126,9 +126,9 @@ export const hooks: PluginHooks = [
           embed.addFields({ name: 'Impressions', value: String(views), inline: true });
         }
 
-        const [firstPic, ...restPics] = photos ?? [];
+        const [firstPic, ...restPics] = [...photos.map(x => x.url), ...videos.map(x => x.preview)];
         if (firstPic != null) {
-          embed.setImage(firstPic.url);
+          embed.setImage(firstPic);
         }
 
         const embeds: APIEmbed[] = [];
@@ -139,7 +139,7 @@ export const hooks: PluginHooks = [
 
         for (const pic of restPics) {
           const embed = new EmbedBuilder({ url });
-          embed.setImage(pic.url);
+          embed.setImage(pic);
           embeds.push(embed.toJSON());
         }
 
