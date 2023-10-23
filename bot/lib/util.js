@@ -13,7 +13,7 @@ const configOutput = dotenv.config();
  * @param {string=} [name='token']
  * @returns {string}
  */
-export const getEnv = (key, name = 'token') => {
+export const getEnv = (key, name = key) => {
   const token = configOutput.parsed?.[key] ?? process.env[key];
   if (token == null) {
     throw new Error(`${name} is empty`);
