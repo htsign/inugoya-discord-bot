@@ -2,6 +2,7 @@
   "main": "index.js",
   "type": "module",
   "dependencies": {
+    "@the-convocation/twitter-scraper": "^0.8.1",
     "better-sqlite3": "^8.5.1",
     "chardet": "^1.6.0",
     "dayjs": "1.11.9",
