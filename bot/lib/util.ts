@@ -7,7 +7,7 @@ import type { Url } from 'types';
 export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
 export const DATETIME_FORMAT = 'YYYY/MM/DD HH:mm:ss';
 
-export const getEnv = (key: string, name: string = 'token'): string => {
+export const getEnv = (key: string, name: string = key): string => {
   const token = process.env[key];
   if (token == null) {
     throw new Error(`${name} is empty`);
