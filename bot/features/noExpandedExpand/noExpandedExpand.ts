@@ -63,7 +63,9 @@ addHandler(Events.MessageCreate, async message => {
     const { default: ignoringUrls } = await import('./ignoringUrls.json', { assert: { type: 'json' } });
     const targetUrls = urls
       .filter(url => !embedUrls.includes(url))
-      .filter(url => !ignoringUrls.some(ignoringUrl => url.startsWith(ignoringUrl)));
+      .filter(url => !ignoringUrls.some(ignoringUrl => url.startsWith(ignoringUrl)))
+      .map(url => url.endsWith('||') ? url.slice(0, -'||'.length) : url) // remove tailed '||' if exists
+      ;
 
     if (targetUrls.length > 0) {
       log('noExpandedExpand:', 'start expanding process', targetUrls);
