@@ -155,7 +155,12 @@ export const hooks = [
                 if (entries == null) continue;
 
                 const tweet = [...entries].find(x => x.entryId === `tweet-${statusId}`);
-                const { core, views, legacy: tweetDetails } = tweet?.content?.itemContent?.tweet_results?.result ?? {};
+
+                let { result } = tweet?.content?.itemContent?.tweet_results ?? {};
+                if ('tweet' in result) {
+                  result = result.tweet;
+                }
+                const { core, views, legacy: tweetDetails } = result;
 
                 if (core != null) {
                   const { legacy: userDetails } = core.user_results?.result ?? {};
