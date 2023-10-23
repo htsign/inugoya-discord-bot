@@ -63,7 +63,7 @@ export const closeBrowserIfNoPages = async () => {
   if (browser == null) return;
 
   const pages = await browser.pages();
-  if (pages.length === 0) {
+  if (pages.length === 1) {
     await browser.close();
     browser = null;
   }
