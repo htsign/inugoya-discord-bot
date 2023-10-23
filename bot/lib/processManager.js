@@ -18,7 +18,10 @@ class ProcessManager {
 
   killAll() {
     for (const process of this.#processes) {
-      process?.kill();
+      if (process == null) continue;
+
+      process.kill();
+      console.log(`kill [${process.pid}] ${process.spawnfile} ${process.spawnargs.join(' ')}`);
     }
     this.#processes.clear();
   }

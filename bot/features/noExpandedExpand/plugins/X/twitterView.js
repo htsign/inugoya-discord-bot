@@ -16,11 +16,12 @@ const BLOCK_URLS = [
 const ARTICLE_SELECTOR = 'article[data-testid="tweet"]';
 
 /**
+ * @param {string} label
  * @param {Browser} browser
  * @returns {Promise<import('puppeteer').Protocol.Network.Cookie[]>}
  */
-const login = async browser => {
-  log(`twitterView#${login.name}:`, 'try to login');
+const login = async (label, browser) => {
+  log(`twitterView#${login.name}[${label}]:`, 'try to login');
 
   const page = await browser.newPage();
 
@@ -30,7 +31,7 @@ const login = async browser => {
     // type username
     const usernameInput = await page.waitForSelector('input[autocomplete="username"]');
     if (usernameInput == null) {
-      log(`twitterView#${login.name}:`, 'failed to find username input');
+      log(`twitterView#${login.name}[${label}]:`, 'failed to find username input');
       await page.close();
       return [];
     }
@@ -40,7 +41,7 @@ const login = async browser => {
     // type password
     const passwordInput = await page.waitForSelector('input[autocomplete="current-password"]');
     if (passwordInput == null) {
-      log(`twitterView#${login.name}:`, 'failed to find password input');
+      log(`twitterView#${login.name}[${label}]:`, 'failed to find password input');
       await page.close();
       return [];
     }
@@ -49,7 +50,7 @@ const login = async browser => {
 
     await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
 
-    log(`twitterView#${login.name}:`, 'login success');
+    log(`twitterView#${login.name}[${label}]:`, 'login success');
 
     // save cookies
     const cookies = await page.cookies();
@@ -59,18 +60,18 @@ const login = async browser => {
   }
   catch (e) {
     if (e instanceof TimeoutError) {
-      log(`twitterView#${login.name}:`, 'login timeout');
+      log(`twitterView#${login.name}[${label}]:`, 'login timed out');
     }
     else if (e instanceof Error) {
-      log(`twitterView#${login.name}:`, 'login failed', e.stack ?? `${e.name}: ${e.message}`);
+      log(`twitterView#${login.name}[${label}]:`, 'login failed', e.stack ?? `${e.name}: ${e.message}`);
     }
     else {
-      log(`twitterView#${login.name}:`, 'login failed', e);
+      log(`twitterView#${login.name}[${label}]:`, 'login failed', e);
     }
     return [];
   }
   finally {
-    if (!await closePage(page)) {
+    if (!await closePage(label, page)) {
       return [];
     }
   }
@@ -279,7 +280,7 @@ export const hooks = [
             if (rejectIfAborted()) return;
 
             if (e instanceof TimeoutError) {
-              const cookies = await login(browser);
+              const cookies = await login(url, browser);
 
               if (cookies.length === 0) {
                 reject('failed to login');
@@ -412,8 +413,8 @@ export const hooks = [
         throw e;
       }
       finally {
-        await closePage(page);
-        await closeBrowserIfNoPages();
+        await closePage(url, page);
+        await closeBrowserIfNoPages(url);
       }
     }
   ],

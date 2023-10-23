@@ -13,6 +13,7 @@ import './bot/features/discordUrlExpand/index.js';
 import { instance as processManager } from './bot/lib/processManager.js';
 
 process.on('SIGINT', () => {
+  console.log('SIGINT received');
   processManager.killAll();
   process.exit();
 });

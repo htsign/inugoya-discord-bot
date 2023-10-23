@@ -112,6 +112,8 @@ addHandler(Events.MessageCreate, async message => {
       let replied;
 
       try {
+        log('noExpandedExpand:', 'try to reply', embeds);
+
         const content = 'URL が展開されてないみたいだからこっちで付けとくね';
         replied = await message.reply({ content, embeds, files });
       }
