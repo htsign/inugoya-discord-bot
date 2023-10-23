@@ -1,6 +1,7 @@
 {
   "main": "index.js",
   "dependencies": {
+    "@the-convocation/twitter-scraper": "^0.8.1",
     "chardet": "^1.6.0",
     "dayjs": "1.11.9",
     "discord.js": "^14.13.0",
