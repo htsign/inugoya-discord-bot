@@ -116,10 +116,10 @@ export const hooks: PluginHooks = [
         if (timeParsed != null) {
           embed.setTimestamp(timeParsed);
         }
-        if (likes !== 0) {
+        if (likes != null && likes !== 0) {
           embed.addFields({ name: 'Likes', value: String(likes), inline: true });
         }
-        if (retweets !== 0) {
+        if (retweets != null && retweets !== 0) {
           embed.addFields({ name: 'Retweets', value: String(retweets), inline: true });
         }
         if (views != null && views !== 0) {
