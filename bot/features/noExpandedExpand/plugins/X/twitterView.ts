@@ -108,7 +108,7 @@ export const hooks: PluginHooks = [
                 return `[${text}](${scheme}${url})`;
               }
 
-              return `[${url}}](${scheme}${url})`;
+              return `[${url}](${scheme}${url})`;
             })
             .replace(/<img src="[^"]+?"\/>/g, '');
           embed.setDescription(text);
