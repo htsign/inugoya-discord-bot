@@ -58,21 +58,26 @@ class LaunchedConfig {
         channel_id,
         channel_name
       ) values (
-        @guildId,
-        @guildName,
-        @channelId,
-        @channelName
+        $guildId,
+        $guildName,
+        $channelId,
+        $channelName
       )
       on conflict (guild_id) do
         update set
-          guild_name = @guildName,
-          channel_id = @channelId,
-          channel_name = @channelName,
+          guild_name = $guildName,
+          channel_id = $channelId,
+          channel_name = $channelName,
           updated_at = datetime('now')
     `);
 
     try {
-      stmt.run({ guildId, guildName, channelId, channelName });
+      stmt.run({
+        $guildId: guildId,
+        $guildName: guildName,
+        $channelId: channelId,
+        $channelName: channelName,
+      });
     }
     catch (e) {
       if (e instanceof TypeError && e.message.includes('database connection is busy')) {
