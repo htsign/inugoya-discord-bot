@@ -87,7 +87,7 @@ export const hooks = [
           log(`twitterView[${url}]:`, `tweet not found at ${statusId}`);
           return { embeds: [], attachments: [] };
         }
-        const { username, name, html, photos, videos, timeParsed, likes, retweets, views } = tweet;
+        const { username, name, html, photos, videos, timeParsed, likes, retweets, views, quotedStatus } = tweet;
 
         const embed = new EmbedBuilder({ url });
         embed.setColor(0x1d9bf0);
@@ -147,6 +147,10 @@ export const hooks = [
         embeds.push(embed.toJSON());
         attachments.push(new AttachmentBuilder(await fs.readFile('./assets/logo/twitter_24x24.png'), { name: 'logo.png' }));
 
+        if (quotedStatus != null) {
+          const { photos, videos } = quotedStatus;
+          restPics.push(...photos.map(x => x.url), ...videos.map(x => x.preview));
+        }
         for (const pic of restPics) {
           const embed = new EmbedBuilder({ url });
           embed.setImage(pic);
