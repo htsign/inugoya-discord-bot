@@ -189,6 +189,11 @@ export const hooks: PluginHooks = [
   [
     /.+/,
     async function core(url, index) {
+      if (!isUrl(url)) {
+        log(`noExpandedExpand#${core.name}:`, url, 'is not a url');
+        return { embeds: [], attachments: [] };
+      }
+
       try {
         const attachments: AttachmentBuilder[] = []
 
