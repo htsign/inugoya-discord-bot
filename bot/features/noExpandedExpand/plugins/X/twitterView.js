@@ -17,9 +17,10 @@ const HTML_ENTITIES = Object.freeze({
 /**
  * @param {string} label
  * @param {Scraper} scraper
+ * @param {number} retryCount
  * @returns {Promise<void>}
  */
-const login = async (label, scraper) => {
+const login = async (label, scraper, retryCount = 3) => {
   const saveNewCookies = async () => {
     try {
       log(`twitterView#${login.name}[${label}]:`, 'try to login');
@@ -58,8 +59,11 @@ const login = async (label, scraper) => {
     if (e instanceof Error) {
       log(`twitterView#${login.name}[${label}]:`, 'failed to read cookies', e.stack ?? `${e.name}: ${e.message}`);
 
-      await saveNewCookies();
-      return await login(label, scraper);
+      if (retryCount > 1) {
+        await saveNewCookies();
+        return await login(label, scraper, retryCount - 1);
+      }
+      return log(`twitterView#${login.name}[${label}]:`, 'failed to login');
     }
     throw e;
   }
