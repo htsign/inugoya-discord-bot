@@ -2,6 +2,7 @@ import dns from 'node:dns';
 dns.setDefaultResultOrder('ipv4first');
 
 import './bot/features/commands';
+import './bot/features/launched';
 import './bot/features/hage';
 import './bot/features/weeklyAwards';
 import './bot/features/noExpandedExpand';

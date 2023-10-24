@@ -3,6 +3,7 @@ import { addHandler } from 'bot/listeners';
 import { log } from '@lib/log';
 import type { ChatInputCommandCollection } from 'types/bot'
 
+import { commands as launchedCommands } from './launched/commands';
 import { commands as hageCommands } from './hage/commands';
 import { commands as shortenUrlCommands } from './shortenUrl/commands';
 import { commands as weeklyAwardsCommands } from './weeklyAwards/commands';
@@ -11,6 +12,7 @@ import { commands as regionalIndicatorsCommands } from './regionalIndicators/com
 import { commands as vcAttentionCommands } from './vcAttention/commands';
 
 const commands: ChatInputCommandCollection<any, {}> = {
+  ...launchedCommands,
   ...hageCommands,
   ...shortenUrlCommands,
   ...weeklyAwardsCommands,
