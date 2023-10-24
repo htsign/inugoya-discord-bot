@@ -234,6 +234,11 @@ export const hooks = [
   [
     /.+/,
     async function core(url, index) {
+      if (!isUrl(url)) {
+        log(`noExpandedExpand#${core.name}:`, url, 'is not a url');
+        return { embeds: [], attachments: [] };
+      }
+
       try {
         /** @type {AttachmentBuilder[]} */
         const attachments = []
