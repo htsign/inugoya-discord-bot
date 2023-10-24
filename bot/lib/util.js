@@ -78,6 +78,16 @@ export const urlsOfText = text => {
  * @returns {Promise<Document>}
  */
 export const urlToDocument = async url => {
+  /** @type {HeadersInit} */
+  const headers = {
+    'Accept': '*/*',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept-Language': 'ja,en-US;en;q=0.3',
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/118.0',
+  };
+
   /**
    * @param {string} url
    * @returns {Promise<Response>}
@@ -85,7 +95,7 @@ export const urlToDocument = async url => {
   const _fetch = async url => {
     for (let tryCount = 0; tryCount < 3; tryCount++) {
       try {
-        return await fetch(url);
+        return await fetch(url, { headers });
       }
       catch {
         delay(1000);
