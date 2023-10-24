@@ -56,7 +56,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
   },
   unregister: {
     description: '登録を解除します。',
-    async func(interaction: ChatInputCommandInteraction<'cached' | 'raw'>) {
+    async func(interaction: ChatInputCommandInteraction<'cached' | 'raw'>): Promise<void> {
       const guildId = interaction.guildId;
       const guildName = interaction.guild?.name;
 
@@ -75,7 +75,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
   },
   status: {
     description: '現在のこのサーバーの登録状況を確認します。',
-    async func(interaction) {
+    async func(interaction: ChatInputCommandInteraction<'cached' | 'raw'>): Promise<void> {
       const { guildId, guild } = interaction;
       const guildName = guild?.name;
 
