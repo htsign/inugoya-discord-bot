@@ -2,6 +2,7 @@ import { setDefaultResultOrder } from 'node:dns';
 setDefaultResultOrder('ipv4first');
 
 import './bot/features/commands.js';
+import './bot/features/launched/index.js';
 import './bot/features/hage/index.js';
 import './bot/features/weeklyAwards/index.js';
 import './bot/features/earthquake/index.js';

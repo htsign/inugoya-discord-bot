@@ -2,6 +2,7 @@ import { Events } from 'discord.js';
 import { addHandler } from '../listeners.js';
 import { log } from '../lib/log.js';
 
+import { commands as launchedCommands } from './launched/commands.js';
 import { commands as hageCommands } from './hage/commands.js';
 import { commands as shortenUrlCommands } from './shortenUrl/commands.js';
 import { commands as weeklyAwardsCommands } from './weeklyAwards/commands.js';
@@ -11,6 +12,7 @@ import { commands as vcAttentionCommands } from './vcAttention/commands.js';
 
 /** @type {import('types/bot').ChatInputCommandCollection<any, {}>} */
 const commands = {
+  ...launchedCommands,
   ...hageCommands,
   ...shortenUrlCommands,
   ...weeklyAwardsCommands,
