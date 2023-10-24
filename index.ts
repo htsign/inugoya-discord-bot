@@ -5,6 +5,7 @@ import './bot/features/commands';
 import './bot/features/launched';
 import './bot/features/hage';
 import './bot/features/weeklyAwards';
+import './bot/features/earthquake';
 import './bot/features/noExpandedExpand';
 import './bot/features/vcAttention';
 import './bot/features/shortenUrl';
