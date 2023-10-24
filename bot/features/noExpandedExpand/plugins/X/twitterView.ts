@@ -112,7 +112,7 @@ export const hooks: PluginHooks = [
 
               return `[${url}](${scheme}${url})`;
             })
-            .replace(/(?<!\[)#(.+?)(?=[\s#])/g, `[$1](https://twitter.com/hashtag/$1)`)
+            .replace(/(?<!\[)#(.+?)(?=[\s#])/g, `[#$1](https://twitter.com/hashtag/$1)`)
             .replace(/<img src="[^"]+?"\/>/g, '');
           embed.setDescription(text);
         }
