@@ -51,10 +51,19 @@ export const urlsOfText = (text: string): Url[] => {
 };
 
 export const urlToDocument = async (url: string): Promise<Document> => {
+  const headers: HeadersInit = {
+    'Accept': '*/*',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept-Language': 'ja,en-US;en;q=0.3',
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/118.0',
+  };
+
   const _fetch = async (url: string): Promise<Response> => {
     for (let tryCount = 0; tryCount < 3; tryCount++) {
       try {
-        return await fetch(url);
+        return await fetch(url, { headers });
       }
       catch {
         delay(1000);
