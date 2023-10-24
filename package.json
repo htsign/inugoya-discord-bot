@@ -3,19 +3,19 @@
   "type": "module",
   "dependencies": {
     "@the-convocation/twitter-scraper": "^0.8.1",
-    "better-sqlite3": "^8.5.1",
-    "chardet": "^1.6.0",
-    "dayjs": "1.11.9",
+    "better-sqlite3": "^9.0.0",
+    "chardet": "^2.0.0",
+    "dayjs": "1.11.10",
     "discord.js": "^14.13.0",
     "dotenv": "^16.3.1",
-    "emoji-regex": "^10.2.1",
+    "emoji-regex": "^10.3.0",
     "fast-average-color-node": "^2.6.0",
     "icojs": "^0.17.1",
     "jsdom": "^22.1.0",
     "mersenne-twister": "^1.1.0",
-    "puppeteer": "^21.1.0",
+    "puppeteer": "^21.4.1",
     "runes2": "^1.1.2",
-    "ws": "^8.13.0"
+    "ws": "^8.14.2"
   },
   "devDependencies": {
     "ts-array-length": "^0.1.2"
