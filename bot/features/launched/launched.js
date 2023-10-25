@@ -12,7 +12,9 @@ addHandler(Events.ClientReady, async client => {
       let guild;
       try {
         guild = await client.guilds.fetch(guildId);
-        channel.send('お散歩から帰宅しました。');
+
+        await channel.send('🐕️ おさんぽからきたくしたよ！');
+        log('launched:', `sent message to ${guild.name}/${channel.name}`);
       }
       catch (e) {
         if (e instanceof Error) {
