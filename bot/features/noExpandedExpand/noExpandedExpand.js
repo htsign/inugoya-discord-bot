@@ -60,7 +60,7 @@ addHandler(Events.MessageCreate, async message => {
   targetMessages.add(message);
   await setTimeout(THRESHOLD_DELAY);
 
-  const urls = urlsOfText(content);
+  const urls = urlsOfText(content.replace(/\|\|[^\|]+?\|\|/g, '')); // remove spoiled text
   if (targetMessages.has(message) && message.embeds.length < urls.length) {
     const embedUrls = message.embeds
       .map(embed => embed.url)
