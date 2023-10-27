@@ -2,6 +2,8 @@ import fs from 'node:fs/promises';
 import { dayjs } from './dayjsSetup';
 
 const formatter = (value: unknown): string => {
+  const set = new WeakSet<{}>();
+
   const core = (value: unknown, inner: boolean, depth: number): string => {
     if (value == null) return 'null';
 
@@ -13,6 +15,9 @@ const formatter = (value: unknown): string => {
       case 'symbol'  : return `Symbol(${value.description ?? ''})`;
       case 'function': return `function (${value.name})`;
       default /* object */: {
+        if (set.has(value)) return '<Circular>';
+        set.add(value);
+
         if (value instanceof Array) {
           return `[ ${value.map(x => core(x, true, depth + 1)).join(', ')} ]`;
         }
