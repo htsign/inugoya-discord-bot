@@ -6,6 +6,8 @@ import dayjs from './dayjsSetup.js';
  * @returns {string}
  */
 const formatter = value => {
+  const set = new WeakSet();
+
   /**
    * @param {unknown} value
    * @param {boolean} inner
@@ -23,6 +25,9 @@ const formatter = value => {
       case 'symbol'  : return `Symbol(${value.description ?? ''})`;
       case 'function': return `function (${value.name})`;
       default /* object */: {
+        if (set.has(value)) return '<Circular>';
+        set.add(value);
+
         if (value instanceof Array) {
           return `[ ${value.map(x => core(x, true, depth + 1)).join(', ')} ]`;
         }
