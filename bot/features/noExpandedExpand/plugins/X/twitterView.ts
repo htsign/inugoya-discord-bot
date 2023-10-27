@@ -115,7 +115,7 @@ export const hooks: PluginHooks = [
 
               return `[${url}](${scheme}${url})`;
             })
-            .replace(/(?<!\[)#(.+?)(?=[\s#])/g, `[#$1](https://twitter.com/hashtag/$1)`)
+            .replace(/(?<!\[)(?<hash>#|＃)(?<keyword>.+?)(?=[\s#＃])/g, `[$<hash>$<keyword>](https://twitter.com/hashtag/$<keyword>)`)
             .replace(/<img src="[^"]+?"\/>/g, '');
           embed.setDescription(text);
         }
