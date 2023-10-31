@@ -82,11 +82,8 @@ export const hooks = [
         const scraper = new Scraper();
         await login(url, scraper);
 
-        let tweet = await scraper.getTweet(statusId);
+        const tweet = await scraper.getTweet(statusId);
 
-        if (tweet == null) {
-          tweet = await scraper.getTweet(statusId);
-        }
         if (tweet == null) {
           log(`twitterView[${url}]:`, `tweet not found at ${statusId}`);
           return { embeds: [], attachments: [] };
