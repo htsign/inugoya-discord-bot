@@ -99,7 +99,7 @@ export const hooks = [
           embed.setAuthor({ name: `${name} (@${username})`, url: `https://twitter.com/${username}`, iconURL: avatar ?? '' });
         }
         if (html != null) {
-          const text = Object.entries(HTML_ENTITIES)
+          let text = Object.entries(HTML_ENTITIES)
             .reduce((acc, [entity, sym]) => acc.replaceAll(`&${entity};`, sym), html)
             .replaceAll('<br>', '\n')
             .replace(/<a href="(https?:\/\/)([^"]+?)">(.*?)<\/a>/g, (_, scheme, url, text) => {
@@ -117,9 +117,24 @@ export const hooks = [
               }
 
               return `[${url}](${scheme}${url})`;
+            });
+
+          /** @type {[number, number][]} */
+          const innerHashIndices = [];
+          for (const { 0: matched, index = 0 } of text.matchAll(/(?<=\[).+?(?=\])/g)) {
+            innerHashIndices.push([index, index + matched.length - 1]);
+          }
+
+          text = text
+            .replace(/(?<hash>#|＃)(?<keyword>.+?)(?=[\s#＃])/g, (original, hash, keyword, offset) => {
+              // returns original text if '#' is inner of brackets
+              if (innerHashIndices.some(([start, end]) => start <= offset || offset <= end)) {
+                return original;
+              }
+              return `[${hash}${keyword}](https://twitter.com/hashtag/${keyword})`;
             })
-            .replace(/(?<!\[)(?<hash>#|＃)(?<keyword>.+?)(?=[\s#＃])/g, `[$<hash>$<keyword>](https://twitter.com/hashtag/$<keyword>)`)
             .replace(/<img src="[^"]+?"\/>/g, '');
+
           embed.setDescription(text);
         }
         if (timeParsed != null) {
