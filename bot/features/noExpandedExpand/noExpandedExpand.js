@@ -57,6 +57,11 @@ addHandler(Events.MessageCreate, async message => {
   const { author, content, guild, channel } = message;
   if (author.bot) return;
 
+  const sendTo = [
+    guild != null ? [guild.name] : [],
+    'name' in channel ? [channel.name] : [],
+  ].flat().join('/');
+
   targetMessages.add(message);
   await setTimeout(THRESHOLD_DELAY);
 
@@ -73,7 +78,7 @@ addHandler(Events.MessageCreate, async message => {
       ;
 
     if (targetUrls.length > 0) {
-      log('noExpandedExpand:', 'start expanding process', targetUrls);
+      log(`noExpandedExpand[${sendTo}]:`, 'start expanding process', targetUrls);
     }
 
     /** @type {Promise<import('types/bot/features/noExpandedExpand').HookResult>[]} */
@@ -99,27 +104,20 @@ addHandler(Events.MessageCreate, async message => {
     const files = results.flatMap(res => res.attachments);
 
     if (targetMessages.has(message) && embeds.length > 0) {
-      log(
-        [
-          guild != null ? [guild.name] : [],
-          'name' in channel ? [channel.name] : [],
-        ].flat().join('/'),
-        'expand no expanded url:',
-        embeds.map(e => e.url),
-      );
+      log(`expand no expanded url[${sendTo}]:`, embeds.map(e => e.url));
 
       /** @type {import('discord.js').Message<boolean>} */
       let replied;
 
       try {
-        log('noExpandedExpand:', 'try to reply', embeds);
+        log(`noExpandedExpand[${sendTo}]:`, 'try to reply', message.author.username, message.url);
 
         const content = 'URL が展開されてないみたいだからこっちで付けとくね';
         replied = await message.reply({ content, embeds, files });
       }
       catch (e) {
         if (e instanceof Error) {
-          log('noExpandedExpand:', `failed to reply to ${author.username}`, e.stack ?? `${e.name}: ${e.message}`);
+          log(`noExpandedExpand[${sendTo}]:`, `failed to reply to ${author.username}`, e.stack ?? `${e.name}: ${e.message}`);
           return;
         }
         throw e;
@@ -131,14 +129,7 @@ addHandler(Events.MessageCreate, async message => {
         await setTimeout();
 
         if (!targetMessages.has(message) || replied.embeds.every(re => message.embeds.some(me => me.url === re.url))) {
-          log(
-            [
-              guild != null ? [guild.name] : [],
-              'name' in channel ? [channel.name] : [],
-            ].flat().join('/'),
-            'delete expanded url:',
-            embeds.map(e => e.url),
-          );
+          log(`delete expanded url[${sendTo}]:`, embeds.map(e => e.url));
 
           try {
             await replied.delete();
@@ -146,7 +137,7 @@ addHandler(Events.MessageCreate, async message => {
           }
           catch (e) {
             if (e instanceof Error) {
-              log('noExpandedExpand:', `failed to delete replied message`, e.stack ?? `${e.name}: ${e.message}`);
+              log(`noExpandedExpand[${sendTo}]:`, `failed to delete replied message`, e.stack ?? `${e.name}: ${e.message}`);
               break;
             }
             throw e;

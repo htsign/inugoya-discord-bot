@@ -36,7 +36,7 @@ addHandler(Events.MessageReactionAdd, async (reaction, user) => {
   }
   catch (e) {
     if (e instanceof Error) {
-      log('hage:', `failed to fetch message: reacted by ${user.username}`, e.stack ?? `${e.name}: ${e.message}`);
+      log('weeklyAward:', `failed to fetch message: reacted by ${user.username}`, e.stack ?? `${e.name}: ${e.message}`);
       return;
     }
     throw e;
@@ -59,7 +59,7 @@ addHandler(Events.MessageReactionRemove, async (reaction, user) => {
   }
   catch (e) {
     if (e instanceof Error) {
-      log('hage:', `failed to fetch message: react removed by ${user.username}`, e.stack ?? `${e.name}: ${e.message}`);
+      log('weeklyAward:', `failed to fetch message: react removed by ${user.username}`, e.stack ?? `${e.name}: ${e.message}`);
       return;
     }
     throw e;
