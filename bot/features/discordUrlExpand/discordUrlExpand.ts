@@ -22,9 +22,16 @@ const core = async (message: Message, guildId: string, channelId: string, messag
 };
 
 addHandler(Events.MessageCreate, async message => {
-  if (message.author.bot || message.channel.isVoiceBased()) return;
+  const { guild, channel, author, content } = message;
 
-  const regExpIterator = message.content.matchAll(/https:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)\b/g) ?? [];
+  if (author.bot || channel.isVoiceBased()) return;
+
+  const sendTo = [
+    guild != null ? [guild.name] : [],
+    'name' in channel ? [channel.name] : [],
+  ].flat().join('/');
+
+  const regExpIterator = content.matchAll(/https:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)\b/g) ?? [];
 
   const embedPromises: Promise<APIEmbed[]>[] = [];
 
@@ -38,29 +45,18 @@ addHandler(Events.MessageCreate, async message => {
 
   const embeds = (await Promise.all(embedPromises)).flat();
   if (embeds.length > 0) {
-    log(
-      [
-        message.guild != null ? [message.guild.name] : [],
-        'name' in message.channel ? [message.channel.name] : [],
-      ].flat().join('/'),
-      'expand discord urls:',
-      embeds.map(e => e.url),
-    );
+    log(`expand discord urls[${sendTo}]:`, embeds.map(e => e.url));
 
     try {
-      await message.channel.send({ embeds: embeds.splice(0, 10) });
+      await channel.send({ embeds: embeds.splice(0, 10) });
 
       while (embeds.length > 0) {
-        await message.channel.send({ embeds: embeds.splice(0, 10) });
+        await channel.send({ embeds: embeds.splice(0, 10) });
       }
     }
     catch (e) {
       if (e instanceof Error) {
-        const to = [
-          message.guild != null ? [message.guild.name] : [],
-          'name' in message.channel ? [message.channel.name] : [],
-        ].flat().join('/');
-        log('discordUrlExpand:', `failed to send to ${to}`, e.stack ?? `${e.name}: ${e.message}`);
+        log(`discordUrlExpand[${sendTo}]:`, 'failed to send', e.stack ?? `${e.name}: ${e.message}`);
         return;
       }
       throw e;
