@@ -4,6 +4,10 @@ import { log } from '@lib/log';
 import { db } from './db';
 
 addHandler(Events.ClientReady, async client => {
+  if (!!process.env.DISCORD_BOT_RESTART) {
+    return log('launched:', 'do not work because of restart');
+  }
+
   for (const { guildId, channelId } of db.records) {
     const channel = await client.channels.fetch(channelId);
 
