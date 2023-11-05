@@ -121,7 +121,7 @@ export const hooks: PluginHooks = [
           text = text
             .replace(/(?<hash>#|＃)(?<keyword>.+?)(?=[\s#＃])/g, (original, hash, keyword, offset) => {
               // returns original text if '#' is inner of brackets
-              if (innerHashIndices.some(([start, end]) => start <= offset || offset <= end)) {
+              if (innerHashIndices.some(([start, end]) => start <= offset && offset <= end)) {
                 return original;
               }
               return `[${hash}${keyword}](https://twitter.com/hashtag/${keyword})`;
