@@ -130,7 +130,7 @@ export const hooks: PluginHooks = [
             .replace(/<img src="[^"]+?"\/>/g, '');
 
           const ellipsis = '…\n\n（4000文字制限のため以下省略）';
-          if (runes(text).length > 4000 - ellipsis.length) {
+          if (runes(text).length > 4000) {
             text = text.slice(0, 4000 - ellipsis.length) + ellipsis;
           }
 
