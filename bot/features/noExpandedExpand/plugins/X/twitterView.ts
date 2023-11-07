@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import { APIEmbed, AttachmentBuilder, EmbedBuilder } from 'discord.js';
 import { Scraper } from '@the-convocation/twitter-scraper';
 import { Cookie } from 'tough-cookie';
+import { runes } from 'runes2';
 import { log } from '@lib/log';
 import { getEnv } from '@lib/util';
 import type { PluginHooks } from 'types/bot/features/noExpandedExpand';
@@ -127,6 +128,11 @@ export const hooks: PluginHooks = [
               return `[${hash}${keyword}](https://twitter.com/hashtag/${keyword})`;
             })
             .replace(/<img src="[^"]+?"\/>/g, '');
+
+          const ellipsis = '…\n\n（4000文字制限のため以下省略）';
+          if (runes(text).length > 4000 - ellipsis.length) {
+            text = text.slice(0, 4000 - ellipsis.length) + ellipsis;
+          }
 
           embed.setDescription(text);
         }
