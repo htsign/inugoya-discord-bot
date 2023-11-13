@@ -2,7 +2,7 @@ import { URL } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import chardet from 'chardet';
 import { JSDOM } from 'jsdom';
-import type { Url } from 'types';
+import type { Nullable, Url } from 'types';
 
 export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
 export const DATETIME_FORMAT = 'YYYY/MM/DD HH:mm:ss';
@@ -71,10 +71,22 @@ export const urlToDocument = async (url: string): Promise<Document> => {
     }
     return Promise.reject(new Error('failed to fetch'));
   };
+  const charsetFromBuffer = (buffer: ArrayBuffer): Nullable<string> => {
+    const html = new TextDecoder().decode(buffer);
+    const { window: { document } } = new JSDOM(html, { url });
+
+    const getAttr = (selector: string, attr: string): Nullable<string> =>
+      document.querySelector(selector)?.getAttribute(attr);
+
+    return getAttr('meta[charset]', 'charset')
+      ?? getAttr('meta[http-equiv="Content-Type"]', 'content')?.match(/(?<=charset=)[^;]+/i)?.[0]
+  }
+
   const res = await _fetch(url);
   const buffer = await res.arrayBuffer();
   const encoding =
     res.headers.get('Content-Type')?.match(/(?<=charset=)[^;]+/i)?.[0]
+    ?? charsetFromBuffer(buffer)
     ?? chardet.detect(new Uint8Array(buffer))
     ?? 'utf-8';
   const html = new TextDecoder(encoding).decode(buffer);
