@@ -103,10 +103,30 @@ export const urlToDocument = async url => {
     }
     return Promise.reject(new Error('failed to fetch'));
   };
+  /**
+   * @param {ArrayBuffer} buffer
+   * @returns {import('types').Nullable<string>}
+   */
+  const charsetFromBuffer = buffer => {
+    const html = new TextDecoder().decode(buffer);
+    const { window: { document } } = new JSDOM(html, { url });
+
+    /**
+     * @param {string} selector
+     * @param {string} attr
+     * @returns {import('types').Nullable<string>}
+     */
+    const getAttr = (selector, attr) => document.querySelector(selector)?.getAttribute(attr);
+
+    return getAttr('meta[charset]', 'charset')
+      ?? getAttr('meta[http-equiv="Content-Type"]', 'content')?.match(/(?<=charset=)[^;]+/i)?.[0]
+  }
+
   const res = await _fetch(url);
   const buffer = await res.arrayBuffer();
   const encoding =
     res.headers.get('Content-Type')?.match(/(?<=charset=)[^;]+/i)?.[0]
+    ?? charsetFromBuffer(buffer)
     ?? chardet.detect(new Uint8Array(buffer))
     ?? 'utf-8';
   const html = new TextDecoder(encoding).decode(buffer);
