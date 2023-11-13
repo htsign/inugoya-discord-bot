@@ -252,7 +252,7 @@ export const hooks = [
           .setImage(getImage(document));
 
         if (embed.data.title == null && embed.data.description == null) {
-          log( `noExpandedExpand#${core.name}:`, realUrl, 'no title and description');
+          log(`noExpandedExpand#${core.name}:`, realUrl, 'no title and description');
           return { embeds: [], attachments: [] };
         }
 
@@ -297,6 +297,7 @@ export const hooks = [
           /** @type {string?} */
           const availabilityText = (() => {
             switch (availability) {
+              case undefined     : return null;
               case 'in stock'    : return '在庫あり';
               case 'out of stock': return '在庫なし';
               default: {
@@ -312,6 +313,7 @@ export const hooks = [
           /** @type {string?} */
           const conditionText = (() => {
             switch (condition) {
+              case undefined    : return null;
               case 'new'        : return '新品';
               case 'refurbished': return '再販品';
               case 'used'       : return '中古品';
