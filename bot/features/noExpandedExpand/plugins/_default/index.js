@@ -274,7 +274,7 @@ export const hooks = [
               options.url = authorUrl;
             }
 
-            const icon = await getFavicon(realUrl, index);
+            const icon = await getFavicon(realUrl, index ?? 0);
             if (typeof icon === 'string') {
               options.iconURL = icon;
               embed.setColor(await getColorAsInt(icon));
