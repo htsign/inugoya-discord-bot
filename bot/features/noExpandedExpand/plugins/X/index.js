@@ -5,6 +5,7 @@ import { Cookie } from 'tough-cookie';
 import { runes } from 'runes2';
 import { log } from '../../../../lib/log.js';
 import { getEnv } from '../../../../lib/util.js';
+import { retrieveFromVx } from './vsTwitterAPI.js';
 
 const HTML_ENTITIES = Object.freeze({
   'amp': '&',
@@ -86,6 +87,11 @@ export const hooks = [
         const tweet = await scraper.getTweet(statusId);
 
         if (tweet == null) {
+          const fromVx = await retrieveFromVx(url, statusId);
+          if (fromVx.embeds.length > 0) {
+            return fromVx;
+          }
+
           log(`noExpandedExpand#X[${url}]:`, `tweet not found at ${statusId}`);
           return { embeds: [], attachments: [] };
         }
