@@ -6,6 +6,7 @@ import type { Nullable, Url } from 'types';
 
 export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
 export const DATETIME_FORMAT = 'YYYY/MM/DD HH:mm:ss';
+export const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0';
 
 export const getEnv = (key: string, name: string = key): string => {
   const token = process.env[key];
@@ -57,7 +58,7 @@ export const urlToDocument = async (url: string): Promise<Document> => {
     'Accept-Language': 'ja,en-US;en;q=0.3',
     'Cache-Control': 'no-cache',
     'Pragma': 'no-cache',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/118.0',
+    'User-Agent': USER_AGENT,
   };
 
   const _fetch = async (url: string): Promise<Response> => {
