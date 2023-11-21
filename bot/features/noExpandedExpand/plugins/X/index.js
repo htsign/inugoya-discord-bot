@@ -126,9 +126,10 @@ export const hooks = [
               return `[${url}](${scheme}${url})`;
             });
 
+          // record indices for start and end positions of [keyword](url)
           /** @type {[number, number][]} */
           const innerHashIndices = [];
-          for (const { 0: matched, index = 0 } of text.matchAll(/(?<=\[).+?(?=\])/g)) {
+          for (const { 0: matched, index = 0 } of text.matchAll(/(?<=\[).+?\]\(.+?(?=\))/g)) {
             innerHashIndices.push([index, index + matched.length - 1]);
           }
 
