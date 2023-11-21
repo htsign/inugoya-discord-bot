@@ -86,12 +86,20 @@ export const retrieveFromVx = async (url, statusId) => {
       embed.setImage(getMediaImage(media));
       embeds.push(embed.toJSON());
     }
-    // append more media if qrtURL exists
+    // append more images if qrtURL exists
     if (qrtURL != null) {
       const { hooks: [[, hook] = []] } = await import('./index.js');
+
       if (hook != null) {
         const result = await hook(qrtURL);
-        embeds.push(...result.embeds);
+
+        for (const { url: imageUrl } of result.embeds.map(embed => embed.image ?? { url: null })) {
+          if (imageUrl == null) continue;
+
+          const embed = new EmbedBuilder({ url });
+          embed.setImage(imageUrl);
+          embeds.push(embed.toJSON());
+        }
       }
     }
 
