@@ -14,6 +14,20 @@ const mtRnd = new MersenneTwister(mtSeed.unix());
 
 const getId = (message: Message | PartialMessage): `${Snowflake},${Snowflake},${Snowflake}` => `${message.guildId},${message.channelId},${message.id}`;
 
+/**
+ * @todo remove this if fixed it
+ */
+const _emojiToString = (emoji: import('discord.js').Emoji): string => {
+  const emojiString = emoji.toString();
+
+  // do workaround if `emoji.toString()` returns `<:_:xxxxxxxxxxxx>`
+  // bug since: discord.js v14.14.0
+  if (/^<:_:\d+>$/.test(emojiString)) {
+    return `<:${emoji.name}:${emoji.id}>`;
+  }
+  return emojiString;
+}
+
 const replyToHage = (
   guildId: Snowflake,
   messageHandler: (text: string) => Promise<void>,
@@ -52,7 +66,7 @@ const replyToHage = (
 
 export const removeUnregisteredKeywords = async (guild: Guild): Promise<void> => {
   const emojis = guild.emojis.cache ?? await guild.emojis.fetch();
-  const availableEmojiSymbols = emojis.filter(emoji => emoji.available).map(emoji => emoji.toString());
+  const availableEmojiSymbols = emojis.filter(emoji => emoji.available).map(_emojiToString);
 
   const forDeletionKeywords = db.keywords.getRecords(guild.id)
     .map(record => record.keyword)
@@ -131,7 +145,7 @@ addHandler(Events.MessageReactionAdd, async (reaction, user) => {
 
   log([guild.name, channel.name].join('/'), 'reaction incoming:', user.username, reaction.emoji.name);
 
-  if (!reactedMessageIds.has(id) && reactionKeywords.includes(reaction.emoji.toString())) {
+  if (!reactedMessageIds.has(id) && reactionKeywords.includes(_emojiToString(reaction.emoji))) {
     replyToHage(guild.id, async text => {
       try {
         await message.reply(text);
