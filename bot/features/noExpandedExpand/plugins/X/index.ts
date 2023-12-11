@@ -5,7 +5,7 @@ import { Cookie } from 'tough-cookie';
 import { runes } from 'runes2';
 import { log } from '@lib/log';
 import { getEnv } from '@lib/util';
-import { retrieveFromVx } from './vsTwitterAPI';
+import { retrieveFromVx } from './vxTwitterAPI';
 import type { PluginHooks } from 'types/bot/features/noExpandedExpand';
 
 const HTML_ENTITIES = Object.freeze({
