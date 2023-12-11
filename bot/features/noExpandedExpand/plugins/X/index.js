@@ -5,7 +5,7 @@ import { Cookie } from 'tough-cookie';
 import { runes } from 'runes2';
 import { log } from '../../../../lib/log.js';
 import { getEnv } from '../../../../lib/util.js';
-import { retrieveFromVx } from './vsTwitterAPI.js';
+import { retrieveFromVx } from './vxTwitterAPI.js';
 
 const HTML_ENTITIES = Object.freeze({
   'amp': '&',
