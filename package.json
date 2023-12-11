@@ -1,23 +1,23 @@
 {
   "main": "index.js",
   "dependencies": {
-    "@the-convocation/twitter-scraper": "^0.8.2",
+    "@the-convocation/twitter-scraper": "^0.8.3",
     "chardet": "^2.0.0",
     "dayjs": "1.11.10",
     "discord.js": "^14.14.1",
     "dotenv": "^16.3.1",
     "emoji-regex": "^10.3.0",
-    "fast-average-color-node": "^2.6.0",
-    "icojs": "^0.17.1",
-    "jsdom": "^23.0.0",
+    "fast-average-color-node": "^2.7.0",
+    "icojs": "^0.19.1",
+    "jsdom": "^23.0.1",
     "mersenne-twister": "^1.1.0",
-    "puppeteer": "^21.5.2",
+    "puppeteer": "^21.6.0",
     "runes2": "^1.1.3"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.6",
     "@types/mersenne-twister": "^1.1.7",
-    "bun-types": "^1.0.14",
+    "bun-types": "^1.0.16",
     "ts-array-length": "^0.1.2"
   }
 }
