@@ -16,6 +16,8 @@ const HTML_ENTITIES = Object.freeze({
   'gt': '>',
 });
 
+const HASHTAG_USABLE_PATTERN = String.raw`\w\u30a0-\u30ff\u3040-\u309f\u3005-\u3006\u30e0-\u9fcf〜～`;
+
 /**
  * @param {string} label
  * @param {Scraper} scraper
@@ -110,13 +112,13 @@ export const hooks = [
             .reduce((acc, [entity, sym]) => acc.replaceAll(`&${entity};`, sym), html)
             .replaceAll('<br>', '\n')
             .replace(/<a href="(https?:\/\/)([^"]+?)">(.*?)<\/a>/g, (_, scheme, url, text) => {
+              // remove anchor tag if url is a hashtag
+              if (url.startsWith('twitter.com/hashtag/')) {
+                return text;
+              }
+
               // replace to empty text if text is an image link
               if (text.startsWith('<img src=')) return '';
-
-              // replace to hashtag link if url is a hashtag
-              if (url.startsWith('twitter.com/hashtag/')) {
-                return `[${text}](${scheme}${url})`;
-              }
 
               // replace to mention if url is a user
               if (text.startsWith('@') && url === `twitter.com/${text.slice(1)}`) {
@@ -134,13 +136,16 @@ export const hooks = [
           }
 
           text = text
-            .replace(/(?<hash>#|＃)(?<keyword>.+?)(?=[\s#＃])/g, (original, hash, keyword, offset) => {
-              // returns original text if '#' is inner of brackets
-              if (innerHashIndices.some(([start, end]) => start <= offset && offset <= end)) {
-                return original;
-              }
-              return `[${hash}${keyword}](https://twitter.com/hashtag/${keyword})`;
-            })
+            .replace(
+              RegExp(`(?<hash>#|＃)(?<keyword>[${HASHTAG_USABLE_PATTERN}]+?)(?=[\s#＃]|[^${HASHTAG_USABLE_PATTERN}])`, 'g'),
+              (original, hash, keyword, offset) => {
+                // returns original text if '#' is inner of brackets
+                if (innerHashIndices.some(([start, end]) => start <= offset && offset <= end)) {
+                  return original;
+                }
+                return `[${hash}${keyword}](https://twitter.com/hashtag/${keyword})`;
+              },
+            )
             .replace(/<img src="[^"]+?"\/>/g, '');
 
           const ellipsis = '…\n\n（4000文字制限のため以下省略）';
