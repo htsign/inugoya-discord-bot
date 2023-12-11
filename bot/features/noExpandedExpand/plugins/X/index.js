@@ -137,7 +137,7 @@ export const hooks = [
 
           text = text
             .replace(
-              RegExp(`(?<hash>#|＃)(?<keyword>[${HASHTAG_USABLE_PATTERN}]+?)(?=[\s#＃]|[^${HASHTAG_USABLE_PATTERN}])`, 'g'),
+              RegExp(`(?<hash>#|＃)(?<keyword>[${HASHTAG_USABLE_PATTERN}]+?)(?=[\s#＃]|[^${HASHTAG_USABLE_PATTERN}]|$)`, 'g'),
               (original, hash, keyword, offset) => {
                 // returns original text if '#' is inner of brackets
                 if (innerHashIndices.some(([start, end]) => start <= offset && offset <= end)) {
