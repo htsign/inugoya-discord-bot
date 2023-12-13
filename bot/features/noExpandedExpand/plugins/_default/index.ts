@@ -1,6 +1,5 @@
-
 import { AttachmentBuilder, EmbedAuthorOptions, EmbedBuilder } from 'discord.js';
-import ico from 'icojs';
+import { parseICO } from 'icojs';
 import fastAvgColor from 'fast-average-color-node';
 import { log } from '@lib/log';
 import { getUrlDomain, isUrl, retrieveRealUrl, urlToDocument } from '@lib/util';
@@ -15,7 +14,7 @@ const getFavicon = async (url: Url, index: number): Promise<string | ReturnType<
       const buffer = await res.arrayBuffer();
 
       try {
-        const icons = await ico.parse(buffer, 'image/png');
+        const icons = await parseICO(buffer, 'image/png');
 
         // sort with image width descending
         const icon = icons.sort((a, b) => b.width - a.width)[0]?.buffer;
