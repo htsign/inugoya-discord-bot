@@ -4,6 +4,10 @@ import fastAvgColor from 'fast-average-color-node';
 import { log } from '../../../../lib/log.js';
 import { getUrlDomain, isUrl, retrieveRealUrl, urlToDocument } from '../../../../lib/util.js';
 
+const IGNORED_URLS = Object.freeze([
+  /^https:\/\/discord\.com\/events\//,
+]);
+
 /**
  * @param {import('types').Url} url
  * @param {number} index
@@ -236,6 +240,10 @@ export const hooks = [
     async function core(url, index) {
       if (!isUrl(url)) {
         log(`noExpandedExpand#${core.name}:`, url, 'is not a url');
+        return { embeds: [], attachments: [] };
+      }
+      if (IGNORED_URLS.some(re => re.test(url))) {
+        log(`noExpandedExpand#${core.name}:`, url, 'is ignored');
         return { embeds: [], attachments: [] };
       }
 
