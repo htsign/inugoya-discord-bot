@@ -6,6 +6,10 @@ import { getUrlDomain, isUrl, retrieveRealUrl, urlToDocument } from '@lib/util';
 import type { Nullable, Url } from 'types';
 import type { PluginHooks } from 'types/bot/features/noExpandedExpand';
 
+const IGNORED_URLS = Object.freeze([
+  /^https:\/\/discord\.com\/events\//,
+]);
+
 const getFavicon = async (url: Url, index: number): Promise<string | ReturnType<typeof fetchIco>> => {
   const fetchIco = async (iconUrl: string): Promise<[`attachment://favicon${number}.png`, Buffer] | null> => {
     const res = await fetch(iconUrl);
@@ -190,6 +194,10 @@ export const hooks: PluginHooks = [
     async function core(url, index) {
       if (!isUrl(url)) {
         log(`noExpandedExpand#${core.name}:`, url, 'is not a url');
+        return { embeds: [], attachments: [] };
+      }
+      if (IGNORED_URLS.some(re => re.test(url))) {
+        log(`noExpandedExpand#${core.name}:`, url, 'is ignored');
         return { embeds: [], attachments: [] };
       }
 
