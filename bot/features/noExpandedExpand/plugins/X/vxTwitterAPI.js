@@ -11,9 +11,18 @@ import { runes } from 'runes2';
 export const retrieveFromVx = async (url, statusId) => {
   log(`noExpandedExpand#X#${retrieveFromVx.name}:`, `start for ${url}`);
   try {
+    const jsonText = await fetch(`https://api.vxtwitter.com/Twitter/status/${statusId}`)
+      .then(res => res.text());
+
     /** @type {import('types/bot/features/noExpandedExpand/twitterView.js').VxTwitterAPIResponse} */
-    const json = await fetch(`https://api.vxtwitter.com/Twitter/status/${statusId}`)
-      .then(res => res.json());
+    let jsonObject;
+    try {
+      jsonObject = JSON.parse(jsonText);
+    }
+    catch {
+      log(`noExpandedExpand#X#${retrieveFromVx.name}:`, 'failed to parse json', jsonText);
+      return { embeds: [], attachments: [] };
+    }
 
     const {
       user_name: name,
@@ -25,7 +34,7 @@ export const retrieveFromVx = async (url, statusId) => {
       retweets,
       media_extended: media,
       qrtURL,
-    } = json;
+    } = jsonObject;
 
     const embed = new EmbedBuilder({ url });
     embed.setColor(0x1d9bf0);
