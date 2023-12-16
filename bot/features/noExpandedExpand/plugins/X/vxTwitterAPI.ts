@@ -8,8 +8,17 @@ import type { MediaInfo, VxTwitterAPIResponse } from 'types/bot/features/noExpan
 export const retrieveFromVx = async (url: string, statusId: string): Promise<{ embeds: APIEmbed[]; attachments: AttachmentBuilder[] }> => {
   log(`noExpandedExpand#X#${retrieveFromVx.name}:`, `start for ${url}`);
   try {
-    const json: VxTwitterAPIResponse = await fetch(`https://api.vxtwitter.com/Twitter/status/${statusId}`)
-      .then(res => res.json());
+    const jsonText = await fetch(`https://api.vxtwitter.com/Twitter/status/${statusId}`)
+      .then(res => res.text());
+
+    let jsonObject: VxTwitterAPIResponse;
+    try {
+      jsonObject = JSON.parse(jsonText);
+    }
+    catch {
+      log(`noExpandedExpand#X#${retrieveFromVx.name}:`, 'failed to parse json', jsonText);
+      return { embeds: [], attachments: [] };
+    }
 
     const {
       user_name: name,
@@ -21,7 +30,7 @@ export const retrieveFromVx = async (url: string, statusId: string): Promise<{ e
       retweets,
       media_extended: media,
       qrtURL,
-    } = json;
+    } = jsonObject;
 
     const embed = new EmbedBuilder({ url });
     embed.setColor(0x1d9bf0);
