@@ -135,6 +135,25 @@ export const hooks = [
             innerHashIndices.push([index, index + matched.length - 1]);
           }
 
+          // resolve unresolved t.co links
+          {
+            /** @type {RegExpMatchArray?} */
+            let m;
+            while ((m = text.match(/https:\/\/t.co\/\S+/)) != null) {
+              const [tCoUrl] = m;
+
+              const response = await fetch(tCoUrl, { redirect: 'manual' });
+              const redirectUrl = response.headers.get('location');
+
+              if (redirectUrl == null) {
+                log(`noExpandedExpand#X[${url}]:`, 'failed to resolve t.co link: ', tCoUrl);
+                break;
+              }
+
+              text = text.replaceAll(tCoUrl, redirectUrl);
+            }
+          }
+
           text = text
             .replace(
               RegExp(`(?<hash>#|＃)(?<keyword>[${HASHTAG_USABLE_PATTERN}]+?)(?=[^${HASHTAG_USABLE_PATTERN}]|$)`, 'g'),
