@@ -14,5 +14,9 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "resolveJsonModule": true,
+    "allowJs": true,
+    "noEmit": true,
+    "skipLibCheck": true,
   },
+  "exclude": ["node_modules"],
 }
