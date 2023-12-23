@@ -1,5 +1,8 @@
 {
   "main": "index.js",
+  "scripts": {
+    "type-check": "tsc --project ./tsconfig.json"
+  },
   "dependencies": {
     "@the-convocation/twitter-scraper": "^0.8.3",
     "chardet": "^2.0.0",
@@ -18,6 +21,7 @@
     "@types/jsdom": "^21.1.6",
     "@types/mersenne-twister": "^1.1.7",
     "bun-types": "^1.0.16",
-    "ts-array-length": "^0.1.2"
+    "ts-array-length": "^0.1.2",
+    "typescript": "^5.3.3"
   }
 }
