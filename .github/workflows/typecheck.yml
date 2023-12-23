@@ -1,0 +1,13 @@
+name: type check
+
+on: [push, pull_request]
+
+jobs:
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+    - name: setup bun
+      uses: oven-sh/setup-bun@v1
+    - uses: actions/checkout@v4
+    - run: bun install
+    - run: bun run type-check
