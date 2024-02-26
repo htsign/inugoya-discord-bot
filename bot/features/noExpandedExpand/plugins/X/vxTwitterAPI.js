@@ -24,6 +24,11 @@ export const retrieveFromVx = async (url, statusId) => {
       return { embeds: [], attachments: [] };
     }
 
+    if ('error' in jsonObject) {
+      log(`noExpandedExpand#X#${retrieveFromVx.name}:`, jsonObject.error);
+      return { embeds: [], attachments: [] };
+    }
+
     const {
       user_name: name,
       user_screen_name: screenName,

@@ -1,6 +1,8 @@
 import { Url } from 'types';
 
-export interface VxTwitterAPIResponse {
+export type VxTwitterAPIResponse = VxTwitterAPISuccessResponse | VxTwitterAPIErrorResponse;
+
+interface VxTwitterAPISuccessResponse {
   communityNode: null;
   conversationID: `${number}`;
   date: string;
@@ -19,7 +21,10 @@ export interface VxTwitterAPIResponse {
   user_name: string;
   user_profile_image_url: Url;
   user_screen_name: string;
-};
+}
+interface VxTwitterAPIErrorResponse {
+  error: string;
+}
 
 export interface MediaInfo {
   altText: string | null;
