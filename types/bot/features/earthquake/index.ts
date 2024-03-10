@@ -24,6 +24,7 @@ export type * from './eewDetection';
 export type * from './eew';
 export type * from './userQuake';
 export type * from './userQuakeEvaluation';
+export type * from './geocoding';
 
 export interface EEWConfigRecord {
   guildId: string;
