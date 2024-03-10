@@ -14,6 +14,7 @@ import { getEnv } from '@lib/util';
 import { log } from '@lib/log';
 import { dayjs } from '@lib/dayjsSetup';
 import { db } from './db';
+import { geocode } from './geocoding';
 import type {
   Area,
   AreaPeers,
@@ -21,6 +22,7 @@ import type {
   EEWDetection,
   JMAQuake,
   JMATsunami,
+  LatLng,
   UserQuake,
   UserQuakeEvaluation,
   WebSocketResponse,
@@ -128,6 +130,8 @@ const getColorsOfIntensity = (
 };
 
 const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
+  const { points = [] } = response;
+
   let groupedByIntensityAreas = (response.points ?? [])
     .reduce<Map<number, Map<string, string[]>>>((acc, curr) => {
       const group = acc.get(curr.scale) ?? new Map<string, string[]>();
@@ -157,7 +161,15 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
 
   const maxIntensity = intensityFromNumber(maxScale);
 
-  const mapBuffer = await getMapImageAsBuffer(latitude, longitude);
+  const locations = new Map<number, Set<LatLng>>();
+  for (const p of points) {
+    const geo = await geocode(p.pref + p.addr);
+    if (geo != null) {
+      const set = locations.get(p.scale) ?? new Set();
+      locations.set(p.scale, set.add(geo));
+    }
+  }
+  const mapBuffer = await getMapImageAsBuffer(latitude, longitude, locations);
   const mapAttachment = mapBuffer != null ? new AttachmentBuilder(mapBuffer, { name: `${response.id}.png` }) : null;
 
   for (const { guildId, guildName, channelId, minIntensity, alertThreshold } of db.records) {
@@ -348,18 +360,31 @@ const resolveUserQuakeEvaluation = async (response: UserQuakeEvaluation): Promis
   // not implemented
 };
 
-const getMapImageAsBuffer = async (latitude: number, longitude: number): Promise<Buffer | null> => {
-  const mapImageParams = {
-    key: getEnv('GOOGLE_MAPS_API_KEY', 'Googlemaps API Key'),
-    size: '640x480',
-    zoom: '8',
-    center: `${latitude},${longitude}`,
-    markers: `color:red|${latitude},${longitude}`,
-    language: 'ja',
-  };
+const getMapImageAsBuffer = async (latitude: number, longitude: number, locations: Map<number, Set<LatLng>>): Promise<Buffer | null> => {
+  const mapImageParams: [string, string][] = [
+    ['key', getEnv('GOOGLE_MAPS_API_KEY', 'Googlemaps API Key')],
+    ['size', '640x480'],
+    ['zoom', '8'],
+    ['center', `${latitude},${longitude}`],
+    ['markers', `color:red|${latitude},${longitude}`],
+    ['language', 'ja'],
+  ];
+
   const mapImageUrl = new URL('https://maps.googleapis.com/maps/api/staticmap');
-  for (const [key, value] of Object.entries(mapImageParams)) {
-    mapImageUrl.searchParams.set(key, value);
+  for (const [key, value] of mapImageParams) {
+    mapImageUrl.searchParams.append(key, value);
+  }
+
+  // add markers for each intensity
+  for (const [intensity, points] of locations) {
+    const color = getColorsOfIntensity(intensityFromNumber(intensity));
+    if (color == null) continue;
+
+    const hexRgb = color.toString(16).padStart(6, '0');
+    mapImageUrl.searchParams.append(
+      'markers',
+      `color:0x${hexRgb}|size:small|${Array.from(points, p => `${p.lat},${p.lng}`).join('|')}`,
+    );
   }
 
   const url = mapImageUrl.toString();
