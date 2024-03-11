@@ -47,3 +47,21 @@ export interface EEWConfigRow {
   created_at: string;
   updated_at: string;
 }
+
+export interface GeoCodingRecord {
+  prefecture: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  createdAt: Dayjs;
+  updatedAt: Dayjs;
+}
+
+export interface GeoCodingRow {
+  prefecture: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  created_at: string;
+  updated_at: string;
+}

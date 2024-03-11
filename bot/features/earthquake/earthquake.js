@@ -158,7 +158,7 @@ const resolveJMAQuake = async response => {
   /** @type {Map<number, Set<import('types/bot/features/earthquake').LatLng>>} */
   const locations = new Map();
   for (const p of points) {
-    const geo = await geocode(p.pref + p.addr);
+    const geo = await geocode(p.pref, p.addr);
     if (geo != null) {
       const set = locations.get(p.scale) ?? new Set();
       locations.set(p.scale, set.add(geo));

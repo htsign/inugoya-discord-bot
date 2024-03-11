@@ -155,5 +155,126 @@ class EEWConfig {
   }
 }
 
-const _db = new EEWConfig();
-export { _db as db };
+class GeoCoding {
+  #TABLE = 'geocoding';
+
+  /** @type {(row: unknown) => row is import('types/bot/features/earthquake').GeoCodingRow} */
+  static #isRow(row) {
+    if (row == null || typeof row !== 'object') return false;
+
+    if (!('prefecture' in row && typeof row.prefecture === 'string')) return false;
+    if (!('address' in row && typeof row.address === 'string')) return false;
+    if (!('latitude' in row && typeof row.latitude === 'number')) return false;
+    if (!('longitude' in row && typeof row.longitude === 'number')) return false;
+    if (!('created_at' in row && typeof row.created_at === 'string')) return false;
+    if (!('updated_at' in row && typeof row.updated_at === 'string')) return false;
+
+    return true;
+  }
+
+  /** @type {import('types/bot/features/earthquake').GeoCodingRecord[]} */
+  get records() {
+    const stmt = db.prepare(`select * from ${this.#TABLE}`);
+
+    const rows = stmt.all();
+    return rows
+      .filter(GeoCoding.#isRow)
+      .map(row => ({
+        prefecture: row.prefecture,
+        address: row.address,
+        latitude: row.latitude,
+        longitude: row.longitude,
+        createdAt: dayjs.utc(row.created_at).tz(),
+        updatedAt: dayjs.utc(row.updated_at).tz(),
+      }));
+  }
+
+  constructor() {
+    db.prepare(`
+      create table if not exists ${this.#TABLE} (
+        prefecture text not null,
+        address text not null,
+        latitude real not null,
+        longitude real not null,
+        created_at text not null default (datetime('now')),
+        updated_at text not null default (datetime('now')),
+        primary key (prefecture, address)
+      )
+    `).run();
+  }
+
+  /**
+   * @param {string} prefecture
+   * @param {string} address
+   * @param {number} latitude
+   * @param {number} longitude
+   * @returns {Promise<void>}
+   */
+  async add(prefecture, address, latitude, longitude) {
+    const stmt = db.prepare(`
+      insert into ${this.#TABLE} (
+        prefecture,
+        address,
+        latitude,
+        longitude
+      ) values (
+        @prefecture,
+        @address,
+        @latitude,
+        @longitude
+      )
+      on conflict (prefecture, address) do
+        update set
+          latitude = @latitude,
+          longitude = @longitude,
+          updated_at = datetime('now')
+    `);
+
+    try {
+      stmt.run({ prefecture, address, latitude, longitude });
+    }
+    catch (e) {
+      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+        await setTimeout();
+        return this.add(prefecture, address, latitude, longitude);
+      }
+      throw e;
+    }
+  }
+
+  /**
+   * @param {string} prefecture
+   * @param {string} address
+   * @param {number} [timeoutDays=50]
+   * @returns {import('types/bot/features/earthquake').GeoCodingRecord?}
+   */
+  get(prefecture, address, timeoutDays = 50) {
+    const stmt = db.prepare(`
+      select *
+      from ${this.#TABLE}
+      where
+        prefecture = @prefecture
+        and address = @address
+        and julianday(datetime('now')) - julianday(updated_at) < @timeoutDays
+    `);
+
+    const row = stmt.get({ prefecture, address, timeoutDays });
+    if (!GeoCoding.#isRow(row)) return null;
+
+    return {
+      prefecture: row.prefecture,
+      address: row.address,
+      latitude: row.latitude,
+      longitude: row.longitude,
+      createdAt: dayjs.utc(row.created_at).tz(),
+      updatedAt: dayjs.utc(row.updated_at).tz(),
+    };
+  }
+}
+
+const eewConfig = new EEWConfig();
+const geoCoding = new GeoCoding();
+export {
+  eewConfig as db,
+  geoCoding,
+};
