@@ -163,7 +163,7 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
 
   const locations = new Map<number, Set<LatLng>>();
   for (const p of points) {
-    const geo = await geocode(p.pref + p.addr);
+    const geo = await geocode(p.pref, p.addr);
     if (geo != null) {
       const set = locations.get(p.scale) ?? new Set();
       locations.set(p.scale, set.add(geo));
