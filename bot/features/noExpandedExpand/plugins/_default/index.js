@@ -221,8 +221,13 @@ const getProductInfo = document => {
  * @returns {Promise<number>}
  */
 const getColorAsInt = async resource => {
+  /** @type {Promise<{ value: [0, 0, 0] }>} */
+  const timeout = new Promise(resolve => setTimeout(() => resolve({ value: [0, 0, 0] }), 10 * 1000));
   try {
-    const { value: [red, green, blue] } = await fastAvgColor.getAverageColor(resource, { silent: true });
+    const { value: [red, green, blue] } = await Promise.race([
+      fastAvgColor.getAverageColor(resource, { silent: true }),
+      timeout,
+    ]);
     return (red << 16) + (green << 8) + blue;
   }
   catch (e) {
@@ -266,9 +271,7 @@ export const hooks = [
 
         {
           const pureUrl = getUrl(document);
-          if (pureUrl != null) {
-            embed.setURL(pureUrl);
-          }
+          embed.setURL(pureUrl ?? realUrl);
         }
 
         {
