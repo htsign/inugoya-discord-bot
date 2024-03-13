@@ -176,8 +176,14 @@ const getProductInfo = (document: Document): {
 };
 
 const getColorAsInt = async (resource: string | Buffer): Promise<number> => {
+  const timeout = new Promise<{ value: [0, 0, 0] }>(
+    resolve => setTimeout(() => resolve({ value: [0, 0, 0] }), 10 * 1000),
+  );
   try {
-    const { value: [red, green, blue] } = await fastAvgColor.getAverageColor(resource, { silent: true });
+    const { value: [red, green, blue] } = await Promise.race([
+      fastAvgColor.getAverageColor(resource, { silent: true }),
+      timeout,
+    ]);
     return (red << 16) + (green << 8) + blue;
   }
   catch (e) {
@@ -219,9 +225,7 @@ export const hooks: PluginHooks = [
 
         {
           const pureUrl = getUrl(document);
-          if (pureUrl != null) {
-            embed.setURL(pureUrl);
-          }
+          embed.setURL(pureUrl ?? realUrl);
         }
 
         {
