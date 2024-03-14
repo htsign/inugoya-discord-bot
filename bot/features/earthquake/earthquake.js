@@ -411,9 +411,10 @@ const getMapImageAsBuffer = async (latitude, longitude, locations) => {
     if (color == null) continue;
 
     const hexRgb = color.toString(16).padStart(6, '0');
+    const availablePoints = [...points].filter(p => Math.abs(latitude - p.lat) < 1.2 && Math.abs(longitude - p.lng) < 1.8);
     mapImageUrl.searchParams.append(
       'markers',
-      `color:0x${hexRgb}|size:small|${Array.from(points, p => `${p.lat},${p.lng}`).join('|')}`,
+      `color:0x${hexRgb}|size:small|${availablePoints.map(p => `${p.lat},${p.lng}`).join('|')}`,
     );
   }
 
