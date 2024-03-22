@@ -413,6 +413,8 @@ const getMapImageAsBuffer = async (latitude, longitude, locations) => {
     mapImageUrl.searchParams.append(key, value);
   }
 
+  let markersCount = 0;
+
   // add markers for each intensity
   for (const [intensity, points] of locations) {
     const color = getColorsOfIntensity(intensityFromNumber(intensity));
@@ -424,10 +426,14 @@ const getMapImageAsBuffer = async (latitude, longitude, locations) => {
       'markers',
       `color:0x${hexRgb}|size:small|${availablePoints.map(p => `${p.lat},${p.lng}`).join('|')}`,
     );
+
+    markersCount += availablePoints.length;
   }
 
   const url = mapImageUrl.toString();
   try {
+    log(`earthquake#${getMapImageAsBuffer.name}:`, { url, len: url.length, markersCount });
+
     const buffer = await fetch(url).then(x => x.arrayBuffer());
     return Buffer.from(buffer);
   }
