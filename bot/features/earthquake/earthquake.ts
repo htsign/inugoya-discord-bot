@@ -28,7 +28,8 @@ import type {
   WebSocketResponse,
 } from 'types/bot/features/earthquake';
 
-const ENDPOINT = 'wss://api.p2pquake.net/v2/ws';
+const debug = false;
+const ENDPOINT = `wss://${debug ? 'api-realtime-sandbox' : 'api'}.p2pquake.net/v2/ws`;
 
 const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => void): WebSocket => {
   const ws = new WebSocket(address);
