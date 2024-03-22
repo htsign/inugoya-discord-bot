@@ -164,10 +164,17 @@ const resolveJMAQuake = async response => {
       locations.set(p.scale, set.add(geo));
     }
   }
+
+  const { records } = db;
+
+  if (records.every(({ minIntensity }) => maxScale < minIntensity)) {
+    return log(`earthquake#${resolveJMAQuake.name}:`, 'skipped because of maxScale is too low', JSON.stringify(response));
+  }
+
   const mapBuffer = await getMapImageAsBuffer(latitude, longitude, locations);
   const mapAttachment = mapBuffer != null ? new AttachmentBuilder(mapBuffer, { name: `${response.id}.png` }) : null;
 
-  for (const { guildId, guildName, channelId, minIntensity, alertThreshold } of db.records) {
+  for (const { guildId, guildName, channelId, minIntensity, alertThreshold } of records) {
     if (maxScale < minIntensity) continue;
 
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
