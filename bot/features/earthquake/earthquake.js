@@ -9,7 +9,8 @@ import dayjs from '../../lib/dayjsSetup.js';
 import { db } from './db.js';
 import { geocode } from './geocoding.js';
 
-const ENDPOINT = 'wss://api.p2pquake.net/v2/ws';
+const debug = false;
+const ENDPOINT = `wss://${debug ? 'api-realtime-sandbox' : 'api'}.p2pquake.net/v2/ws`;
 
 /**
  * @param {string} address
