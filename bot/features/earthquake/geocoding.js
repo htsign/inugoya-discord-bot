@@ -50,6 +50,12 @@ export const geocode = async (prefecture, address, loopCount = 0) => {
       const [result] = json.results;
       const { location } = result.geometry;
 
+      // round to 2 decimal places
+      Object.assign(location, {
+        lat: Math.round(location.lat * 100) / 100,
+        lng: Math.round(location.lng * 100) / 100,
+      });
+
       geoCoding.add(prefecture, address, location.lat, location.lng);
       locationPoints.set(concatenatedAddress, location);
       return location;
