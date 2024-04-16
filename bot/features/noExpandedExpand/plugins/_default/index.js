@@ -44,6 +44,7 @@ const getFavicon = async (url, index) => {
   };
 
   const document = await urlToDocument(url);
+  if (document == null) return null;
 
   /** @type {HTMLLinkElement?} */
   const iconLink = document.querySelector('link[rel="icon"]');
@@ -111,6 +112,7 @@ const getAuthor = async (document, url) => {
    */
   const getAuthorInner = async url => {
     const document = await urlToDocument(url);
+    if (document == null) return null;
 
     const name = /** @type {HTMLMetaElement?} */ (document.querySelector('meta[property="og:site_name"]'))?.content;
     if (name != null) return [name, url];
@@ -258,6 +260,11 @@ export const hooks = [
 
         const realUrl = await retrieveRealUrl(url);
         const document = await urlToDocument(realUrl);
+
+        if (document == null) {
+          log(`noExpandedExpand#${core.name}:`, realUrl, 'document is null');
+          return { embeds: [], attachments: [] };
+        }
 
         const embed = new EmbedBuilder({ url: realUrl })
           .setTitle(getTitle(document))

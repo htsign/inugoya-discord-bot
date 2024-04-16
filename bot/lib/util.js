@@ -8,6 +8,14 @@ export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
 export const DATETIME_FORMAT = 'YYYY/MM/DD HH:mm:ss';
 export const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0';
 
+const IgnoredContentTypes = new Set([
+  'image/svg+xml',
+  'application/javascript',
+  'application/x-javascript',
+  'text/javascript',
+  'application/pdf',
+]);
+
 const configOutput = dotenv.config();
 
 /**
@@ -77,7 +85,7 @@ export const urlsOfText = text => {
 
 /**
  * @param {string} url
- * @returns {Promise<Document>}
+ * @returns {Promise<Document | null>}
  */
 export const urlToDocument = async url => {
   /** @type {HeadersInit} */
@@ -125,6 +133,13 @@ export const urlToDocument = async url => {
   }
 
   const res = await _fetch(url);
+
+  // returns null if the content type is ignored
+  const contentType = res.headers.get('Content-Type');
+  if (contentType != null && IgnoredContentTypes.has(contentType)) {
+    return null;
+  }
+
   const buffer = await res.arrayBuffer();
   const encoding =
     res.headers.get('Content-Type')?.match(/(?<=charset=)[^;]+/i)?.[0]
