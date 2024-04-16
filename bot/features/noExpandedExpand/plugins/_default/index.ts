@@ -37,6 +37,7 @@ const getFavicon = async (url: Url, index: number): Promise<string | ReturnType<
   };
 
   const document = await urlToDocument(url);
+  if (document == null) return null;
 
   const iconLink = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
   const iconUrl = iconLink?.href;
@@ -84,6 +85,7 @@ const getDescription = (document: Document): string | null => {
 const getAuthor = async (document: Document, url: Url): ReturnType<typeof getAuthorInner> => {
   const getAuthorInner = async (url: string): Promise<[name: string, url?: string] | null> => {
     const document = await urlToDocument(url);
+    if (document == null) return null;
 
     const name = document.querySelector<HTMLMetaElement>('meta[property="og:site_name"]')?.content;
     if (name != null) return [name, url];
@@ -212,6 +214,11 @@ export const hooks: PluginHooks = [
 
         const realUrl = await retrieveRealUrl(url);
         const document = await urlToDocument(realUrl);
+
+        if (document == null) {
+          log(`noExpandedExpand#${core.name}:`, realUrl, 'document is null');
+          return { embeds: [], attachments: [] };
+        }
 
         const embed = new EmbedBuilder({ url: realUrl })
           .setTitle(getTitle(document))

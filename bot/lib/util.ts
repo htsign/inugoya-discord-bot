@@ -8,6 +8,14 @@ export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
 export const DATETIME_FORMAT = 'YYYY/MM/DD HH:mm:ss';
 export const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0';
 
+const IgnoredContentTypes = new Set([
+  'image/svg+xml',
+  'application/javascript',
+  'application/x-javascript',
+  'text/javascript',
+  'application/pdf',
+]);
+
 export const getEnv = (key: string, name: string = key): string => {
   const token = process.env[key];
   if (token == null) {
@@ -51,7 +59,7 @@ export const urlsOfText = (text: string): Url[] => {
   return filterUrls(urls);
 };
 
-export const urlToDocument = async (url: string): Promise<Document> => {
+export const urlToDocument = async (url: string): Promise<Document | null> => {
   const headers: HeadersInit = {
     'Accept': '*/*',
     'Accept-Encoding': 'gzip, deflate, br',
@@ -84,6 +92,13 @@ export const urlToDocument = async (url: string): Promise<Document> => {
   }
 
   const res = await _fetch(url);
+
+  // returns null if the content type is ignored
+  const contentType = res.headers.get('Content-Type');
+  if (contentType != null && IgnoredContentTypes.has(contentType)) {
+    return null;
+  }
+
   const buffer = await res.arrayBuffer();
   const encoding =
     res.headers.get('Content-Type')?.match(/(?<=charset=)[^;]+/i)?.[0]
