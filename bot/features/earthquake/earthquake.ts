@@ -325,7 +325,7 @@ const resolveAreaPeers = async (response: AreaPeers): Promise<void> => {
 };
 
 const resolveEEW = async (response: EEW): Promise<void> => {
-  if (!response.test) return;
+  if (response.test) return;
 
   const maxIntensityAreas = response.areas.reduce<Area[]>((acc, curr) => {
     if (isNonEmpty(acc)) {
