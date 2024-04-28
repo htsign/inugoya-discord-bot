@@ -50,7 +50,7 @@ interface Hypocenter {
 
 type EarthquakeMaxScale = -1 | 10 | 20 | 30 | 40 | 45 | 50 | 55 | 60 | 70;
 
-type DomesticTsunami =
+export type DomesticTsunami =
   | 'None'
   | 'Unknown'
   | 'Checking'
