@@ -346,7 +346,7 @@ const resolveAreaPeers = async response => {
  * @returns {Promise<void>}
  */
 const resolveEEW = async response => {
-  if (!response.test) return;
+  if (response.test) return;
 
   const maxIntensityAreas = response.areas.reduce((/** @type {import('types/bot/features/earthquake').Area[]} */ acc, curr) => {
     if (isNonEmpty(acc)) {
