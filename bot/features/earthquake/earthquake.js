@@ -179,7 +179,7 @@ const resolveJMAQuake = async response => {
     return log(`earthquake#${resolveJMAQuake.name}:`, 'no data', JSON.stringify(response));
   }
 
-  const { hypocenter: { name, magnitude, depth, latitude, longitude }, maxScale, time } = response.earthquake;
+  const { hypocenter: { name, magnitude, depth, latitude, longitude }, maxScale, time, domesticTsunami } = response.earthquake;
   if (name === '' || latitude === -200 || longitude === -200 || depth === -1 || magnitude === -1) {
     return log(`earthquake#${resolveJMAQuake.name}:`, 'insufficient hypocenter data', JSON.stringify(response));
   }
@@ -212,11 +212,28 @@ const resolveJMAQuake = async response => {
     const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
 
     if (channel?.isTextBased()) {
+      /**
+       * @param {import('types/bot/features/earthquake').DomesticTsunami | undefined} tsunami
+       * @returns {[string] | []}
+       */
+      const tsunamiToMessage = tsunami => {
+        if (tsunami == null) return [];
+        switch (tsunami) {
+          case 'None'        : return ['この地震による津波の心配はありません。'];
+          case 'Unknown'     : return ['この地震による津波の影響は不明です。'];
+          case 'Checking'    : return ['この地震による津波の影響は確認中です。'];
+          case 'NonEffective': return ['この地震により若干の海面変動が予想されますが、被害の心配はありません。'];
+          case 'Watch'       : return ['津波に注意してください。'];
+          case 'Warning'     : return ['津波に注意してください。'];
+        }
+      }
+
       const ll = `${latitude},${longitude}`;
       const mapParams = new URLSearchParams({ ll, z: '8', q: ll });
       const sentences = [
         `[${name}](https://www.google.com/maps?${mapParams})で最大${maxIntensity}の地震が発生しました。`,
         `マグニチュードは ${magnitude}、震源の深さはおよそ ${depth}km です。`,
+        ...tsunamiToMessage(domesticTsunami),
       ];
 
       const embed = new EmbedBuilder()
