@@ -1,3 +1,4 @@
+import { setTimeout } from 'node:timers/promises';
 import { URL } from 'node:url';
 import { AttachmentBuilder, Colors, EmbedBuilder, ThreadAutoArchiveDuration } from 'discord.js';
 import WebSocket from 'ws';
@@ -15,25 +16,54 @@ const ENDPOINT = `wss://${debug ? 'api-realtime-sandbox' : 'api'}.p2pquake.net/v
 /**
  * @param {string} address
  * @param {(data: WebSocket.RawData, isBinary: boolean) => void} onMessage
- * @returns {WebSocket}
+ * @returns {Promise<WebSocket>}
  */
 const connectWebSocket = (address, onMessage) => {
-  const ws = new WebSocket(address);
+  /**
+   * @param {number} timeout
+   * @returns {Promise<WebSocket>}
+   */
+  const reconnect = async timeout => {
+    await setTimeout(timeout);
+    return await connectWebSocket(address, onMessage);
+  };
 
-  ws.on('open', () => {
-    log('earthquake: connected');
-  });
-  ws.on('message', onMessage);
-  ws.on('error', error => {
-    log('earthquake: error', error);
-    ws.close();
-  });
-  ws.on('close', (code, reason) => {
-    log('earthquake: disconnected', `[${code}] ${reason.toString()}`);
-    setTimeout(() => connectWebSocket(address, onMessage), 1000);
-  });
+  try {
+    const ws = new WebSocket(address);
 
-  return ws;
+    ws.on('open', () => {
+      log('earthquake: connected');
+    });
+    ws.on('message', (data, isBinary) => {
+      try {
+        onMessage(data, isBinary);
+      }
+      catch (error) {
+        log('earthquake: unhandled error', error);
+        reconnect(1000);
+      }
+    });
+    ws.on('error', error => {
+      log('earthquake: error', error);
+      try {
+        ws.close();
+      }
+      catch (error) {
+        log('earthquake: unhandled error', error);
+        reconnect(1000);
+      }
+    });
+    ws.on('close', (code, reason) => {
+      log('earthquake: disconnected', `[${code}] ${reason.toString()}`);
+      reconnect(1000);
+    });
+
+    return Promise.resolve(ws);
+  }
+  catch (error) {
+    log('earthquake: unhandled error', error);
+    return reconnect(1000);
+  }
 };
 
 connectWebSocket(ENDPOINT, data => {
