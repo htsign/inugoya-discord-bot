@@ -1,1 +1,0 @@
-CAUTION: not working on https://github.com/oven-sh/bun/releases/tag/bun-v0.6.6[bun 0.6.6] (latest version as of 06/01/2023)
