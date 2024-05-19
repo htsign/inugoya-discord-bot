@@ -1,7 +1,7 @@
 export class Timeout<T> {
   #callback: (instance: Timeout<T>) => T;
   #timeout: number;
-  #timeoutId: NodeJS.Timeout;
+  #timeoutId: Timer;
 
   constructor(callback: (instance: Timeout<T>) => T, timeout: number) {
     this.#callback = callback;

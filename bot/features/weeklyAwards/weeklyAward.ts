@@ -12,7 +12,7 @@ import type { MessageAndReactions, WeeklyAwardRecord } from 'types/bot/features/
 /**
  * key is Guild ID, value is Timeout ID
  */
-const instances = new Map<string, NodeJS.Timeout>();
+const instances = new Map<string, Timer>();
 
 addHandler(Events.ClientReady, async () => {
   for (const { guildId } of db.config.records) {
