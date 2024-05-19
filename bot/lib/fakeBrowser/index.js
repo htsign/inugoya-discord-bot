@@ -20,7 +20,7 @@ const getLaunchOptions = async () => {
   catch (e) {
     if (e instanceof Error && 'code' in e && e.code === 'ERR_MODULE_NOT_FOUND') {
       log(`fakeBrowser#${getLaunchOptions.name}:`, 'launchOptions.json not found');
-      return { headless: 'new' };
+      return { headless: true };
     }
     throw e;
   }
