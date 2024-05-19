@@ -24,7 +24,7 @@ export const shortenUrls = async urls => {
     };
 
     try {
-      const res = await fetch(`${API_ENTRYPOINT}?${toQueryString(params)}`);
+      const res = await fetch(`${API_ENTRYPOINT}?${toQueryString(params, encodeURIComponent)}`);
       /** @type {import('types/bot/features/shortenUrl').XgdResponse} */
       const data = await res.json();
 

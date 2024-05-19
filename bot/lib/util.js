@@ -19,6 +19,13 @@ const IgnoredContentTypes = new Set([
 const configOutput = dotenv.config();
 
 /**
+ * @param {T} value
+ * @returns {T}
+ * @template T
+ */
+export const identity = value => value;
+
+/**
  * @param {string} key
  * @param {string=} [name='token']
  * @returns {string}
@@ -165,6 +172,10 @@ export const peek = value => {
 
 /**
  * @param {object} queries
+ * @param {(value: string) => string} [valueFilter]
  * @returns {string}
  */
-export const toQueryString = queries => Object.entries(queries).map(([key, val]) => `${key}=${val}`).join('&');
+export const toQueryString =
+  (queries, valueFilter = identity) => Object.entries(queries)
+    .map(([key, val]) => `${key}=${valueFilter(val)}`)
+    .join('&');
