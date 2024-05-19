@@ -20,7 +20,7 @@ export const shortenUrls = async (urls: Url[]): Promise<(XgdSuccessMessage | Xgd
     };
 
     try {
-      const res: Response = await fetch(`${API_ENTRYPOINT}?${toQueryString(params)}`);
+      const res: Response = await fetch(`${API_ENTRYPOINT}?${toQueryString(params, encodeURIComponent)}`);
       const data: XgdResponse = await res.json();
 
       if (res.status !== 200) {

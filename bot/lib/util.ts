@@ -16,6 +16,8 @@ const IgnoredContentTypes = new Set([
   'application/pdf',
 ]);
 
+export const identity = <T>(value: T) => value;
+
 export const getEnv = (key: string, name: string = key): string => {
   const token = process.env[key];
   if (token == null) {
@@ -116,4 +118,7 @@ export const peek = <T>(value: T): T => {
   return value;
 };
 
-export const toQueryString = (queries: {}) => Object.entries(queries).map(([key, val]): string => `${key}=${val}`).join('&');
+export const toQueryString =
+  (queries: {}, valueFilter: (value: string) => string = identity) => Object.entries(queries)
+    .map(([key, val]): string => `${key}=${valueFilter(String(val))}`)
+    .join('&');
