@@ -13,7 +13,7 @@ const getLaunchOptions = async () => {
     const { default: options } = /** @type {{ default: import('puppeteer').PuppeteerLaunchOptions }} */ (await import(
       // @ts-ignore
       './launchOptions.json',
-      { assert: { type: 'json' } },
+      { with: { type: 'json' } },
     ));
     return options;
   }

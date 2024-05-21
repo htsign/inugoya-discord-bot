@@ -270,7 +270,7 @@ const subCommands = {
       /** @type {Promise<void>[]} */
       const addKeywordPromises = [];
 
-      const { default: keywords } = await import('./keywords.json', { assert: { type: 'json' } });
+      const { default: keywords } = await import('./keywords.json', { with: { type: 'json' } });
       const newKeywords = keywords.filter(keyword => db.keywords.get(guildId, keyword) == null);
 
       if (newKeywords.length > 0) {
@@ -367,7 +367,7 @@ const subCommands = {
       /** @type {Promise<void>[]} */
       const addReactionPromises = [];
 
-      const { default: reactions } = await import('./keywordReactions.json', { assert: { type: 'json' } });
+      const { default: reactions } = await import('./keywordReactions.json', { with: { type: 'json' } });
       const newReactions = reactions.filter(reaction => db.reactionKeywords.get(guildId, reaction) == null);
 
       if (newReactions.length > 0) {
