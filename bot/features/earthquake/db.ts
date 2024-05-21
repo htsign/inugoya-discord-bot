@@ -90,7 +90,7 @@ class EEWConfig {
           channel_id = $channelId,
           channel_name = $channelName,
           min_intensity = $minIntensity,
-          alert_threshold = $alertThreshold
+          alert_threshold = $alertThreshold,
           updated_at = datetime('now')
     `);
 
