@@ -61,12 +61,12 @@ export const geocode = async (prefecture, address, loopCount = 0) => {
       return location;
     }
     else {
-      log(`earthquake#${geocode.name}:`, 'failed to geocode', json);
+      log(`earthquake#${geocode.name}:`, 'failed to geocode', [...url.searchParams], json);
     }
   }
   catch (e) {
     if (e instanceof Error) {
-      log(`earthquake#${geocode.name}:`, 'failed to geocode', e.stack ?? `${e.name}: ${e.message}`);
+      log(`earthquake#${geocode.name}:`, 'failed to geocode', [...url.searchParams], e.stack ?? `${e.name}: ${e.message}`);
     }
     else {
       throw e;
