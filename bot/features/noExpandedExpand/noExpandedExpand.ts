@@ -65,7 +65,7 @@ addHandler(Events.MessageCreate, async message => {
     const embedUrls = message.embeds
       .map(embed => embed.url)
       .filter((url: string | null): url is string => url != null);
-    const { default: ignoringUrls } = await import('./ignoringUrls.json', { assert: { type: 'json' } });
+    const { default: ignoringUrls } = await import('./ignoringUrls.json', { with: { type: 'json' } });
     const targetUrls = urls
       .filter(url => !embedUrls.includes(url))
       .filter(url => !ignoringUrls.some(ignoringUrl => url.startsWith(ignoringUrl)))
