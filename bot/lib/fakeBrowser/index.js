@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import puppeteer, { Browser, Page, ProtocolError } from 'puppeteer';
 import { log } from '../log.js';
 import { instance as processManager } from '../processManager.js';
@@ -10,11 +12,7 @@ let browser = null;
  */
 const getLaunchOptions = async () => {
   try {
-    const { default: options } = /** @type {{ default: import('puppeteer').PuppeteerLaunchOptions }} */ (await import(
-      // @ts-ignore
-      './launchOptions.json',
-      { with: { type: 'json' } },
-    ));
+    const options = await fs.readFile(fileURLToPath(import.meta.resolve('./launchOptions.json')), 'utf-8').then(JSON.parse);
     return options;
   }
   catch (e) {

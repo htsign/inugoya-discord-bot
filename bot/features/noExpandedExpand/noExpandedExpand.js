@@ -70,7 +70,8 @@ addHandler(Events.MessageCreate, async message => {
     const embedUrls = message.embeds
       .map(embed => embed.url)
       .filter(/** @type {(url: string?) => url is string} */ url => url != null);
-    const { default: ignoringUrls } = await import('./ignoringUrls.json', { with: { type: 'json' } });
+    /** @type {string[]} */
+    const ignoringUrls = await fs.readFile(fileURLToPath(import.meta.resolve('./ignoringUrls.json')), 'utf-8').then(JSON.parse);
     const targetUrls = urls
       .filter(url => !embedUrls.includes(url))
       .filter(url => !ignoringUrls.some(ignoringUrl => url.startsWith(ignoringUrl)))

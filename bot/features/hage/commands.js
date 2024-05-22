@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import { ApplicationCommandOptionType, ApplicationCommandType, Colors, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { runes } from 'runes2';
 import emojiRegex from 'emoji-regex';
@@ -270,7 +272,8 @@ const subCommands = {
       /** @type {Promise<void>[]} */
       const addKeywordPromises = [];
 
-      const { default: keywords } = await import('./keywords.json', { with: { type: 'json' } });
+      /** @type {string[]} */
+      const keywords = await fs.readFile(fileURLToPath(import.meta.resolve('./keywords.json')), 'utf-8').then(JSON.parse);
       const newKeywords = keywords.filter(keyword => db.keywords.get(guildId, keyword) == null);
 
       if (newKeywords.length > 0) {
@@ -367,7 +370,8 @@ const subCommands = {
       /** @type {Promise<void>[]} */
       const addReactionPromises = [];
 
-      const { default: reactions } = await import('./keywordReactions.json', { with: { type: 'json' } });
+      /** @type {string[]} */
+      const reactions = await fs.readFile(fileURLToPath(import.meta.resolve('./keywordReactions.json')), 'utf-8').then(JSON.parse);
       const newReactions = reactions.filter(reaction => db.reactionKeywords.get(guildId, reaction) == null);
 
       if (newReactions.length > 0) {
