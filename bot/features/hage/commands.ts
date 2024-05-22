@@ -272,7 +272,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
 
       const addKeywordPromises: Promise<void>[] = [];
 
-      const { default: keywords } = await import('./keywords.json', { with: { type: 'json' } });
+      const keywords: string[] = await Bun.file(Bun.fileURLToPath(import.meta.resolve('./keywords.json'))).json();
       const newKeywords = keywords.filter(keyword => db.keywords.get(guildId, keyword) == null);
 
       if (newKeywords.length > 0) {
@@ -368,7 +368,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
 
       const addReactionPromises: Promise<void>[] = [];
 
-      const { default: reactions } = await import('./keywordReactions.json', { with: { type: 'json' } });
+      const reactions: string[] = await Bun.file(Bun.fileURLToPath(import.meta.resolve('./keywordReactions.json'))).json();
       const newReactions = reactions.filter(reaction => db.reactionKeywords.get(guildId, reaction) == null);
 
       if (newReactions.length > 0) {

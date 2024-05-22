@@ -6,11 +6,7 @@ let browser: Browser | null = null;
 
 const getLaunchOptions = async (): Promise<PuppeteerLaunchOptions> => {
   try {
-    const { default: options } = await import(
-      // @ts-ignore
-      './launchOptions.json',
-      { with: { type: 'json' } },
-    ) as { default: PuppeteerLaunchOptions };
+    const options: PuppeteerLaunchOptions = await Bun.file(Bun.fileURLToPath(import.meta.resolve('./launchOptions.json'))).json();
     return options;
   }
   catch (e) {
