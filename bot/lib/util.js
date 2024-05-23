@@ -1,7 +1,7 @@
-import { URL } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
-import dotenv from 'dotenv';
+import { URL } from 'node:url';
 import chardet from 'chardet';
+import dotenv from 'dotenv';
 import { JSDOM } from 'jsdom';
 
 export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
@@ -97,11 +97,11 @@ export const urlsOfText = text => {
 export const urlToDocument = async url => {
   /** @type {HeadersInit} */
   const headers = {
-    'Accept': '*/*',
+    Accept: '*/*',
     'Accept-Encoding': 'gzip, deflate, br',
     'Accept-Language': 'ja,en-US;en;q=0.3',
     'Cache-Control': 'no-cache',
-    'Pragma': 'no-cache',
+    Pragma: 'no-cache',
     'User-Agent': USER_AGENT,
   };
 

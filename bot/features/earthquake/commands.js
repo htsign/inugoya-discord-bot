@@ -52,7 +52,7 @@ const subCommands = {
         interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
         return;
       }
-      else if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
+      if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
         interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
         return;
       }
@@ -84,7 +84,7 @@ const subCommands = {
 
       const response = await interaction.deferReply();
 
-      await db.register(guildId, guildName, channel.id, channel.name, minIntensity, alertThreshold),
+      await db.register(guildId, guildName, channel.id, channel.name, minIntensity, alertThreshold);
 
       response.edit(`${intensityFromNumber(minIntensity)}以上の地震速報をこのサーバーの ${channel} に通知するよう設定しました。`);
     },
@@ -103,7 +103,7 @@ const subCommands = {
 
       const response = await interaction.deferReply();
 
-      await db.unregister(guildId),
+      await db.unregister(guildId);
 
       response.edit('地震速報の通知対象からこのサーバーを削除しました。');
     },
@@ -167,7 +167,7 @@ const subCommands = {
         interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
         return;
       }
-      else if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
+      if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
         interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
         return;
       }

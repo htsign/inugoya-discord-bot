@@ -1,10 +1,10 @@
 import { ChannelType, Events } from 'discord.js';
-import { addHandler } from '../../listeners.js';
 import { log } from '../../lib/log.js';
+import { addHandler } from '../../listeners.js';
 import { db } from './db.js';
 
 addHandler(Events.ClientReady, async client => {
-  if (!!process.env.DISCORD_BOT_RESTART) {
+  if (process.env.DISCORD_BOT_RESTART) {
     return log('launched:', 'do not work because of restart');
   }
 

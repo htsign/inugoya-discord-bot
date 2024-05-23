@@ -1,9 +1,9 @@
-import { Events, ChannelType } from 'discord.js';
+import { ChannelType, Events } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
-import dayjs from '../../lib/dayjsSetup.js';
-import { addHandler } from '../../listeners.js';
 import client from '../../client.js';
+import dayjs from '../../lib/dayjsSetup.js';
 import { log } from '../../lib/log.js';
+import { addHandler } from '../../listeners.js';
 import { fetchMessageByIds, messageToEmbeds } from '../util.js';
 import { db } from './db.js';
 
@@ -140,7 +140,7 @@ const tick = async (guildId, guildName, channelId, channelName, showsRankCount, 
         // tally messages by reactions count
         const talliedMessages = messages
           .reduce((/** @type {{ [count: number]: import('discord.js').Message<true>[] }} */ acc, { message, reactionsCount }) =>
-            ({ ...acc, [reactionsCount]: [...acc[reactionsCount] ?? [], message] }), {});
+            Object.assign(acc, { [reactionsCount]: [...acc[reactionsCount] ?? [], message] }), {});
         // sort descending order by reactions count
         const messagesArray = Object.entries(talliedMessages).sort(([a], [b]) => (+b) - (+a));
 
@@ -194,9 +194,8 @@ const tick = async (guildId, guildName, channelId, channelName, showsRankCount, 
                 if (firstMessage.thread == null) {
                   return;
                 }
-                else {
-                  thread = firstMessage.thread;
-                }
+
+                thread = firstMessage.thread;
               }
               else {
                 throw e;

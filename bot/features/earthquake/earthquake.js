@@ -1,12 +1,12 @@
 import { setTimeout } from 'node:timers/promises';
 import { URL } from 'node:url';
 import { AttachmentBuilder, Colors, EmbedBuilder, ThreadAutoArchiveDuration } from 'discord.js';
-import WebSocket from 'ws';
 import { isNonEmpty } from 'ts-array-length';
+import WebSocket from 'ws';
 import client from '../../client.js';
-import { getEnv } from '../../lib/util.js';
-import { log } from '../../lib/log.js';
 import dayjs from '../../lib/dayjsSetup.js';
+import { log } from '../../lib/log.js';
+import { getEnv } from '../../lib/util.js';
 import { db } from './db.js';
 import { geocode } from './geocoding.js';
 
@@ -76,12 +76,12 @@ connectWebSocket(ENDPOINT, data => {
   }
 
   switch (response.code) {
-    case  551: return resolveJMAQuake(response);
-    case  552: return resolveJMATsunami(response);
-    case  554: return resolveEEWDetection(response);
-    case  555: return resolveAreaPeers(response);
-    case  556: return resolveEEW(response);
-    case  561: return resolveUserQuake(response);
+    case 551: return resolveJMAQuake(response);
+    case 552: return resolveJMATsunami(response);
+    case 554: return resolveEEWDetection(response);
+    case 555: return resolveAreaPeers(response);
+    case 556: return resolveEEW(response);
+    case 561: return resolveUserQuake(response);
     case 9611: return resolveUserQuakeEvaluation(response);
   }
 });
@@ -113,7 +113,7 @@ export const intensityFromNumberWithException = number =>
 const intensityFromNumberCore = (number, ifUnexpected) => {
   switch (number) {
     case -1: return '不明';
-    case  0: return '震度0';
+    case 0: return '震度0';
     case 10: return '震度1';
     case 20: return '震度2';
     case 30: return '震度3';
@@ -134,17 +134,17 @@ const intensityFromNumberCore = (number, ifUnexpected) => {
  */
 const getColorsOfIntensity = intensity => {
   switch (intensity) {
-    case '不明'         : return null;
-    case '震度0'        : return null;
-    case '震度1'        : return 0xf2f2ff;
-    case '震度2'        : return 0x00aaff;
-    case '震度3'        : return 0x0041ff;
-    case '震度4'        : return 0xfae696;
-    case '震度5弱'      : return 0xffe600;
-    case '震度5強'      : return 0xff9900;
-    case '震度6弱'      : return 0xff2800;
-    case '震度6強'      : return 0xa50021;
-    case '震度7'        : return 0xb40068;
+    case '不明': return null;
+    case '震度0': return null;
+    case '震度1': return 0xf2f2ff;
+    case '震度2': return 0x00aaff;
+    case '震度3': return 0x0041ff;
+    case '震度4': return 0xfae696;
+    case '震度5弱': return 0xffe600;
+    case '震度5強': return 0xff9900;
+    case '震度6弱': return 0xff2800;
+    case '震度6強': return 0xa50021;
+    case '震度7': return 0xb40068;
     case '震度7程度以上': return 0xb40068;
   }
 };
@@ -164,9 +164,8 @@ const resolveJMAQuake = async response => {
       if (isNonEmpty(areas)) {
         return acc.set(curr.scale, group.set(curr.pref, areas.concat(curr.addr).sort()));
       }
-      else {
-        return acc.set(curr.scale, group.set(curr.pref, [curr.addr]));
-      }
+
+      return acc.set(curr.scale, group.set(curr.pref, [curr.addr]));
     }, new Map());
   // sort by intensity scale descending and prefectures ascending
   groupedByIntensityAreas = new Map(
@@ -219,12 +218,12 @@ const resolveJMAQuake = async response => {
       const tsunamiToMessage = tsunami => {
         if (tsunami == null) return [];
         switch (tsunami) {
-          case 'None'        : return ['この地震による津波の心配はありません。'];
-          case 'Unknown'     : return ['この地震による津波の影響は不明です。'];
-          case 'Checking'    : return ['この地震による津波の影響は確認中です。'];
+          case 'None': return ['この地震による津波の心配はありません。'];
+          case 'Unknown': return ['この地震による津波の影響は不明です。'];
+          case 'Checking': return ['この地震による津波の影響は確認中です。'];
           case 'NonEffective': return ['この地震により若干の海面変動が予想されますが、被害の心配はありません。'];
-          case 'Watch'       : return ['津波に注意してください。'];
-          case 'Warning'     : return ['津波に注意してください。'];
+          case 'Watch': return ['津波に注意してください。'];
+          case 'Warning': return ['津波に注意してください。'];
         }
       }
 
@@ -280,9 +279,8 @@ const resolveJMAQuake = async response => {
           if (message.thread == null) {
             continue;
           }
-          else {
-            thread = message.thread;
-          }
+
+          thread = message.thread;
         }
         else {
           throw e;

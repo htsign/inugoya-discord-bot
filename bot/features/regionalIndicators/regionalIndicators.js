@@ -34,7 +34,7 @@ export const toEmojis = text => {
     if (isLowerAlphabet(cp)) {
       return String.fromCodePoint(cpDiff + cp);
     }
-    else if (isNumber(cp)) {
+    if (isNumber(cp)) {
       const emojiString = numberEmojis[cp - code0];
 
       if (emojiString == null) {

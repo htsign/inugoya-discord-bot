@@ -1,9 +1,9 @@
 import { Events } from 'discord.js';
 import MersenneTwister from 'mersenne-twister';
 import dayjs from '../../lib/dayjsSetup.js';
-import { addHandler } from '../../listeners.js';
-import { Timeout } from '../../lib/timeout.js';
 import { log } from '../../lib/log.js';
+import { Timeout } from '../../lib/timeout.js';
+import { addHandler } from '../../listeners.js';
 import { db } from './db.js';
 
 /** @typedef {import('discord.js').Snowflake} Snowflake */
@@ -66,7 +66,7 @@ const replyToHage = (guildId, messageHandler, id) => {
     }
     else {
       messageHandler(configRecord.moreTemplate);
-      set.forEach(x => x.fire());
+      for (const x of set) x.fire();
     }
   }
 };

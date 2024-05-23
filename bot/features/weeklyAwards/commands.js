@@ -1,9 +1,9 @@
 import { ApplicationCommandOptionType, ApplicationCommandType, ChannelType, Colors, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { log } from '../../lib/log.js';
 import { DATETIME_FORMAT } from '../../lib/util.js';
-import { startAward, stopAward } from './index.js';
 import { db } from './db.js';
-import { SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, fromNumber, jpString } from './weekday.js';
+import { startAward, stopAward } from './index.js';
+import { FRIDAY, MONDAY, SATURDAY, SUNDAY, THURSDAY, TUESDAY, WEDNESDAY, fromNumber, jpString } from './weekday.js';
 
 const DEFAULT_SHOWS_COUNT = 3;
 const DEFAULT_MIN_REACTED = 5;
@@ -80,7 +80,7 @@ const subCommands = {
         interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
         return;
       }
-      else if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
+      if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
         interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
         return;
       }
@@ -143,7 +143,7 @@ const subCommands = {
       },
       {
         name: 'minreacted',
-        description: `最低何件のリアクションから表彰するか`,
+        description: '最低何件のリアクションから表彰するか',
         type: ApplicationCommandOptionType.Integer,
         minValue: 1,
         maxValue: 100,
@@ -215,7 +215,7 @@ const subCommands = {
         interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
         return;
       }
-      else if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
+      if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
         interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
         return;
       }

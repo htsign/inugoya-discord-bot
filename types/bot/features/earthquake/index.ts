@@ -1,9 +1,9 @@
 import type { Dayjs } from 'dayjs';
+import type { AreaPeers } from './areaPeers';
+import type { EEW } from './eew';
+import type { EEWDetection } from './eewDetection';
 import type { JMAQuake } from './jmaQuake';
 import type { JMATsunami } from './jmaTsunami';
-import type { AreaPeers } from './areaPeers';
-import type { EEWDetection } from './eewDetection';
-import type { EEW } from './eew';
 import type { UserQuake } from './userQuake';
 import type { UserQuakeEvaluation } from './userQuakeEvaluation';
 

@@ -18,20 +18,20 @@ const formatter = value => {
     if (value == null) return 'null';
 
     switch (typeof value) {
-      case 'string'  : return inner ? `'${value}'` : value;
-      case 'number'  : return String(value);
-      case 'bigint'  : return value + 'n';
-      case 'boolean' : return String(value);
-      case 'symbol'  : return `Symbol(${value.description ?? ''})`;
+      case 'string': return inner ? `'${value}'` : value;
+      case 'number': return String(value);
+      case 'bigint': return `${value}n`;
+      case 'boolean': return String(value);
+      case 'symbol': return `Symbol(${value.description ?? ''})`;
       case 'function': return `function (${value.name})`;
       default /* object */: {
         if (set.has(value)) return '<Circular>';
         set.add(value);
 
-        if (value instanceof Array) {
+        if (Array.isArray(value)) {
           return `[ ${value.map(x => core(x, true, depth + 1)).join(', ')} ]`;
         }
-        const content = Object.entries(value).map(([key, val]) => '  '.repeat(depth) + `${key}: ${core(val, true, depth + 1)},`).join('\n');
+        const content = Object.entries(value).map(([key, val]) => `${'  '.repeat(depth)}${key}: ${core(val, true, depth + 1)},`).join('\n');
         return `{\n${content}\n}`
       }
     }
@@ -50,7 +50,7 @@ export function log(...values) {
     ...values.map(formatter),
   ];
 
-  const wp = writeFile(`logs/${now.format('YYYY-MM-DD')}.log`, strings.join(' ') + '\n', { encoding: 'utf-8', flag: 'a' });
+  const wp = writeFile(`logs/${now.format('YYYY-MM-DD')}.log`, `${strings.join(' ')}\n`, { encoding: 'utf-8', flag: 'a' });
   console.log(...strings);
 
   return wp;

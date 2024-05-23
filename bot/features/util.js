@@ -15,7 +15,7 @@ export const fetchMessageByIds = async (guildId, channelId, messageId) => {
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
     const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
 
-    if (channel?.isTextBased() &&!channel.isVoiceBased()) {
+    if (channel?.isTextBased() && !channel.isVoiceBased()) {
       return channel.messages.cache.get(messageId) ?? await channel.messages.fetch(messageId);
     }
     return null;
@@ -32,9 +32,8 @@ export const fetchMessageByIds = async (guildId, channelId, messageId) => {
       }
       return null;
     }
-    else {
-      throw e;
-    }
+
+    throw e;
   }
 };
 

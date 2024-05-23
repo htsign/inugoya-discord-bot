@@ -1,6 +1,6 @@
 import { Events, Message } from 'discord.js';
-import { addHandler } from '../../listeners.js';
 import { log } from '../../lib/log.js';
+import { addHandler } from '../../listeners.js';
 import { fetchMessageByIds, messageToEmbeds } from '../util.js';
 
 const TRY_COUNT_THRESHOLD = 3;
@@ -19,10 +19,9 @@ const core = async (message, guildId, channelId, messageId) => {
     if (referredMessage != null) {
       return messageToEmbeds(referredMessage, ['reactions']);
     }
-    else {
-      const insideOf = message.guild != null ? message.guild.name : message.author.username;
-      log(`discordUrlExpand#${core.name}: ${insideOf}`, 'fetches failed', tryCount + 1, guildId, channelId, messageId);
-    }
+
+    const insideOf = message.guild != null ? message.guild.name : message.author.username;
+    log(`discordUrlExpand#${core.name}: ${insideOf}`, 'fetches failed', tryCount + 1, guildId, channelId, messageId);
   }
 
   return [];

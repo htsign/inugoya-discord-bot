@@ -1,19 +1,19 @@
 import fs from 'node:fs/promises';
-import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
 import { Scraper } from '@the-convocation/twitter-scraper';
-import { Cookie } from 'tough-cookie';
+import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
 import { runes } from 'runes2';
+import { Cookie } from 'tough-cookie';
 import { log } from '../../../../lib/log.js';
 import { getEnv } from '../../../../lib/util.js';
 import { retrieveFromVx } from './vxTwitterAPI.js';
 
 const HTML_ENTITIES = Object.freeze({
-  'amp': '&',
-  'apos': '\'',
-  'quot': '"',
-  'nbsp': ' ',
-  'lt': '<',
-  'gt': '>',
+  amp: '&',
+  apos: '\'',
+  quot: '"',
+  nbsp: ' ',
+  lt: '<',
+  gt: '>',
 });
 
 const HASHTAG_USABLE_PATTERN = String.raw`\w\u30a0-\u30ff\u3040-\u309f\u3005-\u3006\u30e0-\u9fcf〜～`;

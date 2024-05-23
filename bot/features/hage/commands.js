@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { ApplicationCommandOptionType, ApplicationCommandType, Colors, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
-import { runes } from 'runes2';
 import emojiRegex from 'emoji-regex';
+import { runes } from 'runes2';
 import { isNonEmpty } from 'ts-array-length';
 import { log } from '../../lib/log.js';
 import { DATETIME_FORMAT } from '../../lib/util.js';
@@ -111,27 +111,27 @@ const subCommands = {
     options: [
       {
         name: 'template',
-        description: `反応した際のテキスト`,
+        description: '反応した際のテキスト',
         type: ApplicationCommandOptionType.String,
       },
       {
         name: 'more_template',
-        description: `繰り返し反応した際のテキスト`,
+        description: '繰り返し反応した際のテキスト',
         type: ApplicationCommandOptionType.String,
       },
       {
         name: 'rare_template',
-        description: `反応した際に稀に出現するテキスト`,
+        description: '反応した際に稀に出現するテキスト',
         type: ApplicationCommandOptionType.String,
       },
       {
         name: 'timeout',
-        description: `反応してから忘れるまでの時間（単位: 分）`,
+        description: '反応してから忘れるまでの時間（単位: 分）',
         type: ApplicationCommandOptionType.Integer,
       },
       {
         name: 'stack_size',
-        description: `どれだけ繰り返し反応すれば moreTemplate を表示するかの閾値`,
+        description: 'どれだけ繰り返し反応すれば moreTemplate を表示するかの閾値',
         type: ApplicationCommandOptionType.Integer,
       },
     ],

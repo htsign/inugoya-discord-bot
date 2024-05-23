@@ -60,9 +60,8 @@ export const geocode = async (prefecture, address, loopCount = 0) => {
       locationPoints.set(concatenatedAddress, location);
       return location;
     }
-    else {
-      log(`earthquake#${geocode.name}:`, 'failed to geocode', [...url.searchParams], json);
-    }
+
+    log(`earthquake#${geocode.name}:`, 'failed to geocode', [...url.searchParams], json);
   }
   catch (e) {
     if (e instanceof Error) {

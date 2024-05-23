@@ -1,7 +1,7 @@
-import { Message } from 'discord.js';
-import type { Dayjs } from 'dayjs';
-import type { Url } from 'types';
 import type { Weekday } from 'bot/features/weeklyAwards/weekday';
+import type { Dayjs } from 'dayjs';
+import type { Message } from 'discord.js';
+import type { Url } from 'types';
 
 export interface MessageAndReactions {
   message: Message<true>;
