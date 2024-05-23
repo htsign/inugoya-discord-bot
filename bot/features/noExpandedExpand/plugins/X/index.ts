@@ -1,20 +1,20 @@
 import fs from 'node:fs/promises';
-import { APIEmbed, AttachmentBuilder, EmbedBuilder } from 'discord.js';
-import { Scraper } from '@the-convocation/twitter-scraper';
-import { Cookie } from 'tough-cookie';
-import { runes } from 'runes2';
 import { log } from '@lib/log';
 import { getEnv } from '@lib/util';
-import { retrieveFromVx } from './vxTwitterAPI';
+import { Scraper } from '@the-convocation/twitter-scraper';
+import { type APIEmbed, AttachmentBuilder, EmbedBuilder } from 'discord.js';
+import { runes } from 'runes2';
+import { Cookie } from 'tough-cookie';
 import type { PluginHooks } from 'types/bot/features/noExpandedExpand';
+import { retrieveFromVx } from './vxTwitterAPI';
 
 const HTML_ENTITIES = Object.freeze({
-  'amp': '&',
-  'apos': '\'',
-  'quot': '"',
-  'nbsp': ' ',
-  'lt': '<',
-  'gt': '>',
+  amp: '&',
+  apos: '\'',
+  quot: '"',
+  nbsp: ' ',
+  lt: '<',
+  gt: '>',
 });
 
 const HASHTAG_USABLE_PATTERN = String.raw`\w\u30a0-\u30ff\u3040-\u309f\u3005-\u3006\u30e0-\u9fcf〜～`;

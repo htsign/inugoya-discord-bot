@@ -1,19 +1,19 @@
+import { log } from '@lib/log';
+import { DATETIME_FORMAT } from '@lib/util';
 import {
-  APIEmbedField,
+  type APIEmbedField,
   ApplicationCommandOptionType,
-  ApplicationCommandType,
-  ChatInputCommandInteraction,
+  type ChatInputCommandInteraction,
   Colors,
   EmbedBuilder,
   PermissionFlagsBits,
 } from 'discord.js';
-import { runes } from 'runes2';
 import emojiRegex from 'emoji-regex';
+import { runes } from 'runes2';
 import { isNonEmpty } from 'ts-array-length';
-import { log } from '@lib/log';
-import { DATETIME_FORMAT } from '@lib/util';
-import { db, removeUnregisteredKeywords } from '.';
+import type { Obj } from 'types';
 import type { ChatInputCommandCollection } from 'types/bot';
+import { db, removeUnregisteredKeywords } from '.';
 
 const TEMPLATE = ` 彡⌒ミ
 (´･ω･\`)　また髪の話してる・・・`;
@@ -37,7 +37,7 @@ const STACK_SIZE = 5;
 
 const isSingleEmoji = (s: string): boolean => /^<:\w+?:[0-9]+?>$/.test(s) || (runes(s).length === 1 && emojiRegex().test(s));
 
-const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
+const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
   register: {
     description: '初期登録をします。',
     options: [
@@ -113,27 +113,27 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
     options: [
       {
         name: 'template',
-        description: `反応した際のテキスト`,
+        description: '反応した際のテキスト',
         type: ApplicationCommandOptionType.String,
       },
       {
         name: 'more_template',
-        description: `繰り返し反応した際のテキスト`,
+        description: '繰り返し反応した際のテキスト',
         type: ApplicationCommandOptionType.String,
       },
       {
         name: 'rare_template',
-        description: `反応した際に稀に出現するテキスト`,
+        description: '反応した際に稀に出現するテキスト',
         type: ApplicationCommandOptionType.String,
       },
       {
         name: 'timeout',
-        description: `反応してから忘れるまでの時間（単位: 分）`,
+        description: '反応してから忘れるまでの時間（単位: 分）',
         type: ApplicationCommandOptionType.Integer,
       },
       {
         name: 'stack_size',
-        description: `どれだけ繰り返し反応すれば moreTemplate を表示するかの閾値`,
+        description: 'どれだけ繰り返し反応すれば moreTemplate を表示するかの閾値',
         type: ApplicationCommandOptionType.Integer,
       },
     ],
@@ -458,15 +458,11 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
   },
 };
 
-export const commands: ChatInputCommandCollection<void, {}> = {
+export const commands: ChatInputCommandCollection<void, Obj> = {
   hage: {
     description: 'ハゲ監視',
-    // @ts-ignore
-    options: Object.entries(subCommands).map(([name, content]) => ({
-      name,
-      type: ApplicationCommandType.ChatInput,
-      ...content,
-    })),
+    options: Object.entries(subCommands)
+      .map(([name, content]) => Object.assign({ name, type: ApplicationCommandOptionType.Subcommand }, content)),
     async func(interaction: ChatInputCommandInteraction): Promise<void> {
       const subCommandName = interaction.options.getSubcommand(true);
 

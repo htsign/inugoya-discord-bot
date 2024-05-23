@@ -1,5 +1,6 @@
-import { Awaitable, Client, ClientEvents, Events } from 'discord.js';
+import { type Awaitable, type Client, type ClientEvents, Events } from 'discord.js';
 
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 const listeners: Map<keyof ClientEvents, Set<(...args: any) => Awaitable<void>>> = new Map();
 
 export const addHandler = <K extends keyof ClientEvents>(
@@ -9,7 +10,7 @@ export const addHandler = <K extends keyof ClientEvents>(
   if (!listeners.has(event)) {
     listeners.set(event, new Set());
   }
-  listeners.get(event)!.add(handler);
+  listeners.get(event)?.add(handler);
 };
 
 export const init = (client: Client<true>) => {

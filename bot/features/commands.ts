@@ -1,17 +1,18 @@
-import { Events } from 'discord.js';
-import { addHandler } from 'bot/listeners';
 import { log } from '@lib/log';
+import { addHandler } from 'bot/listeners';
+import { Events } from 'discord.js';
+import type { Obj } from 'types';
 import type { ChatInputCommandCollection } from 'types/bot'
 
-import { commands as launchedCommands } from './launched/commands';
-import { commands as hageCommands } from './hage/commands';
-import { commands as shortenUrlCommands } from './shortenUrl/commands';
-import { commands as weeklyAwardsCommands } from './weeklyAwards/commands';
 import { commands as earthquakeCommands } from './earthquake/commands';
+import { commands as hageCommands } from './hage/commands';
+import { commands as launchedCommands } from './launched/commands';
 import { commands as regionalIndicatorsCommands } from './regionalIndicators/commands';
+import { commands as shortenUrlCommands } from './shortenUrl/commands';
 import { commands as vcAttentionCommands } from './vcAttention/commands';
+import { commands as weeklyAwardsCommands } from './weeklyAwards/commands';
 
-const commands: ChatInputCommandCollection<any, {}> = {
+const commands: ChatInputCommandCollection<void, Obj> = {
   ...launchedCommands,
   ...hageCommands,
   ...shortenUrlCommands,
@@ -39,7 +40,7 @@ addHandler(Events.InteractionCreate, async interaction => {
 addHandler(Events.ClientReady, async client => {
   const app = await client.application.fetch();
 
-  const _commands = Object.entries(commands).map(([name, content]) => ({ ...content, name }));
+  const _commands = Object.entries(commands).map(([name, content]) => Object.assign(content, { name }));
   app.commands.set(_commands);
 });
 addHandler(Events.GuildCreate, async ({ name }) => {

@@ -1,8 +1,8 @@
-import { APIEmbed, Attachment, EmbedBuilder, Message, User } from 'discord.js';
+import { log } from '@lib/log';
+import client from 'bot/client';
+import { type APIEmbed, type Attachment, EmbedBuilder, type Message, type User } from 'discord.js';
 import fastAvgColor from 'fast-average-color-node';
 import { isNonEmpty } from 'ts-array-length';
-import { log } from '@lib/log';
-import client from '../client';
 import type { Nullable } from 'types';
 import type { EmbedMessageOptions } from 'types/bot';
 
@@ -11,7 +11,7 @@ export const fetchMessageByIds = async (guildId: string, channelId: string, mess
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
     const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
 
-    if (channel?.isTextBased() &&!channel.isVoiceBased()) {
+    if (channel?.isTextBased() && !channel.isVoiceBased()) {
       return channel.messages.cache.get(messageId) ?? await channel.messages.fetch(messageId);
     }
     return null;
@@ -28,9 +28,8 @@ export const fetchMessageByIds = async (guildId: string, channelId: string, mess
       }
       return null;
     }
-    else {
-      throw e;
-    }
+
+    throw e;
   }
 };
 

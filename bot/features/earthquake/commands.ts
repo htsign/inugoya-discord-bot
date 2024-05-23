@@ -1,26 +1,26 @@
+import { log } from '@lib/log';
+import { DATETIME_FORMAT } from '@lib/util';
 import {
-  APIEmbedField,
+  type APIEmbedField,
   ApplicationCommandOptionType,
-  ApplicationCommandType,
   ChannelType,
-  ChatInputCommandInteraction,
+  type ChatInputCommandInteraction,
   Colors,
   EmbedBuilder,
   PermissionFlagsBits,
 } from 'discord.js';
-import { log } from '@lib/log';
-import { DATETIME_FORMAT } from '@lib/util';
+import type { Obj } from 'types';
+import type { ChatInputCommandCollection } from 'types/bot';
 import { db } from './db';
 import {
   UnexpectedIntensityError,
   intensityFromNumber,
   intensityFromNumberWithException,
 } from './earthquake';
-import type { ChatInputCommandCollection } from 'types/bot';
 
 const DEFAULT_MIN_INTENSITY = 30;
 
-const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
+const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
   register: {
     description: '初期登録をします。',
     options: [
@@ -61,7 +61,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
         interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
         return;
       }
-      else if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
+      if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
         interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
         return;
       }
@@ -93,7 +93,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
 
       const response = await interaction.deferReply();
 
-      await db.register(guildId, guildName, channel.id, channel.name, minIntensity, alertThreshold),
+      await db.register(guildId, guildName, channel.id, channel.name, minIntensity, alertThreshold);
 
       response.edit(`${intensityFromNumber(minIntensity)}以上の地震速報をこのサーバーの ${channel} に通知するよう設定しました。`);
     },
@@ -112,7 +112,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
 
       const response = await interaction.deferReply();
 
-      await db.unregister(guildId),
+      await db.unregister(guildId);
 
       response.edit('地震速報の通知対象からこのサーバーを削除しました。');
     },
@@ -176,7 +176,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
         interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
         return;
       }
-      else if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
+      if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
         interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
         return;
       }
@@ -263,15 +263,11 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
   },
 };
 
-export const commands: ChatInputCommandCollection<void, {}> = {
+export const commands: ChatInputCommandCollection<void, Obj> = {
   earthquake: {
     description: '地震速報',
-    // @ts-ignore
-    options: Object.entries(subCommands).map(([name, content]) => ({
-      name,
-      type: ApplicationCommandType.ChatInput,
-      ...content,
-    })),
+    options: Object.entries(subCommands)
+      .map(([name, content]) => Object.assign({ name, type: ApplicationCommandOptionType.Subcommand }, content)),
     async func(interaction: ChatInputCommandInteraction): Promise<void> {
       const subCommandName = interaction.options.getSubcommand(true);
 

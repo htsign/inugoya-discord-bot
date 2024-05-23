@@ -1,13 +1,13 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { setTimeout } from 'node:timers/promises';
-import { Events, Message, PartialMessage } from 'discord.js';
-import { addHandler } from 'bot/listeners';
+import { fileURLToPath } from 'node:url';
 import { dayjs } from '@lib/dayjsSetup';
 import { log } from '@lib/log';
 import { urlsOfText } from '@lib/util';
-import { HookResult, Plugin } from 'types/bot/features/noExpandedExpand';
+import { addHandler } from 'bot/listeners';
+import { Events, type Message, type PartialMessage } from 'discord.js';
+import type { HookResult, Plugin } from 'types/bot/features/noExpandedExpand';
 
 const THRESHOLD_DELAY = 5 * 1000;
 const THRESHOLD_FOR_DELETE = 5;
@@ -24,7 +24,7 @@ const plugins: Plugin[] = [];
     const defaultIndexStat = await fs.stat(defaultIndexPath);
 
     if (defaultIndexStat.isFile()) {
-      const relativePath = './' + path.relative(dirPath, defaultIndexPath);
+      const relativePath = `./${path.relative(dirPath, defaultIndexPath)}`;
       plugins.push(await import(relativePath));
 
       log(`noExpandedExpand#${addPlugin.name}:`, 'plugin loaded', relativePath);
@@ -129,7 +129,7 @@ addHandler(Events.MessageCreate, async message => {
           }
           catch (e) {
             if (e instanceof Error) {
-              log(`noExpandedExpand[${sendTo}]:`, `failed to delete replied message`, e.stack ?? `${e.name}: ${e.message}`);
+              log(`noExpandedExpand[${sendTo}]:`, 'failed to delete replied message', e.stack ?? `${e.name}: ${e.message}`);
               break;
             }
             throw e;

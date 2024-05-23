@@ -1,8 +1,8 @@
-import { URL } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
+import { URL } from 'node:url';
 import chardet from 'chardet';
 import { JSDOM } from 'jsdom';
-import type { Nullable, Url } from 'types';
+import type { Nullable, Obj, Url } from 'types';
 
 export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
 export const DATETIME_FORMAT = 'YYYY/MM/DD HH:mm:ss';
@@ -63,11 +63,11 @@ export const urlsOfText = (text: string): Url[] => {
 
 export const urlToDocument = async (url: string): Promise<Document | null> => {
   const headers: HeadersInit = {
-    'Accept': '*/*',
+    Accept: '*/*',
     'Accept-Encoding': 'gzip, deflate, br',
     'Accept-Language': 'ja,en-US;en;q=0.3',
     'Cache-Control': 'no-cache',
-    'Pragma': 'no-cache',
+    Pragma: 'no-cache',
     'User-Agent': USER_AGENT,
   };
 
@@ -119,6 +119,6 @@ export const peek = <T>(value: T): T => {
 };
 
 export const toQueryString =
-  (queries: {}, valueFilter: (value: string) => string = identity) => Object.entries(queries)
+  (queries: Obj, valueFilter: (value: string) => string = identity) => Object.entries(queries)
     .map(([key, val]): string => `${key}=${valueFilter(String(val))}`)
     .join('&');

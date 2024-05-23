@@ -1,6 +1,6 @@
-import { setTimeout } from 'node:timers/promises';
 import { Database } from 'bun:sqlite';
-import { dayjs } from '../../lib/dayjsSetup';
+import { setTimeout } from 'node:timers/promises';
+import { dayjs } from '@lib/dayjsSetup';
 import type { LaunchedConfigRecord, LaunchedConfigRow } from 'types/bot/features/launched';
 
 const db = new Database('launched.db', { readwrite: true, create: true });

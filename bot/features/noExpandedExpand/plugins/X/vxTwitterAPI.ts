@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
-import { APIEmbed, AttachmentBuilder, EmbedBuilder } from 'discord.js';
-import { log } from '../../../../lib/log.js';
+import { log } from '@lib/log.js';
+import { type APIEmbed, AttachmentBuilder, EmbedBuilder } from 'discord.js';
 import { runes } from 'runes2';
 import type { Url } from 'types';
 import type { MediaInfo, VxTwitterAPIResponse } from 'types/bot/features/noExpandedExpand/twitterView';

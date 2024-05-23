@@ -1,16 +1,17 @@
+import { log } from '@lib/log';
+import { addHandler } from 'bot/listeners';
 import {
   ActionRowBuilder,
   ApplicationCommandOptionType,
   ButtonBuilder,
   ButtonStyle,
-  ChatInputCommandInteraction,
+  type ChatInputCommandInteraction,
   Events,
-  MessageReaction,
+  type MessageReaction,
 } from 'discord.js';
-import { addHandler } from '../../listeners';
-import { log } from '../../lib/log';
-import { toEmojis } from '.';
+import type { Obj } from 'types';
 import type { ChatInputCommandCollection } from 'types/bot';
+import { toEmojis } from '.';
 
 addHandler(Events.InteractionCreate, async interaction => {
   const { guild, channel, user } = interaction;
@@ -69,7 +70,7 @@ addHandler(Events.InteractionCreate, async interaction => {
   }
 });
 
-export const commands: ChatInputCommandCollection<void, {}> = {
+export const commands: ChatInputCommandCollection<void, Obj> = {
   emojify: {
     description: 'アルファベット絵文字で連続リアクションします。',
     options: [

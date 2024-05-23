@@ -1,6 +1,6 @@
-import puppeteer, { Browser, Page, ProtocolError, PuppeteerLaunchOptions } from 'puppeteer';
-import { log } from '../log.js';
-import { instance as processManager } from '../processManager.js';
+import { log } from '@lib/log';
+import { instance as processManager } from '@lib/processManager';
+import puppeteer, { type Browser, type Page, ProtocolError, type PuppeteerLaunchOptions } from 'puppeteer';
 
 let browser: Browser | null = null;
 

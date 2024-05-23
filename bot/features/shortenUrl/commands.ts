@@ -1,8 +1,9 @@
-import { ApplicationCommandOptionType, ChatInputCommandInteraction } from 'discord.js';
-import { shortenUrlsOfContent } from './shortenUrl';
+import { ApplicationCommandOptionType, type ChatInputCommandInteraction } from 'discord.js';
+import type { Obj } from 'types';
 import type { ChatInputCommandCollection } from 'types/bot';
+import { shortenUrlsOfContent } from './shortenUrl';
 
-export const commands: ChatInputCommandCollection<void, {}> = {
+export const commands: ChatInputCommandCollection<void, Obj> = {
   shorten: {
     description: '与えられたURLを省略します。',
     options: [

@@ -1,6 +1,6 @@
-import { setTimeout } from 'node:timers/promises';
 import { Database } from 'bun:sqlite';
-import { dayjs } from '../../lib/dayjsSetup.js';
+import { setTimeout } from 'node:timers/promises';
+import { dayjs } from '@lib/dayjsSetup.js';
 import type {
   EEWConfigRecord,
   EEWConfigRow,
@@ -239,7 +239,7 @@ class GeoCoding {
     }
   }
 
-  get(prefecture: string, address: string, timeoutDays: number = 50): GeoCodingRecord | null {
+  get(prefecture: string, address: string, timeoutDays = 50): GeoCodingRecord | null {
     const stmt = db.prepare(`
       select *
       from ${this.#TABLE}

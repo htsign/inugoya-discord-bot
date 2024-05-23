@@ -1,13 +1,13 @@
-import { APIEmbed, AnyThreadChannel, Events, ChannelType, Message } from 'discord.js';
-import { isNonEmpty } from 'ts-array-length';
-import client from 'bot/client';
-import { addHandler } from 'bot/listeners';
 import { dayjs } from '@lib/dayjsSetup';
 import { log } from '@lib/log';
+import client from 'bot/client';
+import { addHandler } from 'bot/listeners';
+import { type APIEmbed, type AnyThreadChannel, ChannelType, Events, type Message } from 'discord.js';
+import { isNonEmpty } from 'ts-array-length';
+import type { MessageAndReactions, WeeklyAwardRecord } from 'types/bot/features/weeklyAwards';
 import { fetchMessageByIds, messageToEmbeds } from '../util';
 import { db } from './db';
-import { Weekday } from './weekday';
-import type { MessageAndReactions, WeeklyAwardRecord } from 'types/bot/features/weeklyAwards';
+import type { Weekday } from './weekday';
 
 /**
  * key is Guild ID, value is Timeout ID
@@ -130,7 +130,7 @@ const tick = async (
         // tally messages by reactions count
         const talliedMessages = messages
           .reduce<{ [count: number]: Message<true>[] }>((acc, { message, reactionsCount }) =>
-            ({ ...acc, [reactionsCount]: [...acc[reactionsCount] ?? [], message] }), {});
+            Object.assign(acc, { [reactionsCount]: [...acc[reactionsCount] ?? [], message] }), {});
 
         // sort descending order by reactions count
         const messagesArray = Object.entries(talliedMessages).sort(([a], [b]) => (+b) - (+a));
@@ -181,9 +181,8 @@ const tick = async (
                 if (firstMessage.thread == null) {
                   return;
                 }
-                else {
-                  thread = firstMessage.thread;
-                }
+
+                thread = firstMessage.thread;
               }
               else {
                 throw e;

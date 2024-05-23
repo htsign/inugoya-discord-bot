@@ -1,12 +1,13 @@
-import { ApplicationCommandOptionType, ChannelType, ChatInputCommandInteraction, Colors, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { log } from '@lib/log';
 import { DATETIME_FORMAT } from '@lib/util';
+import { ApplicationCommandOptionType, ChannelType, type ChatInputCommandInteraction, Colors, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import type { Obj } from 'types';
+import type { ChatInputCommandCollection } from 'types/bot';
 import { db } from './db';
-import { ChatInputCommandCollection } from 'types/bot';
 
 const DEFAULT_THRESHOLD = 5;
 
-const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
+const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
   register: {
     description: '初期登録をします。',
     options: [
@@ -108,15 +109,11 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
   },
 };
 
-export const commands: ChatInputCommandCollection<void, {}> = {
+export const commands: ChatInputCommandCollection<void, Obj> = {
   vcattention: {
     description: 'VC盛り上がり通知',
-    // @ts-ignore
-    options: Object.entries(subCommands).map(([name, content]) => ({
-      name,
-      type: ApplicationCommandOptionType.Subcommand,
-      ...content,
-    })),
+    options: Object.entries(subCommands)
+      .map(([name, content]) => Object.assign({ name, type: ApplicationCommandOptionType.Subcommand }, content)),
     async func(interaction: ChatInputCommandInteraction): Promise<void> {
       const subCommandName = interaction.options.getSubcommand(true);
 

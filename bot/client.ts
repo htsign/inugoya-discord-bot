@@ -1,6 +1,6 @@
-import { Client, GatewayIntentBits, Partials, PresenceUpdateStatus } from 'discord.js';
 import { getEnv } from '@lib/util';
 import { init } from 'bot/listeners';
+import { Client, GatewayIntentBits, Partials, PresenceUpdateStatus } from 'discord.js';
 
 const client = new Client({
   intents: [

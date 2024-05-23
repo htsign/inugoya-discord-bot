@@ -1,9 +1,9 @@
-import { Events, Guild, Message, PartialMessage, Snowflake } from 'discord.js';
-import MersenneTwister from 'mersenne-twister';
-import { addHandler } from 'bot/listeners';
 import { dayjs } from '@lib/dayjsSetup';
-import { Timeout } from '@lib/timeout';
 import { log } from '@lib/log';
+import { Timeout } from '@lib/timeout';
+import { addHandler } from 'bot/listeners';
+import { Events, type Guild, type Message, type PartialMessage, type Snowflake } from 'discord.js';
+import MersenneTwister from 'mersenne-twister';
 import { db } from './db';
 
 const reactedMessageIds = new Set<`${Snowflake},${Snowflake},${Snowflake}`>();
@@ -59,7 +59,7 @@ const replyToHage = (
     }
     else {
       messageHandler(configRecord.moreTemplate);
-      set.forEach(x => x.fire());
+      for (const x of set) x.fire();
     }
   }
 };

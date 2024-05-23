@@ -1,26 +1,27 @@
+import { log } from '@lib/log';
+import { DATETIME_FORMAT } from '@lib/util';
 import {
-  APIEmbedField,
+  type APIEmbedField,
   ApplicationCommandOptionType,
   ChannelType,
-  ChatInputCommandInteraction,
+  type ChatInputCommandInteraction,
   Colors,
   EmbedBuilder,
   PermissionFlagsBits,
 } from 'discord.js';
-import { log } from '@lib/log';
-import { DATETIME_FORMAT } from '@lib/util';
+import type { Obj } from 'types';
+import type { ChatInputCommandCollection } from 'types/bot';
 import { startAward, stopAward } from '.';
 import { db } from './db';
-import { FRIDAY, MONDAY, SATURDAY, SUNDAY, THURSDAY, TUESDAY, WEDNESDAY, fromNumber, jpString } from './weekday';
-import type { ChatInputCommandCollection } from 'types/bot';
+import { Weekday, jpString } from './weekday';
 
 const DEFAULT_SHOWS_COUNT = 3;
 const DEFAULT_MIN_REACTED = 5;
-const DEFAULT_WEEKDAY = SUNDAY;
+const DEFAULT_WEEKDAY = Weekday.SUNDAY;
 const DEFAULT_HOUR = 12;
 const DEFAULT_MINUTE = 0;
 
-const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
+const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
   register: {
     description: '初期登録をします。',
     options: [
@@ -49,10 +50,18 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
         name: 'weekday',
         description: `報告する週（デフォルト: ${jpString(DEFAULT_WEEKDAY)}）`,
         type: ApplicationCommandOptionType.Integer,
-        choices: ([SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY] as const)
+        choices: ([
+          Weekday.SUNDAY,
+          Weekday.MONDAY,
+          Weekday.TUESDAY,
+          Weekday.WEDNESDAY,
+          Weekday.THURSDAY,
+          Weekday.FRIDAY,
+          Weekday.SATURDAY,
+        ] as const)
           .map(n => ({ name: jpString(n), value: n })),
-        minValue: SUNDAY,
-        maxValue: SATURDAY,
+        minValue: Weekday.SUNDAY,
+        maxValue: Weekday.SATURDAY,
       },
       {
         name: 'hour',
@@ -81,7 +90,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
       const channel = interaction.options.getChannel('channel', true);
       const showsRankCount = interaction.options.getInteger('showsrankcount') ?? DEFAULT_SHOWS_COUNT;
       const minReacted = interaction.options.getInteger('minreacted') ?? DEFAULT_MIN_REACTED;
-      const weekday = fromNumber(interaction.options.getInteger('weekday') ?? DEFAULT_WEEKDAY);
+      const weekday = interaction.options.getInteger('weekday') ?? DEFAULT_WEEKDAY;
       const hour = interaction.options.getInteger('hour') ?? DEFAULT_HOUR;
       const minute = interaction.options.getInteger('minute') ?? DEFAULT_MINUTE;
 
@@ -89,7 +98,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
         interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
         return;
       }
-      else if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
+      if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
         interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
         return;
       }
@@ -152,7 +161,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
       },
       {
         name: 'minreacted',
-        description: `最低何件のリアクションから表彰するか`,
+        description: '最低何件のリアクションから表彰するか',
         type: ApplicationCommandOptionType.Integer,
         minValue: 1,
         maxValue: 100,
@@ -161,10 +170,18 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
         name: 'weekday',
         description: '報告する週',
         type: ApplicationCommandOptionType.Integer,
-        choices: ([SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY] as const)
+        choices: ([
+          Weekday.SUNDAY,
+          Weekday.MONDAY,
+          Weekday.TUESDAY,
+          Weekday.WEDNESDAY,
+          Weekday.THURSDAY,
+          Weekday.FRIDAY,
+          Weekday.SATURDAY,
+        ] as const)
           .map(n => ({ name: jpString(n), value: n })),
-        minValue: SUNDAY,
-        maxValue: SATURDAY,
+        minValue: Weekday.SUNDAY,
+        maxValue: Weekday.SATURDAY,
       },
       {
         name: 'hour',
@@ -200,7 +217,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
       const channel = interaction.options.getChannel('channel') ?? await guild.channels.fetch(configRecord.channelId);
       const showsRankCount = interaction.options.getInteger('showsrankcount') ?? configRecord.showsRankCount;
       const minReacted = interaction.options.getInteger('minreacted') ?? configRecord.minReacted;
-      const weekday = fromNumber(interaction.options.getInteger('weekday') ?? timeRecord.weekday);
+      const weekday = interaction.options.getInteger('weekday') ?? timeRecord.weekday;
       const hour = interaction.options.getInteger('hour') ?? timeRecord.hour;
       const minute = interaction.options.getInteger('minute') ?? timeRecord.minute;
 
@@ -225,7 +242,7 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
         interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
         return;
       }
-      else if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
+      if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
         interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
         return;
       }
@@ -309,15 +326,11 @@ const subCommands: ChatInputCommandCollection<void, {}, 'cached' | 'raw'> = {
   },
 };
 
-export const commands: ChatInputCommandCollection<void, {}> = {
+export const commands: ChatInputCommandCollection<void, Obj> = {
   weeklyaward: {
     description: 'リアクション大賞',
-    // @ts-ignore
-    options: Object.entries(subCommands).map(([name, content]) => ({
-      name,
-      type: ApplicationCommandOptionType.Subcommand,
-      ...content,
-    })),
+    options: Object.entries(subCommands)
+      .map(([name, content]) => Object.assign({ name, type: ApplicationCommandOptionType.Subcommand }, content)),
     async func(interaction: ChatInputCommandInteraction): Promise<void> {
       const subCommandName = interaction.options.getSubcommand(true);
 

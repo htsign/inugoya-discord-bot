@@ -1,9 +1,8 @@
-import { setTimeout } from 'node:timers/promises';
-import { Message } from 'discord.js';
 import { Database } from 'bun:sqlite';
+import { setTimeout } from 'node:timers/promises';
 import { dayjs } from '@lib/dayjsSetup';
 import { isUrl } from '@lib/util';
-import { fromNumber } from './weekday';
+import type { Message } from 'discord.js';
 import type {
   WeeklyAwardConfigRecord,
   WeeklyAwardConfigRow,
@@ -248,7 +247,7 @@ class WeeklyAward {
     }
   }
 
-  async *deleteOutdated(guildId: string, days: number): AsyncGenerator<number | void> {
+  async *deleteOutdated(guildId: string, days: number): AsyncGenerator<number | undefined> {
     const whereStatement = `
       where
         guild_id = $guildId and
@@ -526,7 +525,7 @@ class WeeklyAwardTime {
 
     return {
       guildId: row.guild_id,
-      weekday: fromNumber(row.weekday),
+      weekday: row.weekday,
       hour: row.hour,
       minute: row.minute,
       createdAt: dayjs.utc(row.created_at).tz(),

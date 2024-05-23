@@ -1,13 +1,13 @@
 import { setTimeout } from 'node:timers/promises';
-import { isNonEmpty } from 'ts-array-length';
 import { log } from '@lib/log';
 import { getEnv } from '@lib/util';
-import { geoCoding } from './db';
+import { isNonEmpty } from 'ts-array-length';
 import type { GeocodingResponse, LatLng } from 'types/bot/features/earthquake';
+import { geoCoding } from './db';
 
 const locationPoints = new Map<string, LatLng | null>();
 
-export const geocode = async (prefecture: string, address: string, loopCount: number = 0): Promise<LatLng | null> => {
+export const geocode = async (prefecture: string, address: string, loopCount = 0): Promise<LatLng | null> => {
   const fromDb = geoCoding.get(prefecture, address);
   if (fromDb != null) {
     return { lat: fromDb.latitude, lng: fromDb.longitude };
@@ -53,9 +53,8 @@ export const geocode = async (prefecture: string, address: string, loopCount: nu
       locationPoints.set(concatenatedAddress, location);
       return location;
     }
-    else {
-      log(`earthquake#${geocode.name}:`, 'failed to geocode', [...url.searchParams], json);
-    }
+
+    log(`earthquake#${geocode.name}:`, 'failed to geocode', [...url.searchParams], json);
   }
   catch (e) {
     if (e instanceof Error) {

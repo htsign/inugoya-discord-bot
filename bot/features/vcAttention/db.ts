@@ -1,5 +1,5 @@
-import { setTimeout } from 'node:timers/promises';
 import { Database } from 'bun:sqlite';
+import { setTimeout } from 'node:timers/promises';
 import { dayjs } from '@lib/dayjsSetup';
 import type { VCAttentionConfigRecord, VCAttentionConfigRow } from 'types/bot/features/vcAttention';
 

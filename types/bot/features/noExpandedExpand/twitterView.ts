@@ -1,4 +1,4 @@
-import { Url } from 'types';
+import type { Url } from 'types';
 
 export interface VxTwitterAPIResponse {
   communityNode: null;

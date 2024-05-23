@@ -1,8 +1,8 @@
-import { AttachmentBuilder, EmbedAuthorOptions, EmbedBuilder } from 'discord.js';
-import { parseICO } from 'icojs';
-import fastAvgColor from 'fast-average-color-node';
 import { log } from '@lib/log';
 import { getUrlDomain, isUrl, retrieveRealUrl, urlToDocument } from '@lib/util';
+import { AttachmentBuilder, type EmbedAuthorOptions, EmbedBuilder } from 'discord.js';
+import fastAvgColor from 'fast-average-color-node';
+import { parseICO } from 'icojs';
 import type { Nullable, Url } from 'types';
 import type { PluginHooks } from 'types/bot/features/noExpandedExpand';
 

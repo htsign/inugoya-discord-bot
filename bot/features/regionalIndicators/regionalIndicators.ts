@@ -28,7 +28,7 @@ export const toEmojis = (text: string): RegionalIndicatorsResult => {
     if (isLowerAlphabet(codePoint)) {
       return String.fromCodePoint(cpDiff + codePoint);
     }
-    else if (isNumber(codePoint)) {
+    if (isNumber(codePoint)) {
       const emojiString = numberEmojis[codePoint - code0];
 
       if (emojiString == null) {

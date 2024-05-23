@@ -1,8 +1,8 @@
-import { Events, Message } from 'discord.js';
-import { isNonEmpty } from 'ts-array-length';
-import { addHandler } from 'bot/listeners';
-import { getEnv, toQueryString, urlsOfText } from '@lib/util';
 import { log } from '@lib/log';
+import { getEnv, toQueryString, urlsOfText } from '@lib/util';
+import { addHandler } from 'bot/listeners';
+import { Events, type Message } from 'discord.js';
+import { isNonEmpty } from 'ts-array-length';
 import type { Url } from 'types';
 import type { XgdFailureMessage, XgdRequest, XgdResponse, XgdSuccessMessage } from 'types/bot/features/shortenUrl';
 
