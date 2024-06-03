@@ -360,9 +360,15 @@ const resolveEEW = async (response: EEW): Promise<void> => {
   const maxIntensityAreaNames =
     Object.entries(areaNames).map(([pref, names]) => `${pref}: ${names.join('、')}`);
 
+  const { records } = db;
+
+  if (records.every(({ minIntensity }) => maxIntensity < minIntensity)) {
+    return log(`earthquake#${resolveEEW.name}:`, 'skipped because of maxIntensity is too low', JSON.stringify(response));
+  }
+
   const { arrivalTime, originTime } = response.earthquake;
 
-  for (const { guildId, guildName, channelId, channelName, minIntensity } of db.records) {
+  for (const { guildId, guildName, channelId, channelName, minIntensity } of records) {
     if (maxIntensity < minIntensity) continue;
 
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
