@@ -394,7 +394,7 @@ const resolveEEW = async response => {
       const embed = new EmbedBuilder()
         .setTitle('緊急地震速報')
         .setColor(Colors.Red)
-        .setTimestamp(dayjs(arrivalTime).tz().valueOf());
+        .setTimestamp(dayjs.tz(arrivalTime, 'Asia/Tokyo').valueOf());
 
       embed.addFields({ name: '最大予測震度', value: intensity });
       embed.addFields({
