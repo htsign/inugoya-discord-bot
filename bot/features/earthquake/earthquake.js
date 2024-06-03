@@ -185,6 +185,12 @@ const resolveJMAQuake = async response => {
 
   const maxIntensity = intensityFromNumber(maxScale);
 
+  const { records } = db;
+
+  if (records.every(({ minIntensity }) => maxScale < minIntensity)) {
+    return log(`earthquake#${resolveJMAQuake.name}:`, 'skipped because of maxScale is too low', JSON.stringify(response));
+  }
+
   /** @type {Map<number, Set<import('types/bot/features/earthquake').LatLng>>} */
   const locations = new Map();
   for (const p of points) {
@@ -195,13 +201,7 @@ const resolveJMAQuake = async response => {
     }
   }
 
-  const { records } = db;
-
-  if (records.every(({ minIntensity }) => maxScale < minIntensity)) {
-    return log(`earthquake#${resolveJMAQuake.name}:`, 'skipped because of maxScale is too low', JSON.stringify(response));
-  }
-
-  const mapBuffer = await getMapImageAsBuffer(latitude, longitude, locations);
+  const mapBuffer = await getMapImageAsBuffer(locations, 'small', { latitude, longitude });
   const mapAttachment = mapBuffer != null ? new AttachmentBuilder(mapBuffer, { name: `${response.id}.png` }) : null;
 
   for (const { guildId, guildName, channelId, minIntensity, alertThreshold } of records) {
@@ -369,6 +369,12 @@ const resolveEEW = async response => {
     return;
   }
 
+  const { records } = db;
+
+  if (records.every(({ minIntensity }) => maxIntensity < minIntensity)) {
+    return log(`earthquake#${resolveEEW.name}:`, 'skipped because of maxIntensity is too low', JSON.stringify(response));
+  }
+
   /** @type {{ [pref: string]: string[] }} */
   const areaNames = {};
   for (const { pref, name } of maxIntensityAreas) {
@@ -382,13 +388,20 @@ const resolveEEW = async response => {
   const maxIntensityAreaNames =
     Object.entries(areaNames).map(([pref, names]) => `${pref}: ${names.join('、')}`);
 
-  const { records } = db;
+  const { arrivalTime, originTime } = response.earthquake;
 
-  if (records.every(({ minIntensity }) => maxIntensity < minIntensity)) {
-    return log(`earthquake#${resolveEEW.name}:`, 'skipped because of maxIntensity is too low', JSON.stringify(response));
+  /** @type {Map<number, Set<import('types/bot/features/earthquake').LatLng>>} */
+  const locations = new Map();
+  for (const p of maxIntensityAreas) {
+    const geo = await geocode(p.pref, p.name);
+    if (geo != null) {
+      const set = locations.get(p.scaleTo) ?? new Set();
+      locations.set(p.scaleTo, set.add(geo));
+    }
   }
 
-  const { arrivalTime, originTime } = response.earthquake;
+  const mapBuffer = await getMapImageAsBuffer(locations, undefined);
+  const mapAttachment = mapBuffer != null ? new AttachmentBuilder(mapBuffer, { name: `${response.id}.png` }) : null;
 
   for (const { guildId, guildName, channelId, channelName, minIntensity } of records) {
     if (maxIntensity < minIntensity) continue;
@@ -408,6 +421,14 @@ const resolveEEW = async response => {
         value: maxIntensityAreaNames.join('\n'),
       });
       embed.addFields({ name: '発生日時', value: originTime });
+
+      /** @type {import('discord.js').MessageCreateOptions} */
+      const payload = { embeds: [embed] };
+
+      if (mapAttachment != null) {
+        payload.files = [mapAttachment];
+        embed.setImage(`attachment://${response.id}.png`);
+      }
 
       try {
         await channel.send({ embeds: [embed] });
@@ -443,21 +464,26 @@ const resolveUserQuakeEvaluation = async response => {
 };
 
 /**
- * @param {number} latitude
- * @param {number} longitude
  * @param {Map<number, Set<import('types/bot/features/earthquake').LatLng>>} locations
+ * @param {'tiny' | 'mid' | 'small' | undefined} markersSize
+ * @param {{ latitude: number, longitude: number }} [center]
  * @returns {Promise<Buffer | null>}
  */
-const getMapImageAsBuffer = async (latitude, longitude, locations) => {
+const getMapImageAsBuffer = async (locations, markersSize, center) => {
   /** @type {[string, string][]} */
   const mapImageParams = [
     ['key', getEnv('GOOGLE_MAPS_API_KEY', 'Googlemaps API Key')],
     ['size', '640x480'],
     ['zoom', '8'],
-    ['center', `${latitude},${longitude}`],
-    ['markers', `color:red|${latitude},${longitude}`],
     ['language', 'ja'],
   ];
+
+  if (center != null) {
+    mapImageParams.push(
+      ['center', `${center.latitude},${center.longitude}`],
+      ['markers', `color:red|${center.latitude},${center.longitude}`],
+    );
+  }
 
   const mapImageUrl = new URL('https://maps.googleapis.com/maps/api/staticmap');
   for (const [key, value] of mapImageParams) {
@@ -466,16 +492,26 @@ const getMapImageAsBuffer = async (latitude, longitude, locations) => {
 
   let markersCount = 0;
 
+  /** @type {[`size:${Exclude<Parameters<typeof getMapImageAsBuffer>[1], undefined>}`] | []} */
+  const _markersSize = markersSize != null ? [`size:${markersSize}`] : [];
+
   // add markers for each intensity
   for (const [intensity, points] of locations) {
     const color = getColorsOfIntensity(intensityFromNumber(intensity));
     if (color == null) continue;
 
     const hexRgb = color.toString(16).padStart(6, '0');
-    const availablePoints = [...points].filter(p => Math.abs(latitude - p.lat) < 1.2 && Math.abs(longitude - p.lng) < 1.8);
+    const availablePoints =
+      center == null
+        ? [...points]
+        : [...points].filter(p => Math.abs(center.latitude - p.lat) < 1.2 && Math.abs(center.longitude - p.lng) < 1.8);
     mapImageUrl.searchParams.append(
       'markers',
-      `color:0x${hexRgb}|size:small|${availablePoints.map(p => `${p.lat},${p.lng}`).join('|')}`,
+      [
+        `color:0x${hexRgb}`,
+        ..._markersSize,
+        `${availablePoints.map(p => `${p.lat},${p.lng}`).join('|')}`,
+      ].join('|'),
     );
 
     markersCount += availablePoints.length;
