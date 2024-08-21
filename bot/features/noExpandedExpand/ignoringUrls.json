@@ -1,5 +1,5 @@
 [
-  "https://discord.com/channels/",
-  "https://discord.com/api/",
-  "https://discord.com/invite/"
+  "^https://discord\\.com/channels/",
+  "^https://discord\\.com/api/",
+  "^https://discord\\.com/invite/"
 ]

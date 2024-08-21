@@ -70,11 +70,14 @@ addHandler(Events.MessageCreate, async message => {
     const embedUrls = message.embeds
       .map(embed => embed.url)
       .filter(/** @type {(url: string?) => url is string} */ url => url != null);
-    /** @type {string[]} */
-    const ignoringUrls = await fs.readFile(fileURLToPath(import.meta.resolve('./ignoringUrls.json')), 'utf-8').then(JSON.parse);
+    const ignoringUrls =
+      /** @type {string[]} */ (
+        await fs.readFile(fileURLToPath(import.meta.resolve('./ignoringUrls.json')), 'utf-8').then(JSON.parse)
+      )
+      .map(url => RegExp(url))
+      ;
     const targetUrls = urls
-      .filter(url => !embedUrls.includes(url))
-      .filter(url => !ignoringUrls.some(ignoringUrl => url.startsWith(ignoringUrl)))
+      .filter(url => !(embedUrls.includes(url) || ignoringUrls.some(ignoringUrl => ignoringUrl.test(url))))
       .map(url => url.endsWith('||') ? url.slice(0, -'||'.length) : url) // remove tailed '||' if exists
       ;
 
