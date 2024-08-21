@@ -2,7 +2,6 @@ import { setTimeout } from 'node:timers/promises';
 import { URL } from 'node:url';
 import { AttachmentBuilder, Colors, EmbedBuilder, ThreadAutoArchiveDuration } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
-import WebSocket from 'ws';
 import client from '../../client.js';
 import dayjs from '../../lib/dayjsSetup.js';
 import { log } from '../../lib/log.js';
@@ -15,7 +14,7 @@ const ENDPOINT = `wss://${debug ? 'api-realtime-sandbox' : 'api'}.p2pquake.net/v
 
 /**
  * @param {string} address
- * @param {(data: WebSocket.RawData, isBinary: boolean) => void} onMessage
+ * @param {(event: MessageEvent) => void} onMessage
  * @returns {Promise<WebSocket>}
  */
 const connectWebSocket = (address, onMessage) => {
@@ -31,20 +30,18 @@ const connectWebSocket = (address, onMessage) => {
   try {
     const ws = new WebSocket(address);
 
-    ws.on('open', () => {
-      log('earthquake: connected');
-    });
-    ws.on('message', (data, isBinary) => {
+    ws.onopen = () => log('earthquake: connected');
+    ws.onmessage = event => {
       try {
-        onMessage(data, isBinary);
+        onMessage(event);
       }
       catch (error) {
         log('earthquake: unhandled error', error);
         reconnect(1000);
       }
-    });
-    ws.on('error', error => {
-      log('earthquake: error', error);
+    };
+    ws.onerror = event => {
+      log('earthquake: error', event);
       try {
         ws.close();
       }
@@ -52,11 +49,11 @@ const connectWebSocket = (address, onMessage) => {
         log('earthquake: unhandled error', error);
         reconnect(1000);
       }
-    });
-    ws.on('close', (code, reason) => {
-      log('earthquake: disconnected', `[${code}] ${reason.toString()}`);
+    };
+    ws.onclose = ({ code, reason }) => {
+      log('earthquake: disconnected', `[${code}] ${reason}`);
       reconnect(1000);
-    });
+    };
 
     return Promise.resolve(ws);
   }
@@ -66,7 +63,9 @@ const connectWebSocket = (address, onMessage) => {
   }
 };
 
-connectWebSocket(ENDPOINT, data => {
+connectWebSocket(ENDPOINT, ({ data }) => {
+  if (data == null) return;
+
   /** @type {import('types/bot/features/earthquake').WebSocketResponse} */
   const response = JSON.parse(data.toString());
 

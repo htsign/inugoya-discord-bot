@@ -18,8 +18,7 @@
     "jsdom": "^24.1.1",
     "mersenne-twister": "^1.1.0",
     "puppeteer": "^23.1.1",
-    "runes2": "^1.1.4",
-    "ws": "^8.18.0"
+    "runes2": "^1.1.4"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.8.3",
