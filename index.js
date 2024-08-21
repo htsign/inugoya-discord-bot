@@ -1,6 +1,7 @@
 import { setDefaultResultOrder } from 'node:dns';
 setDefaultResultOrder('ipv4first');
 
+import './locales/init.js';
 import './bot/features/commands.js';
 import './bot/features/launched/index.js';
 import './bot/features/hage/index.js';
