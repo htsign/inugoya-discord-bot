@@ -402,7 +402,7 @@ const resolveEEW = async response => {
   const mapBuffer = await getMapImageAsBuffer(locations, undefined);
   const mapAttachment = mapBuffer != null ? new AttachmentBuilder(mapBuffer, { name: `${response.id}.png` }) : null;
 
-  for (const { guildId, guildName, channelId, channelName, minIntensity } of records) {
+  for (const { guildId, guildName, channelId, channelName, minIntensity, alertThreshold } of records) {
     if (maxIntensity < minIntensity) continue;
 
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
@@ -424,6 +424,9 @@ const resolveEEW = async response => {
       /** @type {import('discord.js').MessageCreateOptions} */
       const payload = { embeds: [embed] };
 
+      if (maxIntensity >= alertThreshold) {
+        payload.content = '@here';
+      }
       if (mapAttachment != null) {
         payload.files = [mapAttachment];
         embed.setImage(`attachment://${response.id}.png`);
