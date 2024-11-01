@@ -177,8 +177,13 @@ const resolveJMAQuake = async response => {
     return log(`earthquake#${resolveJMAQuake.name}:`, 'no data', JSON.stringify(response));
   }
 
+  const { type } = response.issue;
+  if (type !== 'ScalePrompt' && type !== 'DetailScale') {
+    return log(`earthquake#${resolveJMAQuake.name}:`, 'unexpected issue type', JSON.stringify(response));
+  }
+
   const { hypocenter: { name, magnitude, depth, latitude, longitude }, maxScale, time, domesticTsunami } = response.earthquake;
-  if (name === '' || latitude === -200 || longitude === -200 || depth === -1 || magnitude === -1) {
+  if (type === 'DetailScale' && (name === '' || latitude === -200 || longitude === -200 || depth === -1 || magnitude === -1)) {
     return log(`earthquake#${resolveJMAQuake.name}:`, 'insufficient hypocenter data', JSON.stringify(response));
   }
 
@@ -200,7 +205,8 @@ const resolveJMAQuake = async response => {
     }
   }
 
-  const mapBuffer = await getMapImageAsBuffer(locations, 'small', { latitude, longitude });
+  const center = type === 'DetailScale' ? { latitude, longitude } : undefined;
+  const mapBuffer = await getMapImageAsBuffer(locations, 'small', center);
   const mapAttachment = mapBuffer != null ? new AttachmentBuilder(mapBuffer, { name: `${response.id}.png` }) : null;
 
   for (const { guildId, guildName, channelId, minIntensity, alertThreshold } of records) {
@@ -226,17 +232,56 @@ const resolveJMAQuake = async response => {
         }
       }
 
-      const ll = `${latitude},${longitude}`;
+      /** @type {string} */
+      let ll;
+      /** @type {string} */
+      let title;
+      /** @type {string} */
+      let _name;
+      switch (type) {
+        case 'ScalePrompt': {
+          const positions = Array.from(locations.values()).flatMap(set => Array.from(set));
+          const latitude = positions.map(p => p.lat).reduce((a, b) => a + b, 0) / positions.length;
+          const longitude = positions.map(p => p.lng).reduce((a, b) => a + b, 0) / positions.length;
+          ll = `${latitude.toFixed(2)},${longitude.toFixed(2)}`;
+
+          const [pickedPoint, pickedPoint2] = points.slice(0, 2);
+          if (pickedPoint == null) {
+            throw new Error('no picked point');
+          }
+
+          _name = pickedPoint.addr;
+          if (pickedPoint2 != null) {
+            _name += `や${pickedPoint2.addr}`;
+
+            if (points.length > 2) {
+              _name += 'など';
+            }
+          }
+
+          title = '地震速報';
+          break;
+        }
+        case 'DetailScale': {
+          ll = `${latitude},${longitude}`;
+
+          _name = name;
+
+          title = '地震情報';
+          break;
+        }
+        default:
+          throw /** @satisfies {never} */ (type);
+      }
       const mapParams = new URLSearchParams({ ll, z: '8', q: ll });
-      const sentences = [
-        `[${name}](https://www.google.com/maps?${mapParams})で最大${maxIntensity}の地震が発生しました。`,
-        `マグニチュードは ${magnitude}、震源の深さはおよそ ${depth}km です。`,
-        ...tsunamiToMessage(domesticTsunami),
-      ];
+      const sentences = [`[${_name}](https://www.google.com/maps?${mapParams})で最大${maxIntensity}の地震が発生しました。`];
+      if (type === 'DetailScale') {
+        sentences.push(`マグニチュードは ${magnitude}、震源の深さはおよそ ${depth}km です。`);
+      }
 
       const embed = new EmbedBuilder()
-        .setTitle('地震情報')
-        .setDescription(sentences.join('\n'))
+        .setTitle(title)
+        .setDescription(sentences.concat(tsunamiToMessage(domesticTsunami)).join('\n'))
         .setColor(getColorsOfIntensity(maxIntensity))
         .setTimestamp(dayjs.tz(time, 'Asia/Tokyo').valueOf());
 
@@ -308,7 +353,7 @@ const resolveJMAQuake = async response => {
         }
       }
 
-      const { points, ...restResponse } = response;
+      const { points: _points, ...restResponse } = response;
       log(`earthquake#${resolveJMAQuake.name}:`, `sent to ${guildName}/${channel.name}`, JSON.stringify(restResponse));
     }
   }
