@@ -83,7 +83,7 @@ export const commands = {
       const text = interaction.options.getString('text', true);
 
       const { channel } = interaction;
-      if (channel == null || !channel.isTextBased() || channel.isVoiceBased()) {
+      if (channel == null || !channel.isTextBased() || channel.isVoiceBased() || !('send' in channel)) {
         await interaction.reply({ content: '対応していないチャンネルです。', ephemeral: true });
         return;
       }

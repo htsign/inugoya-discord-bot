@@ -264,7 +264,7 @@ const resolveJMAQuake = async response => {
         throw e;
       }
 
-      /** @type {import('discord.js').AnyThreadChannel<boolean>} */
+      /** @type {import('discord.js').AnyThreadChannel} */
       let thread;
       try {
         thread = await message.startThread({
