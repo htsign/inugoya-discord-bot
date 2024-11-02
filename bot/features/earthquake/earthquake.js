@@ -232,47 +232,44 @@ const resolveJMAQuake = async response => {
         }
       }
 
-      /** @type {string} */
-      let ll;
-      /** @type {string} */
-      let title;
-      /** @type {string} */
-      let _name;
-      switch (type) {
-        case 'ScalePrompt': {
-          const positions = Array.from(locations.values()).flatMap(set => Array.from(set));
-          const latitude = positions.map(p => p.lat).reduce((a, b) => a + b, 0) / positions.length;
-          const longitude = positions.map(p => p.lng).reduce((a, b) => a + b, 0) / positions.length;
-          ll = `${latitude.toFixed(2)},${longitude.toFixed(2)}`;
+      const [ll, title, _name] = (type => {
+        switch (type) {
+          case 'ScalePrompt': {
+            const positions = Array.from(locations.values()).flatMap(set => Array.from(set));
+            const latitude = positions.map(p => p.lat).reduce((a, b) => a + b, 0) / positions.length;
+            const longitude = positions.map(p => p.lng).reduce((a, b) => a + b, 0) / positions.length;
 
-          const [pickedPoint, pickedPoint2] = points.slice(0, 2);
-          if (pickedPoint == null) {
-            throw new Error('no picked point');
-          }
-
-          _name = pickedPoint.addr;
-          if (pickedPoint2 != null) {
-            _name += `や${pickedPoint2.addr}`;
-
-            if (points.length > 2) {
-              _name += 'など';
+            const [pickedPoint, pickedPoint2] = points.slice(0, 2);
+            if (pickedPoint == null) {
+              throw new Error('no picked point');
             }
+
+            let name = pickedPoint.addr;
+            if (pickedPoint2 != null) {
+              name += `や${pickedPoint2.addr}`;
+
+              if (points.length > 2) {
+                name += 'など';
+              }
+            }
+
+            return [
+              `${latitude.toFixed(2)},${longitude.toFixed(2)}`,
+              '地震速報',
+              name,
+            ];
           }
-
-          title = '地震速報';
-          break;
+          case 'DetailScale': {
+            return [
+              `${latitude},${longitude}`,
+              '地震情報',
+              name,
+            ];
+          }
+          default:
+            throw /** @satisfies {never} */ (type);
         }
-        case 'DetailScale': {
-          ll = `${latitude},${longitude}`;
-
-          _name = name;
-
-          title = '地震情報';
-          break;
-        }
-        default:
-          throw /** @satisfies {never} */ (type);
-      }
+      })(type);
       const mapParams = new URLSearchParams({ ll, z: '8', q: ll });
       const sentences = [`[${_name}](https://www.google.com/maps?${mapParams})で最大${maxIntensity}の地震が発生しました。`];
       if (type === 'DetailScale') {
