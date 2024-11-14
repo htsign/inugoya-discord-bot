@@ -232,7 +232,7 @@ const resolveJMAQuake = async response => {
         }
       }
 
-      const [ll, title, _name] = (type => {
+      const [title, ...sentences] = (type => {
         switch (type) {
           case 'ScalePrompt': {
             const positions = Array.from(locations.values()).flatMap(set => Array.from(set));
@@ -253,28 +253,26 @@ const resolveJMAQuake = async response => {
               }
             }
 
+            const ll = `${latitude.toFixed(2)},${longitude.toFixed(2)}`;
+            const mapParams = new URLSearchParams({ ll, z: '8', q: ll });
             return [
-              `${latitude.toFixed(2)},${longitude.toFixed(2)}`,
               '地震速報',
-              name,
+              `[${name}](https://www.google.com/maps?${mapParams})で最大${maxIntensity}の地震を観測しました。`,
             ];
           }
           case 'DetailScale': {
+            const ll = `${latitude},${longitude}`;
+            const mapParams = new URLSearchParams({ ll, z: '8', q: ll });
             return [
-              `${latitude},${longitude}`,
               '地震情報',
-              name,
+              `[${name}](https://www.google.com/maps?${mapParams})で最大${maxIntensity}の地震が発生しました。`,
+              `マグニチュードは ${magnitude}、震源の深さはおよそ ${depth}km です。`,
             ];
           }
           default:
             throw /** @satisfies {never} */ (type);
         }
       })(type);
-      const mapParams = new URLSearchParams({ ll, z: '8', q: ll });
-      const sentences = [`[${_name}](https://www.google.com/maps?${mapParams})で最大${maxIntensity}の地震が発生しました。`];
-      if (type === 'DetailScale') {
-        sentences.push(`マグニチュードは ${magnitude}、震源の深さはおよそ ${depth}km です。`);
-      }
 
       const embed = new EmbedBuilder()
         .setTitle(title)
