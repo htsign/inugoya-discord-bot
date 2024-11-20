@@ -254,7 +254,7 @@ const resolveJMAQuake = async response => {
             }
 
             const ll = `${latitude.toFixed(2)},${longitude.toFixed(2)}`;
-            const mapParams = new URLSearchParams({ ll, z: '8', q: ll });
+            const mapParams = new URLSearchParams({ ll, z: '8' });
             return [
               '地震速報',
               `[${name}](https://www.google.com/maps?${mapParams})で最大${maxIntensity}の地震を観測しました。`,
