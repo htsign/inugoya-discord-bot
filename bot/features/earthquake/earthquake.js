@@ -87,7 +87,7 @@ connectWebSocket(ENDPOINT, ({ data }) => {
 
 /**
  * @param {number} number
- * @returns {'不明' | `震度${0 | 1 | 2 | 3 | 4}` | `震度${5 | 6}${'弱' | '強'}` | `震度7${'' | '程度以上'}`}
+ * @returns {'不明' | `震度${0 | 1 | 2 | 3 | 4}` | `震度${5 | 6}${'弱' | '強'}` | '震度5弱以上' | `震度7${'' | '程度以上'}`}
  */
 export const intensityFromNumber = number =>
   intensityFromNumberCore(number, n => {
@@ -118,6 +118,7 @@ const intensityFromNumberCore = (number, ifUnexpected) => {
     case 30: return '震度3';
     case 40: return '震度4';
     case 45: return '震度5弱';
+    case 46: return '震度5弱以上';
     case 50: return '震度5強';
     case 55: return '震度6弱';
     case 60: return '震度6強';
@@ -140,6 +141,7 @@ const getColorsOfIntensity = intensity => {
     case '震度3': return 0x0041ff;
     case '震度4': return 0xfae696;
     case '震度5弱': return 0xffe600;
+    case '震度5弱以上': return 0xffe600;
     case '震度5強': return 0xff9900;
     case '震度6弱': return 0xff2800;
     case '震度6強': return 0xa50021;
@@ -155,6 +157,7 @@ const getColorsOfIntensity = intensity => {
 const resolveJMAQuake = async response => {
   const { points = [] } = response;
 
+  /** @type {Map<number, Map<string, string[]>>} */
   let groupedByIntensityAreas = points
     .reduce((/** @type {Map<number, Map<string, string[]>>} */ acc, curr) => {
       /** @type {Map<string, string[]>} */
