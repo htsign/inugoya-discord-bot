@@ -1,7 +1,7 @@
 import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
-import { parseICO } from 'icojs';
 import fastAvgColor from 'fast-average-color-node';
-import { log } from '../../../../lib/log.js';
+import { parseICO } from 'icojs';
+import { log, logError } from '../../../../lib/log.js';
 import { getUrlDomain, isUrl, retrieveRealUrl, urlToDocument } from '../../../../lib/util.js';
 
 const IGNORED_URLS = Object.freeze([
@@ -36,7 +36,7 @@ const getFavicon = async (url, index) => {
       }
       catch (e) {
         if (e instanceof Error) {
-          log(`noExpandedExpand#${getFavicon.name}#${fetchIco.name}:`, e.stack ?? `${e.name}: ${e.message}`);
+          logError(e, `noExpandedExpand#${getFavicon.name}#${fetchIco.name}:`);
         }
       }
     }
@@ -234,7 +234,7 @@ const getColorAsInt = async resource => {
   }
   catch (e) {
     if (e instanceof Error) {
-      log(`noExpandedExpand#${getColorAsInt.name}:`, e.stack ?? `${e.name}: ${e.message}`);
+      logError(e, `noExpandedExpand#${getColorAsInt.name}:`);
     }
     return 0x000000;
   }
@@ -358,7 +358,7 @@ export const hooks = [
       }
       catch (e) {
         if (e instanceof Error) {
-          log(`noExpandedExpand#${core.name}:`, e.stack ?? `${e.name}: ${e.message}`);
+          logError(e, `noExpandedExpand#${core.name}:`);
           return { embeds: [], attachments: [] };
         }
         throw e;

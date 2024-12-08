@@ -1,8 +1,8 @@
 import { Events } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
-import { addHandler } from '../../listeners.js';
-import { log } from '../../lib/log.js';
+import { log, logError } from '../../lib/log.js';
 import { getEnv, toQueryString, urlsOfText } from '../../lib/util.js';
+import { addHandler } from '../../listeners.js';
 
 const API_KEY = getEnv('XGD_API_KEY', 'X.gd API key');
 const API_ENTRYPOINT = 'https://xgd.io/V1/shorten';
@@ -87,7 +87,7 @@ addHandler(Events.MessageCreate, async message => {
   }
   catch (e) {
     if (e instanceof Error) {
-      log('shortenUrl:', `failed to reply to ${author.username}`, e.stack ?? `${e.name}: ${e.message}`);
+      logError(e, 'shortenUrl:', `failed to reply to ${author.username}`);
       return;
     }
     throw e;

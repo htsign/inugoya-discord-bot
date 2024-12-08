@@ -1,6 +1,6 @@
-import { Events, ChannelType } from 'discord.js';
+import { ChannelType, Events } from 'discord.js';
+import { log, logError } from '../../lib/log.js';
 import { addHandler } from '../../listeners.js';
-import { log } from '../../lib/log.js';
 import { db } from './db.js';
 
 /** @typedef {import('discord.js').Snowflake} Snowflake */
@@ -45,7 +45,7 @@ addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
         }
         catch (e) {
           if (e instanceof Error) {
-            log('vcAttention:', `failed to fetch target channel of ${guildName}`, e.stack ?? `${e.name}: ${e.message}`);
+            logError(e, 'vcAttention:', `failed to fetch target channel of ${guildName}`);
             return;
           }
           throw e;
@@ -58,7 +58,7 @@ addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
           }
           catch (e) {
             if (e instanceof Error) {
-              log('vcAttention:', `failed to send message to ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
+              logError(e, 'vcAttention:', `failed to send message to ${guildName}/${channelName}`);
               return;
             }
             throw e;

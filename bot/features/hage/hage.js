@@ -1,7 +1,7 @@
 import { Events } from 'discord.js';
 import MersenneTwister from 'mersenne-twister';
 import dayjs from '../../lib/dayjsSetup.js';
-import { log } from '../../lib/log.js';
+import { log, logError } from '../../lib/log.js';
 import { Timeout } from '../../lib/timeout.js';
 import { addHandler } from '../../listeners.js';
 import { db } from './db.js';
@@ -118,7 +118,7 @@ addHandler(Events.MessageCreate, message => {
       }
       catch (e) {
         if (e instanceof Error) {
-          log('hage:', `failed to send to: ${guild.name}/${channel.name}`, e.stack ?? `${e.name}: ${e.message}`);
+          logError(e, 'hage:', `failed to send to: ${guild.name}/${channel.name}`);
           return;
         }
         throw e;
@@ -140,7 +140,7 @@ addHandler(Events.MessageReactionAdd, async (reaction, user) => {
   }
   catch (e) {
     if (e instanceof Error) {
-      log('hage:', `failed to fetch message: reacted by ${user.username}`, e.stack ?? `${e.name}: ${e.message}`);
+      logError(e, 'hage:', `failed to fetch message: reacted by ${user.username}`);
       return;
     }
     throw e;
@@ -164,7 +164,7 @@ addHandler(Events.MessageReactionAdd, async (reaction, user) => {
       }
       catch (e) {
         if (e instanceof Error) {
-          log('hage:', `failed to reply to: ${author.username}`, e.stack ?? `${e.name}: ${e.message}`);
+          logError(e, 'hage:', `failed to reply to: ${author.username}`);
           return;
         }
         throw e;
@@ -182,7 +182,7 @@ addHandler(Events.MessageReactionRemove, async (reaction, user) => {
   }
   catch (e) {
     if (e instanceof Error) {
-      log('hage:', `failed to fetch message: react removed by ${user.username}`, e.stack ?? `${e.name}: ${e.message}`);
+      logError(e, 'hage:', `failed to fetch message: react removed by ${user.username}`);
       return;
     }
     throw e;

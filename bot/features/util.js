@@ -2,7 +2,7 @@ import { EmbedBuilder } from 'discord.js';
 import fastAvgColor from 'fast-average-color-node';
 import { isNonEmpty } from 'ts-array-length';
 import client from '../client.js';
-import { log } from '../lib/log.js';
+import { log, logError } from '../lib/log.js';
 
 /**
  * @param {string} guildId
@@ -59,7 +59,7 @@ export const messageToEmbeds = async (message, options) => {
   }
   catch (e) {
     if (e instanceof Error) {
-      log(`${messageToEmbeds.name}:`, 'failed to fetch author', e.stack ?? `${e.name}: ${e.message}`);
+      logError(e, `${messageToEmbeds.name}:`, 'failed to fetch author');
     }
     else {
       throw e;

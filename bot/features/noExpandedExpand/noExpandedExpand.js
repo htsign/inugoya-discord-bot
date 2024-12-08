@@ -4,7 +4,7 @@ import { setTimeout } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { Events } from 'discord.js';
 import dayjs from '../../lib/dayjsSetup.js';
-import { log } from '../../lib/log.js';
+import { log, logError } from '../../lib/log.js';
 import { urlsOfText } from '../../lib/util.js';
 import { addHandler } from '../../listeners.js';
 
@@ -121,7 +121,7 @@ addHandler(Events.MessageCreate, async message => {
       }
       catch (e) {
         if (e instanceof Error) {
-          log(`noExpandedExpand[${sendTo}]:`, `failed to reply to ${author.username}`, e.stack ?? `${e.name}: ${e.message}`);
+          logError(e, `noExpandedExpand[${sendTo}]:`, `failed to reply to ${author.username}`);
           return;
         }
         throw e;
@@ -141,7 +141,7 @@ addHandler(Events.MessageCreate, async message => {
           }
           catch (e) {
             if (e instanceof Error) {
-              log(`noExpandedExpand[${sendTo}]:`, 'failed to delete replied message', e.stack ?? `${e.name}: ${e.message}`);
+              logError(e, `noExpandedExpand[${sendTo}]:`, 'failed to delete replied message');
               break;
             }
             throw e;

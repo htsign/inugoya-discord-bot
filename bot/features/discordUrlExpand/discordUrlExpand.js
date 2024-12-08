@@ -1,5 +1,5 @@
 import { Events, Message } from 'discord.js';
-import { log } from '../../lib/log.js';
+import { log, logError } from '../../lib/log.js';
 import { addHandler } from '../../listeners.js';
 import { fetchMessageByIds, messageToEmbeds } from '../util.js';
 
@@ -63,7 +63,7 @@ addHandler(Events.MessageCreate, async message => {
     }
     catch (e) {
       if (e instanceof Error) {
-        log(`discordUrlExpand[${sendTo}]:`, 'failed to send', e.stack ?? `${e.name}: ${e.message}`);
+        logError(e, `discordUrlExpand[${sendTo}]:`, 'failed to send');
         return;
       }
       throw e;

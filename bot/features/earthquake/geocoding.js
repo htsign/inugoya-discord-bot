@@ -1,6 +1,6 @@
 import { setTimeout } from 'node:timers/promises';
 import { isNonEmpty } from 'ts-array-length';
-import { log } from '../../lib/log.js';
+import { log, logError } from '../../lib/log.js';
 import { getEnv } from '../../lib/util.js';
 import { geoCoding } from './db.js';
 
@@ -65,7 +65,7 @@ export const geocode = async (prefecture, address, loopCount = 0) => {
   }
   catch (e) {
     if (e instanceof Error) {
-      log(`earthquake#${geocode.name}:`, 'failed to geocode', [...url.searchParams], e.stack ?? `${e.name}: ${e.message}`);
+      logError(e, `earthquake#${geocode.name}:`, 'failed to geocode', [...url.searchParams]);
     }
     else {
       throw e;

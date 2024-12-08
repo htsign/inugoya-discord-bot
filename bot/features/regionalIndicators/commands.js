@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, Events, MessageReaction } from 'discord.js';
+import { log, logError } from '../../lib/log.js';
 import { addHandler } from '../../listeners.js';
-import { log } from '../../lib/log.js';
 import { toEmojis } from './index.js';
 
 addHandler(Events.InteractionCreate, async interaction => {
@@ -21,7 +21,7 @@ addHandler(Events.InteractionCreate, async interaction => {
       }
       catch (e) {
         if (e instanceof Error) {
-          log('regionalIndicators:', `failed to reply to ${user.username}`, e.stack ?? `${e.name}: ${e.message}`);
+          logError(e, 'regionalIndicators:', `failed to reply to ${user.username}`);
           return;
         }
         throw e;
@@ -39,7 +39,7 @@ addHandler(Events.InteractionCreate, async interaction => {
           }
           catch (e) {
             if (e instanceof Error) {
-              log('regionalIndicators:', `failed to remove ${reaction.emoji.name}`, e.stack ?? `${e.name}: ${e.message}`);
+              logError(e, 'regionalIndicators:', `failed to remove ${reaction.emoji.name}`);
               continue;
             }
             throw e;
@@ -51,7 +51,7 @@ addHandler(Events.InteractionCreate, async interaction => {
       }
       catch (e) {
         if (e instanceof Error) {
-          log('regionalIndicators:', `failed to reply to ${user.username}`, e.stack ?? `${e.name}: ${e.message}`);
+          logError(e, 'regionalIndicators:', `failed to reply to ${user.username}`);
           return;
         }
         throw e;

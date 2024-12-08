@@ -3,7 +3,7 @@ import { Scraper } from '@the-convocation/twitter-scraper';
 import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
 import { runes } from 'runes2';
 import { Cookie } from 'tough-cookie';
-import { log } from '../../../../lib/log.js';
+import { log, logError } from '../../../../lib/log.js';
 import { getEnv } from '../../../../lib/util.js';
 import { retrieveFromVx } from './vxTwitterAPI.js';
 
@@ -43,7 +43,7 @@ const login = async (label, scraper, retryCount = 3) => {
     }
     catch (e) {
       if (e instanceof Error) {
-        log(`noExpandedExpand#X#${login.name}[${label}]:`, 'failed to login', e.stack ?? `${e.name}: ${e.message}`);
+        logError(e, `noExpandedExpand#X#${login.name}[${label}]:`, 'failed to login');
       }
       throw e;
     }
@@ -61,7 +61,7 @@ const login = async (label, scraper, retryCount = 3) => {
   }
   catch (e) {
     if (e instanceof Error) {
-      log(`noExpandedExpand#X#${login.name}[${label}]:`, 'failed to read cookies', e.stack ?? `${e.name}: ${e.message}`);
+      logError(e, `noExpandedExpand#X#${login.name}[${label}]:`, 'failed to read cookies');
 
       if (retryCount > 1) {
         await saveNewCookies();
@@ -214,7 +214,7 @@ export const hooks = [
       }
       catch (e) {
         if (e instanceof Error) {
-          log(`noExpandedExpand#X[${url}]:`, 'unknown error occurred', e.stack ?? `${e.name}: ${e.message}`);
+          logError(e, `noExpandedExpand#X[${url}]:`, 'unknown error occurred');
           return { embeds: [], attachments: [] };
         }
         throw e;

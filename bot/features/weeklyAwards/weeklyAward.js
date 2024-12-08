@@ -2,7 +2,7 @@ import { ChannelType, Events } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
 import client from '../../client.js';
 import dayjs from '../../lib/dayjsSetup.js';
-import { log } from '../../lib/log.js';
+import { log, logError } from '../../lib/log.js';
 import { addHandler } from '../../listeners.js';
 import { fetchMessageByIds, messageToEmbeds } from '../util.js';
 import { db } from './db.js';
@@ -36,7 +36,7 @@ addHandler(Events.MessageReactionAdd, async (reaction, user) => {
   }
   catch (e) {
     if (e instanceof Error) {
-      log('weeklyAward:', `failed to fetch message: reacted by ${user.username}`, e.stack ?? `${e.name}: ${e.message}`);
+      logError(e, 'weeklyAward:', `failed to fetch message: reacted by ${user.username}`);
       return;
     }
     throw e;
@@ -59,7 +59,7 @@ addHandler(Events.MessageReactionRemove, async (reaction, user) => {
   }
   catch (e) {
     if (e instanceof Error) {
-      log('weeklyAward:', `failed to fetch message: react removed by ${user.username}`, e.stack ?? `${e.name}: ${e.message}`);
+      logError(e, 'weeklyAward:', `failed to fetch message: react removed by ${user.username}`);
       return;
     }
     throw e;
@@ -176,7 +176,7 @@ const tick = async (guildId, guildName, channelId, channelName, showsRankCount, 
           }
           catch (e) {
             if (e instanceof Error) {
-              log(`weeklyAward#${tick.name}:`, `failed to send to ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
+              logError(e, `weeklyAward#${tick.name}:`, `failed to send to ${guildName}/${channelName}`);
               return;
             }
             throw e;
@@ -190,7 +190,7 @@ const tick = async (guildId, guildName, channelId, channelName, showsRankCount, 
             }
             catch (e) {
               if (e instanceof Error) {
-                log(`weeklyAward#${tick.name}:`, `failed to start thread in ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
+                logError(e, `weeklyAward#${tick.name}:`, `failed to start thread in ${guildName}/${channelName}`);
                 if (firstMessage.thread == null) {
                   return;
                 }
@@ -213,7 +213,7 @@ const tick = async (guildId, guildName, channelId, channelName, showsRankCount, 
               }
               catch (e) {
                 if (e instanceof Error) {
-                  log(`weeklyAward#${tick.name}:`, `failed to send to ${guildName}/${thread.name}`, e.stack ?? `${e.name}: ${e.message}`);
+                  logError(e, `weeklyAward#${tick.name}:`, `failed to send to ${guildName}/${thread.name}`);
                   continue;
                 }
                 throw e;
@@ -228,7 +228,7 @@ const tick = async (guildId, guildName, channelId, channelName, showsRankCount, 
         }
         catch (e) {
           if (e instanceof Error) {
-            log(`weeklyAward#${tick.name}:`, `failed to send to ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
+            logError(e, `weeklyAward#${tick.name}:`, `failed to send to ${guildName}/${channelName}`);
             return;
           }
           throw e;

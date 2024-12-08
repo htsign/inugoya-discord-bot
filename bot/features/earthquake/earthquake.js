@@ -4,7 +4,7 @@ import { AttachmentBuilder, Colors, EmbedBuilder, ThreadAutoArchiveDuration } fr
 import { isNonEmpty } from 'ts-array-length';
 import client from '../../client.js';
 import dayjs from '../../lib/dayjsSetup.js';
-import { log } from '../../lib/log.js';
+import { log, logError } from '../../lib/log.js';
 import { getEnv } from '../../lib/util.js';
 import { db } from './db.js';
 import { geocode } from './geocoding.js';
@@ -301,7 +301,7 @@ const resolveJMAQuake = async response => {
       }
       catch (e) {
         if (e instanceof Error) {
-          log(`earthquake#${resolveJMAQuake.name}:`, `failed to send to ${guildName}/${channel.name}`, e.stack ?? `${e.name}: ${e.message}`);
+          logError(e, `earthquake#${resolveJMAQuake.name}:`, `failed to send to ${guildName}/${channel.name}`);
           continue;
         }
         throw e;
@@ -317,7 +317,7 @@ const resolveJMAQuake = async response => {
       }
       catch (e) {
         if (e instanceof Error) {
-          log(`earthquake#${resolveJMAQuake.name}:`, `failed to start thread in ${guildName}/${channel.name}`, e.stack ?? `${e.name}: ${e.message}`);
+          logError(e, `earthquake#${resolveJMAQuake.name}:`, `failed to start thread in ${guildName}/${channel.name}`);
           if (message.thread == null) {
             continue;
           }
@@ -344,7 +344,7 @@ const resolveJMAQuake = async response => {
         }
         catch (e) {
           if (e instanceof Error) {
-            log(`earthquake#${resolveJMAQuake.name}:`, `failed to send to ${guildName}/${thread.name}`, e.stack ?? `${e.name}: ${e.message}`);
+            logError(e, `earthquake#${resolveJMAQuake.name}:`, `failed to send to ${guildName}/${thread.name}`);
             continue;
           }
           throw e;
@@ -480,7 +480,7 @@ const resolveEEW = async response => {
       }
       catch (e) {
         if (e instanceof Error) {
-          log(`earthquake#${resolveEEW.name}:`, `failed to send to ${guildName}/${channelName}`, e.stack ?? `${e.name}: ${e.message}`);
+          logError(e, `earthquake#${resolveEEW.name}:`, `failed to send to ${guildName}/${channelName}`);
           continue;
         }
         throw e;
@@ -571,7 +571,7 @@ const getMapImageAsBuffer = async (locations, markersSize, center) => {
   }
   catch (e) {
     if (e instanceof Error) {
-      log(`earthquake#${getMapImageAsBuffer.name}:`, `failed to fetch ${url}`, e.stack ?? `${e.name}: ${e.message}`);
+      logError(e, `earthquake#${getMapImageAsBuffer.name}:`, `failed to fetch ${url}`);
       return null;
     }
     throw e;

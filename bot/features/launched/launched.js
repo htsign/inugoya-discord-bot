@@ -1,5 +1,5 @@
 import { ChannelType, Events } from 'discord.js';
-import { log } from '../../lib/log.js';
+import { log, logError } from '../../lib/log.js';
 import { addHandler } from '../../listeners.js';
 import { db } from './db.js';
 
@@ -23,10 +23,10 @@ addHandler(Events.ClientReady, async client => {
       catch (e) {
         if (e instanceof Error) {
           if (guild == null) {
-            log('launched:', `guild which id is ${guildId} is not found`, e.stack ?? `${e.name}: ${e.message}`);
+            logError(e, 'launched:', `guild which id is ${guildId} is not found`);
           }
           else {
-            log('launched:', `failed to send message to ${guild.name}/${channel.name}`, e.stack ?? `${e.name}: ${e.message}`);
+            logError(e, 'launched:', `failed to send message to ${guild.name}/${channel.name}`);
           }
           continue;
         }

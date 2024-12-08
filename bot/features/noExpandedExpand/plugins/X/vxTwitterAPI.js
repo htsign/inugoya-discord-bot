@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
-import { log } from '../../../../lib/log.js';
 import { runes } from 'runes2';
+import { log, logError } from '../../../../lib/log.js';
 
 /**
  * @param {string} url
@@ -121,7 +121,7 @@ export const retrieveFromVx = async (url, statusId) => {
   }
   catch (e) {
     if (e instanceof Error) {
-      log(`noExpandedExpand#X#${retrieveFromVx.name}:`, e.stack ?? `${e.name}: ${e.message}`);
+      logError(e, `noExpandedExpand#X#${retrieveFromVx.name}:`);
       return { embeds: [], attachments: [] };
     }
     throw e;

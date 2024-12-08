@@ -55,3 +55,12 @@ export function log(...values) {
 
   return wp;
 }
+
+/**
+ * @param {Error} error
+ * @param  {...unknown} values
+ * @returns {Promise<void>}
+ */
+export function logError(error, ...values) {
+  return log(...values, error.stack ?? `${error.name}: ${error.message}`);
+}
