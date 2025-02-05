@@ -1,7 +1,6 @@
 import { setTimeout as delay } from 'node:timers/promises';
 import { URL } from 'node:url';
 import chardet from 'chardet';
-import dotenv from 'dotenv';
 import { JSDOM } from 'jsdom';
 
 export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
@@ -16,8 +15,6 @@ const IgnoredContentTypes = new Set([
   'application/pdf',
 ]);
 
-const configOutput = dotenv.config();
-
 /**
  * @param {T} value
  * @returns {T}
@@ -31,7 +28,7 @@ export const identity = value => value;
  * @returns {string}
  */
 export const getEnv = (key, name = key) => {
-  const token = configOutput.parsed?.[key] ?? process.env[key];
+  const token = process.env[key];
   if (token == null) {
     throw new Error(`${name} is empty`);
   }

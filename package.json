@@ -1,31 +1,36 @@
 {
   "main": "index.js",
   "type": "module",
+  "engines": {
+    "node": ">=22.6.0"
+  },
+  "engineStrict": true,
   "scripts": {
+    "start": "dotenvx run -- node index.js",
     "type-check": "tsc --project ./tsconfig.json"
   },
   "dependencies": {
-    "@the-convocation/twitter-scraper": "^0.14.1",
-    "better-sqlite3": "^11.5.0",
+    "@dotenvx/dotenvx": "^1.34.0",
+    "@the-convocation/twitter-scraper": "^0.15.1",
+    "better-sqlite3": "^11.8.1",
     "chardet": "^2.0.0",
     "dayjs": "1.11.13",
-    "discord.js": "^14.16.3",
-    "dotenv": "^16.4.5",
+    "discord.js": "^14.17.3",
     "emoji-regex": "^10.4.0",
     "fast-average-color-node": "^3.1.0",
-    "i18next": "^23.16.4",
+    "i18next": "^24.2.2",
     "icojs": "^0.19.4",
-    "jsdom": "^25.0.1",
+    "jsdom": "^26.0.0",
     "mersenne-twister": "^1.1.0",
     "runes2": "^1.1.4"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
-    "@types/better-sqlite3": "^7.6.11",
+    "@types/better-sqlite3": "^7.6.12",
     "@types/jsdom": "^21.1.7",
     "@types/mersenne-twister": "^1.1.7",
     "@types/tough-cookie": "^4.0.5",
     "ts-array-length": "^0.1.3",
-    "typescript": "^5.6.3"
+    "typescript": "^5.7.0"
   }
 }
