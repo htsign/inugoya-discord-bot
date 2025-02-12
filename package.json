@@ -10,16 +10,16 @@
     "type-check": "tsc --project ./tsconfig.json"
   },
   "dependencies": {
-    "@dotenvx/dotenvx": "^1.34.0",
+    "@dotenvx/dotenvx": "^1.35.0",
     "@the-convocation/twitter-scraper": "^0.15.1",
     "better-sqlite3": "^11.8.1",
     "chardet": "^2.0.0",
     "dayjs": "1.11.13",
-    "discord.js": "^14.17.3",
+    "discord.js": "^14.18.0",
     "emoji-regex": "^10.4.0",
     "fast-average-color-node": "^3.1.0",
     "i18next": "^24.2.2",
-    "icojs": "^0.19.4",
+    "icojs": "^0.19.5",
     "jsdom": "^26.0.0",
     "mersenne-twister": "^1.1.0",
     "runes2": "^1.1.4"
