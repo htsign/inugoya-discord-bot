@@ -14,7 +14,7 @@
     }
   },
   "files": {
-    "ignore": ["tsconfig.json"]
+    "ignore": ["tsconfig.json", "node_modules/**"]
   },
   "javascript": {
     "formatter": {

@@ -1,12 +1,12 @@
 {
-  "main": "index.js",
+  "main": "index.ts",
   "type": "module",
   "engines": {
     "node": ">=22.6.0"
   },
   "engineStrict": true,
   "scripts": {
-    "start": "dotenvx run -- node index.js",
+    "start": "dotenvx run -- node --experimental-strip-types index.ts",
     "type-check": "tsc --project ./tsconfig.json"
   },
   "dependencies": {
