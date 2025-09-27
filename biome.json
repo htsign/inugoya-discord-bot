@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
   "formatter": {
     "lineWidth": 140,
     "lineEnding": "lf",
@@ -14,7 +14,7 @@
     }
   },
   "files": {
-    "ignore": ["tsconfig.json", "node_modules/**"]
+    "experimentalScannerIgnores": ["tsconfig.json", "**/node_modules/**"]
   },
   "javascript": {
     "formatter": {
