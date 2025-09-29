@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
-import { Events, type Message, type PartialMessage } from 'discord.js';
+import { type APIEmbed, Events, type Message, type PartialMessage } from 'discord.js';
 import type { HookResult, Plugin } from 'types/bot/features/noExpandedExpand';
 import dayjs from '../../lib/dayjsSetup.ts';
 import { log, logError } from '../../lib/log.ts';
@@ -96,7 +96,9 @@ addHandler(Events.MessageCreate, async message => {
 
     const results = await Promise.all(expandingPromises);
 
-    const embeds = results.flatMap(res => res.embeds);
+    const embeds: APIEmbed[] = results
+      .flatMap(res => res.embeds)
+      .filter(embed => message.embeds.every(me => me.url !== embed.url));
     const files = results.flatMap(res => res.attachments);
 
     if (targetMessages.has(message) && embeds.length > 0) {
