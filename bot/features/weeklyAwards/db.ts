@@ -11,7 +11,7 @@ import type {
 } from '../../../types/bot/features/weeklyAwards.ts';
 import dayjs from '../../lib/dayjsSetup.ts';
 import { isUrl } from '../../lib/util.ts';
-import { type Weekday, fromNumber } from './weekday.ts';
+import { fromNumber, type Weekday } from './weekday.ts';
 
 const db = new Database('weeklyAward.db');
 

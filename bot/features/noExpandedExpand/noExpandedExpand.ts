@@ -41,7 +41,7 @@ const plugins: Plugin[] = [];
   await addPlugin('_default');
 
   for (const [event, handler] of plugins.flatMap(plugin => Object.entries(plugin.handlers ?? {}))) {
-    // @ts-ignore
+    // @ts-expect-error
     addHandler(event, handler);
   }
 })();

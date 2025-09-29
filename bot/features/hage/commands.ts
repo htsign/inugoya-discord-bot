@@ -456,7 +456,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 export const commands: ChatInputCommandCollection<void, Obj> = {
   hage: {
     description: 'ハゲ監視',
-    // @ts-ignore
+    // @ts-expect-error
     options: Object.entries(subCommands).map(([name, content]) => ({
       name,
       type: ApplicationCommandType.ChatInput,

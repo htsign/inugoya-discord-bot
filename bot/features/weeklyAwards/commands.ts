@@ -13,7 +13,7 @@ import { log } from '../../lib/log.ts';
 import { DATETIME_FORMAT } from '../../lib/util.ts';
 import { db } from './db.ts';
 import { startAward, stopAward } from './index.ts';
-import { SATURDAY, SUNDAY, fromNumber, jpString, weekdays } from './weekday.ts';
+import { fromNumber, jpString, SATURDAY, SUNDAY, weekdays } from './weekday.ts';
 
 const DEFAULT_SHOWS_COUNT = 3;
 const DEFAULT_MIN_REACTED = 5;
@@ -311,7 +311,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 export const commands: ChatInputCommandCollection<void, Obj> = {
   weeklyaward: {
     description: 'リアクション大賞',
-    // @ts-ignore
+    // @ts-expect-error
     options: Object.entries(subCommands).map(([name, content]) => ({
       name,
       type: ApplicationCommandType.ChatInput,

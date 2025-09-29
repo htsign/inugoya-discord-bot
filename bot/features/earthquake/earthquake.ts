@@ -448,6 +448,7 @@ const resolveEEW = async (response: EEW): Promise<void> => {
         throw e;
       }
 
+      // biome-ignore lint/correctness/noUnusedVariables: ignore `areas` away from logs
       const { areas, ...restResponse } = response;
       log(`earthquake#${resolveEEW.name}:`, `sent to ${guildName}/${channelName}`, JSON.stringify(restResponse));
     }

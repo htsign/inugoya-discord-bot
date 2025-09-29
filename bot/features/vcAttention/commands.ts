@@ -112,7 +112,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 export const commands: ChatInputCommandCollection<void, Obj> = {
   vcattention: {
     description: 'VC盛り上がり通知',
-    // @ts-ignore
+    // @ts-expect-error
     options: Object.entries(subCommands).map(([name, content]) => ({
       name,
       type: ApplicationCommandType.ChatInput,

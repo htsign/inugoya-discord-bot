@@ -103,7 +103,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 export const commands: ChatInputCommandCollection<void, Obj> = {
   launched: {
     description: '犬小屋への帰還',
-    // @ts-ignore
+    // @ts-expect-error
     options: Object.entries(subCommands).map(([name, content]) => ({
       name,
       type: ApplicationCommandType.ChatInput,

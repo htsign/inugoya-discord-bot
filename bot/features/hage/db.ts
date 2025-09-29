@@ -1,6 +1,12 @@
 import { setTimeout } from 'node:timers/promises';
 import Database, { type Transaction } from 'better-sqlite3';
-import type { HageConfigRecord, HageConfigRow, HageKeywordRecord, HageReactionKeywordRecord, HageReactionKeywordRow } from '../../../types/bot/features/hage.ts';
+import type {
+  HageConfigRecord,
+  HageConfigRow,
+  HageKeywordRecord,
+  HageReactionKeywordRecord,
+  HageReactionKeywordRow,
+} from '../../../types/bot/features/hage.ts';
 import dayjs from '../../lib/dayjsSetup.ts';
 import { log } from '../../lib/log.ts';
 

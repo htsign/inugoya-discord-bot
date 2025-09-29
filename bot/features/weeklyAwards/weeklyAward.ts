@@ -1,4 +1,4 @@
-import { type APIEmbed, type AnyThreadChannel, ChannelType, Events, type Message } from 'discord.js';
+import { type AnyThreadChannel, type APIEmbed, ChannelType, Events, type Message } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
 import type { MessageAndReactions, WeeklyAwardRecord } from '../../../types/bot/features/weeklyAwards.ts';
 import client from '../../client.ts';
@@ -119,7 +119,8 @@ const tick = async (guildId: string, guildName: string, channelId: string, chann
         // tally messages by reactions count
         const talliedMessages = messages
           .reduce((acc: { [count: number]: Message<true>[]; }, { message, reactionsCount }) =>
-            Object.assign(acc, { [reactionsCount]: [...acc[reactionsCount] ?? [], message] }), {});
+            // biome-ignore lint/performance/noAccumulatingSpread: ignore bottleneck of creating temporary object
+            Object.assign(acc, { [reactionsCount]: (acc[reactionsCount] ?? []).concat(message) }), {});
         // sort descending order by reactions count
         const messagesArray = Object.entries(talliedMessages).sort(([a], [b]) => (+b) - (+a));
 
