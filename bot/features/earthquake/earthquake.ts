@@ -48,29 +48,29 @@ const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => v
         onMessage(event);
       }
       catch (error) {
-        log('earthquake: unhandled error', error);
+        log('earthquake#onmessage: unhandled error', error);
         reconnect(1000);
       }
     };
     ws.onerror = event => {
-      log('earthquake: error', event);
+      log('earthquake#onerror: error', event);
       try {
         ws.close();
       }
       catch (error) {
-        log('earthquake: unhandled error', error);
+        log('earthquake#onerror: unhandled error', error);
         reconnect(1000);
       }
     };
     ws.onclose = ({ code, reason }) => {
-      log('earthquake: disconnected', `[${code}] ${reason}`);
+      log('earthquake#onclose: disconnected', `[${code}] ${reason}`);
       reconnect(1000);
     };
 
     return Promise.resolve(ws);
   }
   catch (error) {
-    log('earthquake: unhandled error', error);
+    log(`earthquake#${connectWebSocket.name}: unhandled error`, error);
     return reconnect(1000);
   }
 };
@@ -338,15 +338,15 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
   }
 };
 
-const resolveJMATsunami = async (response: JMATsunami): Promise<void> => {
+const resolveJMATsunami = async (_response: JMATsunami): Promise<void> => {
   // not implemented
 };
 
-const resolveEEWDetection = async (response: EEWDetection): Promise<void> => {
+const resolveEEWDetection = async (_response: EEWDetection): Promise<void> => {
   // not implemented
 };
 
-const resolveAreaPeers = async (response: AreaPeers): Promise<void> => {
+const resolveAreaPeers = async (_response: AreaPeers): Promise<void> => {
   // not implemented
 };
 
@@ -454,11 +454,11 @@ const resolveEEW = async (response: EEW): Promise<void> => {
   }
 };
 
-const resolveUserQuake = async (response: UserQuake): Promise<void> => {
+const resolveUserQuake = async (_response: UserQuake): Promise<void> => {
   // not implemented
 };
 
-const resolveUserQuakeEvaluation = async (response: UserQuakeEvaluation): Promise<void> => {
+const resolveUserQuakeEvaluation = async (_response: UserQuakeEvaluation): Promise<void> => {
   // not implemented
 };
 
