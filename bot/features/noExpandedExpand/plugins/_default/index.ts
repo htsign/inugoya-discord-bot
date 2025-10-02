@@ -108,7 +108,7 @@ const getAuthor = async (document: Document, url: Url): ReturnType<typeof getAut
 };
 
 const getUrl = (document: Document): Url | null => {
-  const url = document.querySelector<HTMLMetaElement>('meta[property="og:url]')?.content ?? null;
+  const url = document.querySelector<HTMLMetaElement>('meta[property="og:url"]')?.content ?? null;
 
   return url != null && isUrl(url) ? url : null;
 };
