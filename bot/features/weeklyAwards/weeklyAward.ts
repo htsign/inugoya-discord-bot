@@ -128,7 +128,9 @@ const tick = async (guildId: string, guildName: string, channelId: string, chann
         {
           let rank = 1;
 
-          for (const [count, messages] of messagesArray.filter((_, i) => i < Math.min(messagesArray.length, showsRankCount))) {
+          for (const [count, messages] of messagesArray) {
+            if (showsRankCount < rank) break;
+
             const rankText = rank === 1 ? '最も' : ` ${rank}番目に`;
 
             const embeds: APIEmbed[] = [];
