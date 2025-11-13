@@ -13,6 +13,7 @@
     "noUnusedLocals": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
+    "erasableSyntaxOnly": true,
     "resolveJsonModule": true,
     "allowJs": true,
     "noEmit": true,
