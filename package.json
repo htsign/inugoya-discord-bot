@@ -10,27 +10,27 @@
     "type-check": "tsc --project ./tsconfig.json"
   },
   "dependencies": {
-    "@dotenvx/dotenvx": "^1.35.0",
-    "@the-convocation/twitter-scraper": "^0.18.3",
+    "@dotenvx/dotenvx": "^1.51.1",
+    "@the-convocation/twitter-scraper": "^0.20.1",
     "better-sqlite3": "^12.4.1",
-    "chardet": "^2.0.0",
-    "dayjs": "1.11.18",
-    "discord.js": "^14.18.0",
-    "emoji-regex": "^10.4.0",
+    "chardet": "^2.1.1",
+    "dayjs": "1.11.19",
+    "discord.js": "^14.24.2",
+    "emoji-regex": "^10.6.0",
     "fast-average-color-node": "^3.1.0",
-    "i18next": "^25.2.1",
-    "icojs": "^0.19.5",
-    "jsdom": "^27.0.0",
+    "i18next": "^25.6.2",
+    "icojs": "^0.20.1",
+    "jsdom": "^27.2.0",
     "mersenne-twister": "^1.1.0",
     "runes2": "^1.1.4"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.4",
-    "@types/better-sqlite3": "^7.6.12",
-    "@types/jsdom": "^21.1.7",
+    "@biomejs/biome": "^2.3.5",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/jsdom": "^27.0.0",
     "@types/mersenne-twister": "^1.1.7",
     "@types/tough-cookie": "^4.0.5",
     "ts-array-length": "^0.1.3",
-    "typescript": "^5.7.0"
+    "typescript": "^5.9.3"
   }
 }
