@@ -14,7 +14,7 @@
     }
   },
   "files": {
-    "includes": ["**", "!tsconfig.json", "!**/node_modules"]
+    "includes": ["**", "!!tsconfig.json", "!!**/node_modules"]
   },
   "javascript": {
     "formatter": {
