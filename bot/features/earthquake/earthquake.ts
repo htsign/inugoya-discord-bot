@@ -33,7 +33,7 @@ import { geocode } from './geocoding.ts';
 const debug = false;
 const ENDPOINT = `wss://${debug ? 'api-realtime-sandbox' : 'api'}.p2pquake.net/v2/ws`;
 
-const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => void): Promise<WebSocket> => {
+const connectWebSocket = async (address: string, onMessage: (event: MessageEvent) => void): Promise<WebSocket> => {
   const reconnect = async (timeout: number): Promise<WebSocket> => {
     await setTimeout(timeout);
     return await connectWebSocket(address, onMessage);
@@ -43,35 +43,35 @@ const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => v
     const ws = new WebSocket(address);
 
     ws.onopen = () => log('earthquake: connected');
-    ws.onmessage = event => {
+    ws.onmessage = async event => {
       try {
         onMessage(event);
       }
       catch (error) {
         log('earthquake#onmessage: unhandled error', error);
-        reconnect(1000);
+        await reconnect(1000);
       }
     };
-    ws.onerror = event => {
+    ws.onerror = async event => {
       log('earthquake#onerror: error', event);
       try {
         ws.close();
       }
       catch (error) {
         log('earthquake#onerror: unhandled error', error);
-        reconnect(1000);
+        await reconnect(1000);
       }
     };
-    ws.onclose = ({ code, reason }) => {
+    ws.onclose = async ({ code, reason }) => {
       log('earthquake#onclose: disconnected', `[${code}] ${reason}`);
-      reconnect(1000);
+      await reconnect(1000);
     };
 
     return Promise.resolve(ws);
   }
   catch (error) {
     log(`earthquake#${connectWebSocket.name}: unhandled error`, error);
-    return reconnect(1000);
+    return await reconnect(1000);
   }
 };
 
