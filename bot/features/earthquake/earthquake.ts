@@ -1,4 +1,3 @@
-import { setTimeout } from 'node:timers/promises';
 import { URL } from 'node:url';
 import {
   type AnyThreadChannel,
@@ -33,17 +32,16 @@ import { geocode } from './geocoding.ts';
 const debug = false;
 const ENDPOINT = `wss://${debug ? 'api-realtime-sandbox' : 'api'}.p2pquake.net/v2/ws`;
 
-const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => void): Promise<WebSocket> => {
-  const reconnect = async (timeout: number): Promise<WebSocket> => {
-    await setTimeout(timeout);
-    return await connectWebSocket(address, onMessage);
+const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => void): void => {
+  const reconnect = (timeout: number): void => {
+    setTimeout(() => connectWebSocket(address, onMessage), timeout);
   };
 
   try {
     const ws = new WebSocket(address);
 
     ws.onopen = () => log('earthquake: connected');
-    ws.onmessage = event => {
+    ws.onmessage = async event => {
       try {
         onMessage(event);
       }
@@ -52,7 +50,7 @@ const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => v
         reconnect(1000);
       }
     };
-    ws.onerror = event => {
+    ws.onerror = async event => {
       log('earthquake#onerror: error', event);
       try {
         ws.close();
@@ -62,16 +60,14 @@ const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => v
         reconnect(1000);
       }
     };
-    ws.onclose = ({ code, reason }) => {
+    ws.onclose = async ({ code, reason }) => {
       log('earthquake#onclose: disconnected', `[${code}] ${reason}`);
       reconnect(1000);
     };
-
-    return Promise.resolve(ws);
   }
   catch (error) {
     log(`earthquake#${connectWebSocket.name}: unhandled error`, error);
-    return reconnect(1000);
+    reconnect(1000);
   }
 };
 
