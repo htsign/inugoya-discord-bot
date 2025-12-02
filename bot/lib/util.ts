@@ -83,9 +83,15 @@ export const urlToDocument = async (url: string): Promise<Document | null> => {
     return Promise.reject(new Error('failed to fetch'));
   };
 
+  const sanitizeHtml = (html: string): string => html
+    .replace(/<script[^>]*?>.*?<\/script>/gs, '')
+    .replace(/<style[^>]*?>.*?<\/style>/gs, '')
+    .replace(/<link [^>]*?rel="stylesheet"[^>]*?>/g, '')
+    ;
+
   const charsetFromBuffer = (buffer: ArrayBuffer): Nullable<string> => {
     const html = new TextDecoder().decode(buffer);
-    const { window: { document } } = new JSDOM(html, { url });
+    const { window: { document } } = new JSDOM(sanitizeHtml(html), { url });
 
     const getAttr = (selector: string, attr: string): Nullable<string> => document.querySelector(selector)?.getAttribute(attr);
 
@@ -108,7 +114,7 @@ export const urlToDocument = async (url: string): Promise<Document | null> => {
     ?? chardet.detect(new Uint8Array(buffer))
     ?? 'utf-8';
   const html = new TextDecoder(encoding).decode(buffer);
-  const { window: { document } } = new JSDOM(html, { url });
+  const { window: { document } } = new JSDOM(sanitizeHtml(html), { url });
 
   return document;
 };
