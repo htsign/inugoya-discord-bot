@@ -8,6 +8,7 @@ import './bot/features/launched/index.ts';
 import './bot/features/hage/index.ts';
 import './bot/features/weeklyAwards/index.ts';
 import './bot/features/earthquake/index.ts';
+import './bot/features/instagram/index.ts';
 import './bot/features/noExpandedExpand/index.ts';
 import './bot/features/vcAttention/index.ts';
 import './bot/features/shortenUrl/index.ts';
