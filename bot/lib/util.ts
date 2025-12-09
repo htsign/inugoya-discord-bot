@@ -26,6 +26,20 @@ export const getEnv = (key: string, name: string = key): string => {
   return token;
 };
 
+export const debounce = <F extends (...args: any) => any, Args extends Parameters<F>>(
+  fn: F,
+  delay: number,
+  thisArg?: unknown,
+): ((...args: Args) => Promise<Awaited<ReturnType<F>>>) => {
+  let timeoutId: ReturnType<typeof globalThis.setTimeout> | undefined;
+
+  return (...args: Args) =>
+    new Promise(resolve => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => resolve(fn.apply(thisArg, args)), delay);
+    });
+};
+
 export const getUrlDomain = (url: string): string => {
   const { protocol, host } = new URL(url);
   return `${protocol}//${host}/`;

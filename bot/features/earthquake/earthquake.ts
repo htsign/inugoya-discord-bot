@@ -25,7 +25,7 @@ import type {
 import client from '../../client.ts';
 import dayjs from '../../lib/dayjsSetup.ts';
 import { log, logError } from '../../lib/log.ts';
-import { getEnv } from '../../lib/util.ts';
+import { debounce, getEnv } from '../../lib/util.ts';
 import { db } from './db.ts';
 import { geocode } from './geocoding.ts';
 
@@ -33,9 +33,7 @@ const debug = false;
 const ENDPOINT = `wss://${debug ? 'api-realtime-sandbox' : 'api'}.p2pquake.net/v2/ws`;
 
 const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => void): void => {
-  const reconnect = (timeout: number): void => {
-    setTimeout(connectWebSocket, timeout, address, onMessage);
-  };
+  const reconnect = debounce(() => connectWebSocket(address, onMessage), 1000);
 
   try {
     const ws = new WebSocket(address);
@@ -47,7 +45,7 @@ const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => v
       }
       catch (error) {
         log('earthquake#onmessage: unhandled error', error);
-        reconnect(1000);
+        reconnect();
       }
     };
     ws.onerror = event => {
@@ -57,17 +55,17 @@ const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => v
       }
       catch (error) {
         log('earthquake#onerror: unhandled error', error);
-        reconnect(1000);
+        reconnect();
       }
     };
     ws.onclose = ({ code, reason }) => {
       log('earthquake#onclose: disconnected', `[${code}] ${reason}`);
-      reconnect(1000);
+      reconnect();
     };
   }
   catch (error) {
     log(`earthquake#${connectWebSocket.name}: unhandled error`, error);
-    reconnect(1000);
+    reconnect();
   }
 };
 
