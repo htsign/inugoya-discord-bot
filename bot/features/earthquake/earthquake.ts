@@ -34,14 +34,14 @@ const ENDPOINT = `wss://${debug ? 'api-realtime-sandbox' : 'api'}.p2pquake.net/v
 
 const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => void): void => {
   const reconnect = (timeout: number): void => {
-    setTimeout(() => connectWebSocket(address, onMessage), timeout);
+    setTimeout(connectWebSocket, timeout, address, onMessage);
   };
 
   try {
     const ws = new WebSocket(address);
 
     ws.onopen = () => log('earthquake: connected');
-    ws.onmessage = async event => {
+    ws.onmessage = event => {
       try {
         onMessage(event);
       }
@@ -50,7 +50,7 @@ const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => v
         reconnect(1000);
       }
     };
-    ws.onerror = async event => {
+    ws.onerror = event => {
       log('earthquake#onerror: error', event);
       try {
         ws.close();
@@ -60,7 +60,7 @@ const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => v
         reconnect(1000);
       }
     };
-    ws.onclose = async ({ code, reason }) => {
+    ws.onclose = ({ code, reason }) => {
       log('earthquake#onclose: disconnected', `[${code}] ${reason}`);
       reconnect(1000);
     };
