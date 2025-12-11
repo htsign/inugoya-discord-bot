@@ -2,11 +2,10 @@
   "main": "index.ts",
   "type": "module",
   "engines": {
-    "node": ">=22.6.0"
+    "node": ">=24.0.0"
   },
-  "engineStrict": true,
   "scripts": {
-    "start": "dotenvx run -- node --experimental-strip-types index.ts",
+    "start": "dotenvx run -- node index.ts",
     "type-check": "tsc --project ./tsconfig.json"
   },
   "dependencies": {
