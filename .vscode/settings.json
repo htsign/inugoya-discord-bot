@@ -1,0 +1,37 @@
+{
+  "cSpell.words": [
+    "addkeyword",
+    "addreaction",
+    "alertthreshold",
+    "apos",
+    "chardet",
+    "datetime",
+    "emojify",
+    "filterbots",
+    "Hage",
+    "icojs",
+    "initkeywords",
+    "initreactions",
+    "julianday",
+    "Mersenne",
+    "minintensity",
+    "minreacted",
+    "originalurl",
+    "p2pquake",
+    "removekeyword",
+    "removereaction",
+    "shorturl",
+    "showsrankcount",
+    "vcattention",
+    "weeklyaward"
+  ],
+  "editor.defaultFormatter": "dprint.dprint",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports.biome": "explicit",
+  },
+  "i18n-ally.enabledFrameworks": ["i18next"],
+  "i18n-ally.localesPaths": [
+    "./locales",
+  ],
+}

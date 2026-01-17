@@ -15,6 +15,7 @@
     "chardet": "^2.1.1",
     "dayjs": "1.11.19",
     "discord.js": "^14.25.1",
+    "dprint": "^0.51.1",
     "emoji-regex": "^10.6.0",
     "fast-average-color-node": "^3.2.0",
     "i18next": "^25.7.4",

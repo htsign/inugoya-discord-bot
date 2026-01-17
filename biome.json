@@ -1,10 +1,11 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
-  "formatter": {
-    "lineWidth": 140,
-    "lineEnding": "lf",
-    "indentStyle": "space",
-    "indentWidth": 2
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
   },
   "linter": {
     "rules": {
@@ -15,13 +16,5 @@
   },
   "files": {
     "includes": ["**", "!!tsconfig.json", "!!**/node_modules"]
-  },
-  "javascript": {
-    "formatter": {
-      "arrowParentheses": "asNeeded",
-      "quoteStyle": "single",
-      "trailingCommas": "all",
-      "bracketSameLine": true
-    }
   }
 }
