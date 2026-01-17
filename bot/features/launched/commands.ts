@@ -1,4 +1,11 @@
-import { ApplicationCommandOptionType, ApplicationCommandType, ChannelType, Colors, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import {
+  ApplicationCommandOptionType,
+  ApplicationCommandType,
+  ChannelType,
+  Colors,
+  EmbedBuilder,
+  PermissionFlagsBits,
+} from 'discord.js';
 import type { ChatInputCommandCollection } from '../../../types/bot/index.ts';
 import type { Obj } from '../../../types/index.ts';
 import { log } from '../../lib/log.ts';

@@ -12,8 +12,17 @@ import type { Obj } from '../../../types/index.ts';
 import { log } from '../../lib/log.ts';
 import { DATETIME_FORMAT } from '../../lib/util.ts';
 import { db } from './db.ts';
-import { startAward, stopAward } from './index.ts';
-import { fromNumber, jpString, SATURDAY, SUNDAY, weekdays } from './weekday.ts';
+import {
+  startAward,
+  stopAward,
+} from './index.ts';
+import {
+  fromNumber,
+  jpString,
+  SATURDAY,
+  SUNDAY,
+  weekdays,
+} from './weekday.ts';
 
 const DEFAULT_SHOWS_COUNT = 3;
 const DEFAULT_MIN_REACTED = 5;
@@ -233,7 +242,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const response = await interaction.deferReply();
 
       await Promise.all([
-        db.config.register(guildId, guildName, channel.id, channel.name, showsRankCount,  minReacted),
+        db.config.register(guildId, guildName, channel.id, channel.name, showsRankCount, minReacted),
         db.times.set(guildId, weekday, hour, minute),
       ]);
       await stopAward(guildId);

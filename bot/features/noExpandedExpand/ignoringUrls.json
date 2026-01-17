@@ -1,6 +1,1 @@
-[
-  "^https://discord\\.com/channels/",
-  "^https://discord\\.com/api/",
-  "^https://discord\\.com/invite/",
-  "^https://(www\\.)?instagram\\.com/"
-]
+["^https://discord\\.com/channels/", "^https://discord\\.com/api/", "^https://discord\\.com/invite/", "^https://(www\\.)?instagram\\.com/"]

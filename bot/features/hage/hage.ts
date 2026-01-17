@@ -1,7 +1,17 @@
-import { type Emoji, Events, type Guild, type Message, type PartialMessage, type Snowflake } from 'discord.js';
+import {
+  type Emoji,
+  Events,
+  type Guild,
+  type Message,
+  type PartialMessage,
+  type Snowflake,
+} from 'discord.js';
 import MersenneTwister from 'mersenne-twister';
 import dayjs from '../../lib/dayjsSetup.ts';
-import { log, logError } from '../../lib/log.ts';
+import {
+  log,
+  logError,
+} from '../../lib/log.ts';
 import { Timeout } from '../../lib/timeout.ts';
 import { addHandler } from '../../listeners.ts';
 import { db } from './db.ts';
@@ -27,7 +37,7 @@ const _emojiToString = (emoji: Emoji) => {
     return `<:${emoji.name}:${emoji.id}>`;
   }
   return emojiString;
-}
+};
 
 const replyToHage = (guildId: Snowflake, messageHandler: (text: string) => Promise<void>, id: `${Snowflake},${Snowflake},${Snowflake}`) => {
   const configRecord = db.get(guildId);

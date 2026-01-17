@@ -8,5 +8,4 @@ export interface EEWDetection {
 
 type DetectionType =
   | 'Full'
-  | 'Chime'
-  ;
+  | 'Chime';

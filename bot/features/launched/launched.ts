@@ -1,5 +1,12 @@
-import { ChannelType, Events, type Guild } from 'discord.js';
-import { log, logError } from '../../lib/log.ts';
+import {
+  ChannelType,
+  Events,
+  type Guild,
+} from 'discord.js';
+import {
+  log,
+  logError,
+} from '../../lib/log.ts';
 import { addHandler } from '../../listeners.ts';
 import { db } from './db.ts';
 

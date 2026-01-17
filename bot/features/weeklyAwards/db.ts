@@ -11,7 +11,10 @@ import type {
 } from '../../../types/bot/features/weeklyAwards.ts';
 import dayjs from '../../lib/dayjsSetup.ts';
 import { isUrl } from '../../lib/util.ts';
-import { fromNumber, type Weekday } from './weekday.ts';
+import {
+  fromNumber,
+  type Weekday,
+} from './weekday.ts';
 
 const db = new Database('weeklyAward.db');
 
@@ -332,7 +335,14 @@ class WeeklyAwardConfig {
     `).run();
   }
 
-  async register(guildId: string, guildName: string, channelId: string, channelName: string, showsRankCount: number, minReacted: number): Promise<void> {
+  async register(
+    guildId: string,
+    guildName: string,
+    channelId: string,
+    channelName: string,
+    showsRankCount: number,
+    minReacted: number,
+  ): Promise<void> {
     const stmt = db.prepare(`
       insert into ${this.#TABLE} (
         guild_id,

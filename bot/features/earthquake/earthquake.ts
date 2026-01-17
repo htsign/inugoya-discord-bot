@@ -24,8 +24,14 @@ import type {
 } from '../../../types/bot/features/earthquake/index.ts';
 import client from '../../client.ts';
 import dayjs from '../../lib/dayjsSetup.ts';
-import { log, logError } from '../../lib/log.ts';
-import { debounce, getEnv } from '../../lib/util.ts';
+import {
+  log,
+  logError,
+} from '../../lib/log.ts';
+import {
+  debounce,
+  getEnv,
+} from '../../lib/util.ts';
 import { db } from './db.ts';
 import { geocode } from './geocoding.ts';
 
@@ -80,13 +86,20 @@ connectWebSocket(ENDPOINT, ({ data }) => {
   }
 
   switch (response.code) {
-    case 551: return resolveJMAQuake(response);
-    case 552: return resolveJMATsunami(response);
-    case 554: return resolveEEWDetection(response);
-    case 555: return resolveAreaPeers(response);
-    case 556: return resolveEEW(response);
-    case 561: return resolveUserQuake(response);
-    case 9611: return resolveUserQuakeEvaluation(response);
+    case 551:
+      return resolveJMAQuake(response);
+    case 552:
+      return resolveJMATsunami(response);
+    case 554:
+      return resolveEEWDetection(response);
+    case 555:
+      return resolveAreaPeers(response);
+    case 556:
+      return resolveEEW(response);
+    case 561:
+      return resolveUserQuake(response);
+    case 9611:
+      return resolveUserQuakeEvaluation(response);
   }
 });
 
@@ -104,38 +117,65 @@ export const intensityFromNumberWithException = (number: number): ReturnType<typ
   });
 const intensityFromNumberCore = <S>(number: number, ifUnexpected: (intensity: number) => S): ReturnType<typeof intensityFromNumber> | S => {
   switch (number) {
-    case -1: return '不明';
-    case 0: return '震度0';
-    case 10: return '震度1';
-    case 20: return '震度2';
-    case 30: return '震度3';
-    case 40: return '震度4';
-    case 45: return '震度5弱';
-    case 46: return '震度5弱以上';
-    case 50: return '震度5強';
-    case 55: return '震度6弱';
-    case 60: return '震度6強';
-    case 70: return '震度7';
-    case 99: return '震度7程度以上';
-    default: return ifUnexpected(number);
+    case -1:
+      return '不明';
+    case 0:
+      return '震度0';
+    case 10:
+      return '震度1';
+    case 20:
+      return '震度2';
+    case 30:
+      return '震度3';
+    case 40:
+      return '震度4';
+    case 45:
+      return '震度5弱';
+    case 46:
+      return '震度5弱以上';
+    case 50:
+      return '震度5強';
+    case 55:
+      return '震度6弱';
+    case 60:
+      return '震度6強';
+    case 70:
+      return '震度7';
+    case 99:
+      return '震度7程度以上';
+    default:
+      return ifUnexpected(number);
   }
 };
 
 const getColorsOfIntensity = (intensity: ReturnType<typeof intensityFromNumber>): number | null => {
   switch (intensity) {
-    case '不明': return null;
-    case '震度0': return null;
-    case '震度1': return 0xf2f2ff;
-    case '震度2': return 0x00aaff;
-    case '震度3': return 0x0041ff;
-    case '震度4': return 0xfae696;
-    case '震度5弱': return 0xffe600;
-    case '震度5弱以上': return 0xffe600;
-    case '震度5強': return 0xff9900;
-    case '震度6弱': return 0xff2800;
-    case '震度6強': return 0xa50021;
-    case '震度7': return 0xb40068;
-    case '震度7程度以上': return 0xb40068;
+    case '不明':
+      return null;
+    case '震度0':
+      return null;
+    case '震度1':
+      return 0xf2f2ff;
+    case '震度2':
+      return 0x00aaff;
+    case '震度3':
+      return 0x0041ff;
+    case '震度4':
+      return 0xfae696;
+    case '震度5弱':
+      return 0xffe600;
+    case '震度5弱以上':
+      return 0xffe600;
+    case '震度5強':
+      return 0xff9900;
+    case '震度6弱':
+      return 0xff2800;
+    case '震度6強':
+      return 0xa50021;
+    case '震度7':
+      return 0xb40068;
+    case '震度7程度以上':
+      return 0xb40068;
   }
 };
 
@@ -156,7 +196,7 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
   groupedByIntensityAreas = new Map(
     [...groupedByIntensityAreas]
       .sort(([a], [b]) => b - a)
-      .map(([scale, group]) => [scale, new Map([...group].sort(([a], [b]) => a.localeCompare(b)))])
+      .map(([scale, group]) => [scale, new Map([...group].sort(([a], [b]) => a.localeCompare(b)))]),
   );
 
   if (groupedByIntensityAreas.size === 0 || response.earthquake.hypocenter == null) {
@@ -204,14 +244,20 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
       const tsunamiToMessage = (tsunami: DomesticTsunami | undefined): [string] | [] => {
         if (tsunami == null) return [];
         switch (tsunami) {
-          case 'None': return ['この地震による津波の心配はありません。'];
-          case 'Unknown': return ['この地震による津波の影響は不明です。'];
-          case 'Checking': return ['この地震による津波の影響は確認中です。'];
-          case 'NonEffective': return ['この地震により若干の海面変動が予想されますが、被害の心配はありません。'];
-          case 'Watch': return ['津波に注意してください。'];
-          case 'Warning': return ['津波に注意してください。'];
+          case 'None':
+            return ['この地震による津波の心配はありません。'];
+          case 'Unknown':
+            return ['この地震による津波の影響は不明です。'];
+          case 'Checking':
+            return ['この地震による津波の影響は確認中です。'];
+          case 'NonEffective':
+            return ['この地震により若干の海面変動が予想されますが、被害の心配はありません。'];
+          case 'Watch':
+            return ['津波に注意してください。'];
+          case 'Warning':
+            return ['津波に注意してください。'];
         }
-      }
+      };
 
       const [title, ...sentences] = (type => {
         switch (type) {
@@ -376,7 +422,7 @@ const resolveEEW = async (response: EEW): Promise<void> => {
     return log(`earthquake#${resolveEEW.name}:`, 'skipped because of maxIntensity is too low', JSON.stringify(response));
   }
 
-  const areaNames: { [pref: string]: string[]; } = {};
+  const areaNames: { [pref: string]: string[] } = {};
   for (const { pref, name } of maxIntensityAreas) {
     if (Object.hasOwn(areaNames, pref)) {
       areaNames[pref]?.push(name);
@@ -385,8 +431,7 @@ const resolveEEW = async (response: EEW): Promise<void> => {
       areaNames[pref] = [name];
     }
   }
-  const maxIntensityAreaNames =
-    Object.entries(areaNames).map(([pref, names]) => `${pref}: ${names.join('、')}`);
+  const maxIntensityAreaNames = Object.entries(areaNames).map(([pref, names]) => `${pref}: ${names.join('、')}`);
 
   const { arrivalTime, originTime } = response.earthquake;
 
@@ -460,7 +505,7 @@ const resolveUserQuakeEvaluation = async (_response: UserQuakeEvaluation): Promi
 const getMapImageAsBuffer = async (
   locations: Map<number, Set<LatLng>>,
   markersSize: 'tiny' | 'mid' | 'small' | undefined,
-  center?: { latitude: number; longitude: number; },
+  center?: { latitude: number, longitude: number },
 ): Promise<Buffer | null> => {
   const mapImageParams: [string, string][] = [
     ['key', getEnv('GOOGLE_MAPS_API_KEY', 'Googlemaps API Key')],
@@ -483,8 +528,9 @@ const getMapImageAsBuffer = async (
 
   let markersCount = 0;
 
-  const _markersSize: [`size:${Exclude<Parameters<typeof getMapImageAsBuffer>[1], undefined>}`] | [] =
-    markersSize != null ? [`size:${markersSize}`] : [];
+  const _markersSize: [`size:${Exclude<Parameters<typeof getMapImageAsBuffer>[1], undefined>}`] | [] = markersSize != null
+    ? [`size:${markersSize}`]
+    : [];
 
   // add markers for each intensity
   for (const [intensity, points] of locations) {
@@ -492,10 +538,9 @@ const getMapImageAsBuffer = async (
     if (color == null) continue;
 
     const hexRgb = color.toString(16).padStart(6, '0');
-    const availablePoints =
-      center == null
-        ? [...points]
-        : [...points].filter(p => Math.abs(center.latitude - p.lat) < 1.2 && Math.abs(center.longitude - p.lng) < 1.8);
+    const availablePoints = center == null
+      ? [...points]
+      : [...points].filter(p => Math.abs(center.latitude - p.lat) < 1.2 && Math.abs(center.longitude - p.lng) < 1.8);
     mapImageUrl.searchParams.append(
       'markers',
       [

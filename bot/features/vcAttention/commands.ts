@@ -1,4 +1,11 @@
-import { ApplicationCommandOptionType, ApplicationCommandType, ChannelType, Colors, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import {
+  ApplicationCommandOptionType,
+  ApplicationCommandType,
+  ChannelType,
+  Colors,
+  EmbedBuilder,
+  PermissionFlagsBits,
+} from 'discord.js';
 import type { ChatInputCommandCollection } from '../../../types/bot/index.ts';
 import type { Obj } from '../../../types/index.ts';
 import { log } from '../../lib/log.ts';
@@ -52,7 +59,9 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       await db.register(guildId, guildName, channel.id, channel.name, threshold);
 
-      response.edit(`VC盛り上がり通知の巡回対象にこのサーバーを登録し、VCの参加人数が ${threshold} 以上の場合に ${channel} に通知するよう設定しました。`);
+      response.edit(
+        `VC盛り上がり通知の巡回対象にこのサーバーを登録し、VCの参加人数が ${threshold} 以上の場合に ${channel} に通知するよう設定しました。`,
+      );
     },
   },
   unregister: {

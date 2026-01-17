@@ -12,13 +12,19 @@ const formatter = (value: unknown): string => {
     if (value == null) return 'null';
 
     switch (typeof value) {
-      case 'string': return inner ? `'${value}'` : value;
-      case 'number': return String(value);
-      case 'bigint': return `${value}n`;
-      case 'boolean': return String(value);
-      case 'symbol': return `Symbol(${value.description ?? ''})`;
-      case 'function': return `function (${value.name})`;
-      default /* object */: {
+      case 'string':
+        return inner ? `'${value}'` : value;
+      case 'number':
+        return String(value);
+      case 'bigint':
+        return `${value}n`;
+      case 'boolean':
+        return String(value);
+      case 'symbol':
+        return `Symbol(${value.description ?? ''})`;
+      case 'function':
+        return `function (${value.name})`;
+      default: /* object */ {
         if (set.has(value)) return '<Circular>';
         set.add(value);
 
@@ -26,7 +32,7 @@ const formatter = (value: unknown): string => {
           return `[ ${value.map(x => core(x, true, depth + 1)).join(', ')} ]`;
         }
         const content = Object.entries(value).map(([key, val]) => `${'  '.repeat(depth)}${key}: ${core(val, true, depth + 1)},`).join('\n');
-        return `{\n${content}\n}`
+        return `{\n${content}\n}`;
       }
     }
   };

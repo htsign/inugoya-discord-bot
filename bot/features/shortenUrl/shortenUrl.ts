@@ -1,9 +1,24 @@
-import { Events, type Message } from 'discord.js';
+import {
+  Events,
+  type Message,
+} from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
-import type { XgdFailureMessage, XgdRequest, XgdResponse, XgdSuccessMessage } from 'types/bot/features/shortenUrl';
+import type {
+  XgdFailureMessage,
+  XgdRequest,
+  XgdResponse,
+  XgdSuccessMessage,
+} from 'types/bot/features/shortenUrl';
 import type { Url } from '../../../types/index.ts';
-import { log, logError } from '../../lib/log.ts';
-import { getEnv, toQueryString, urlsOfText } from '../../lib/util.ts';
+import {
+  log,
+  logError,
+} from '../../lib/log.ts';
+import {
+  getEnv,
+  toQueryString,
+  urlsOfText,
+} from '../../lib/util.ts';
 import { addHandler } from '../../listeners.ts';
 
 const API_KEY = getEnv('XGD_API_KEY', 'X.gd API key');
@@ -51,11 +66,11 @@ export const shortenUrl = async (url: Url): Promise<XgdSuccessMessage | XgdFailu
   return shortens[0];
 };
 
-export const shortenUrlsOfContent =
-  (content: string): Promise<(XgdSuccessMessage | XgdFailureMessage)[]> => shortenUrls(urlsOfText(content));
+export const shortenUrlsOfContent = (content: string): Promise<(XgdSuccessMessage | XgdFailureMessage)[]> =>
+  shortenUrls(urlsOfText(content));
 
-export const shortenUrlsOfMessage =
-  (message: Message<boolean>): Promise<(XgdSuccessMessage | XgdFailureMessage)[]> => shortenUrlsOfContent(message.content ?? '');
+export const shortenUrlsOfMessage = (message: Message<boolean>): Promise<(XgdSuccessMessage | XgdFailureMessage)[]> =>
+  shortenUrlsOfContent(message.content ?? '');
 
 addHandler(Events.MessageCreate, async message => {
   const { reference, content, channel, author } = message;

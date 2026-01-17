@@ -1,6 +1,13 @@
 import fs from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { type APIEmbedField, ApplicationCommandOptionType, ApplicationCommandType, Colors, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import {
+  type APIEmbedField,
+  ApplicationCommandOptionType,
+  ApplicationCommandType,
+  Colors,
+  EmbedBuilder,
+  PermissionFlagsBits,
+} from 'discord.js';
 import emojiRegex from 'emoji-regex';
 import { runes } from 'runes2';
 import { isNonEmpty } from 'ts-array-length';
@@ -8,7 +15,10 @@ import type { ChatInputCommandCollection } from '../../../types/bot/index.ts';
 import type { Obj } from '../../../types/index.ts';
 import { log } from '../../lib/log.ts';
 import { DATETIME_FORMAT } from '../../lib/util.ts';
-import { db, removeUnregisteredKeywords } from './index.ts';
+import {
+  db,
+  removeUnregisteredKeywords,
+} from './index.ts';
 
 const TEMPLATE = ` 彡⌒ミ
 (´･ω･\`)　また髪の話してる・・・`;
@@ -363,7 +373,9 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       const addReactionPromises: Promise<void>[] = [];
 
-      const reactions: string[] = await fs.readFile(fileURLToPath(import.meta.resolve('./keywordReactions.json')), 'utf-8').then(JSON.parse);
+      const reactions: string[] = await fs.readFile(fileURLToPath(import.meta.resolve('./keywordReactions.json')), 'utf-8').then(
+        JSON.parse,
+      );
       const newReactions = reactions.filter(reaction => db.reactionKeywords.get(guildId, reaction) == null);
 
       if (newReactions.length > 0) {

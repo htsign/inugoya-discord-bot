@@ -21,16 +21,14 @@ type IssueType =
   | 'ScaleAndDestination'
   | 'DetailScale'
   | 'Foreign'
-  | 'Other'
-  ;
+  | 'Other';
 
 type CollectType =
   | 'None'
   | 'Unknown'
   | 'ScaleOnly'
   | 'DestinationOnly'
-  | 'ScaleAndDestination'
-  ;
+  | 'ScaleAndDestination';
 
 interface Earthquake {
   time: string;
@@ -56,8 +54,7 @@ export type DomesticTsunami =
   | 'Checking'
   | 'NonEffective'
   | 'Watch'
-  | 'Warning'
-  ;
+  | 'Warning';
 
 type ForeignTsunami =
   | 'None'
@@ -69,8 +66,7 @@ type ForeignTsunami =
   | 'WarningPacificWide'
   | 'WarningIndian'
   | 'WarningIndianWide'
-  | 'Potential'
-  ;
+  | 'Potential';
 
 export interface ObservationPoint {
   pref: string;

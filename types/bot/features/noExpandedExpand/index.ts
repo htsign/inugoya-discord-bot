@@ -1,4 +1,9 @@
-import type { APIEmbed, AttachmentBuilder, Awaitable, ClientEvents } from 'discord.js';
+import type {
+  APIEmbed,
+  AttachmentBuilder,
+  Awaitable,
+  ClientEvents,
+} from 'discord.js';
 
 export interface Plugin {
   handlers?: PluginHandlers;

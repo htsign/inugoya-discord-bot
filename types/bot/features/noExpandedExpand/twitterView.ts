@@ -28,7 +28,7 @@ interface VxTwitterAPIErrorResponse {
 
 export interface MediaInfo {
   altText: string | null;
-  size: { height: number; width: number };
+  size: { height: number, width: number };
   thumbnail_url: Url;
   type: 'image' | 'video';
   url: Url;

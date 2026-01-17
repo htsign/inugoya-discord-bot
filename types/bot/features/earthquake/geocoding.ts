@@ -4,25 +4,25 @@ interface GeocodingSuccessResponse {
   status: 'OK';
   results: {
     address_components: {
-      long_name: string,
-      short_name: string,
-      types: LocationType[],
-    }[],
-    formatted_address: string,
+      long_name: string;
+      short_name: string;
+      types: LocationType[];
+    }[];
+    formatted_address: string;
     geometry: {
       bounds: {
-        northeast: LatLng,
-        southwest: LatLng,
-      },
-      location: LatLng,
-      location_type: 'APPROXIMATE',
+        northeast: LatLng;
+        southwest: LatLng;
+      };
+      location: LatLng;
+      location_type: 'APPROXIMATE';
       viewport: {
-        northeast: LatLng,
-        southwest: LatLng,
-      },
-    },
-    place_id: string,
-    types: LocationType[],
+        northeast: LatLng;
+        southwest: LatLng;
+      };
+    };
+    place_id: string;
+    types: LocationType[];
   }[];
 }
 
@@ -42,5 +42,4 @@ type LocationType =
   | 'political'
   | 'locality'
   | 'administrative_area_level_1'
-  | 'administrative_area_level_2'
-  ;
+  | 'administrative_area_level_2';

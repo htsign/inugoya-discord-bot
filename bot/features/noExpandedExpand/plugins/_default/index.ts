@@ -1,10 +1,25 @@
-import { AttachmentBuilder, type EmbedAuthorOptions, EmbedBuilder } from 'discord.js';
+import {
+  AttachmentBuilder,
+  type EmbedAuthorOptions,
+  EmbedBuilder,
+} from 'discord.js';
 import fastAvgColor from 'fast-average-color-node';
 import { parseICO } from 'icojs';
 import type { PluginHooks } from '../../../../../types/bot/features/noExpandedExpand/index.ts';
-import type { Nullable, Url } from '../../../../../types/index.ts';
-import { log, logError } from '../../../../lib/log.ts';
-import { getUrlDomain, isUrl, retrieveRealUrl, urlToDocument } from '../../../../lib/util.ts';
+import type {
+  Nullable,
+  Url,
+} from '../../../../../types/index.ts';
+import {
+  log,
+  logError,
+} from '../../../../lib/log.ts';
+import {
+  getUrlDomain,
+  isUrl,
+  retrieveRealUrl,
+  urlToDocument,
+} from '../../../../lib/util.ts';
 
 const IGNORED_URLS = Object.freeze([
   /^https:\/\/discord\.com\/events\//,
@@ -124,16 +139,16 @@ const getImage = (document: Document): string | null => {
 };
 
 const getProductInfo = (document: Document): {
-    availability: string | undefined;
-    condition: string | undefined;
-    brand: string | undefined;
-    prices: { amount: string; currency: string; }[];
-  } => {
+  availability: string | undefined;
+  condition: string | undefined;
+  brand: string | undefined;
+  prices: { amount: string, currency: string }[];
+} => {
   const availability = document.querySelector<HTMLMetaElement>('meta[property="product:availability"]')?.content;
   const condition = document.querySelector<HTMLMetaElement>('meta[property="product:condition"]')?.content;
   const brand = document.querySelector<HTMLMetaElement>('meta[property="product:brand"]')?.content;
 
-  const getPrices = function* (): Generator<{ amount: string; currency: string; }> {
+  const getPrices = function*(): Generator<{ amount: string, currency: string }> {
     for (const el of document.querySelectorAll<HTMLMetaElement>('meta[property^="product:price"]')) {
       switch (el.getAttribute('property')) {
         case 'product:price:amount': {
@@ -169,7 +184,7 @@ const getProductInfo = (document: Document): {
 };
 
 const getColorAsInt = async (resource: string | Buffer): Promise<number> => {
-  const timeout = new Promise<{ value: [0, 0, 0]; }>(resolve => setTimeout(() => resolve({ value: [0, 0, 0] }), 10 * 1000));
+  const timeout = new Promise<{ value: [0, 0, 0] }>(resolve => setTimeout(() => resolve({ value: [0, 0, 0] }), 10 * 1000));
   try {
     const { value: [red, green, blue] } = await Promise.race([
       fastAvgColor.getAverageColor(resource, { silent: true }),
@@ -256,9 +271,12 @@ export const hooks: PluginHooks = [
 
           const availabilityText: string | null = (() => {
             switch (availability) {
-              case undefined     : return null;
-              case 'in stock'    : return '在庫あり';
-              case 'out of stock': return '在庫なし';
+              case undefined:
+                return null;
+              case 'in stock':
+                return '在庫あり';
+              case 'out of stock':
+                return '在庫なし';
               default: {
                 log(`noExpandedExpand#${core.name}:`, `unhandled availability '${availability}' on ${realUrl}`);
                 return null;
@@ -271,10 +289,14 @@ export const hooks: PluginHooks = [
 
           const conditionText: string | null = (() => {
             switch (condition) {
-              case undefined    : return null;
-              case 'new'        : return '新品';
-              case 'refurbished': return '再販品';
-              case 'used'       : return '中古品';
+              case undefined:
+                return null;
+              case 'new':
+                return '新品';
+              case 'refurbished':
+                return '再販品';
+              case 'used':
+                return '中古品';
               default: {
                 log(`noExpandedExpand#${core.name}:`, `unhandled condition '${condition}' on ${realUrl}`);
                 return null;
@@ -303,6 +325,6 @@ export const hooks: PluginHooks = [
         }
         throw e;
       }
-    }
+    },
   ],
 ];

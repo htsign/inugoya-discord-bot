@@ -1,10 +1,19 @@
-import { EmbedBuilder, type APIEmbed, type Attachment, type Message, type User } from 'discord.js';
+import {
+  type APIEmbed,
+  type Attachment,
+  EmbedBuilder,
+  type Message,
+  type User,
+} from 'discord.js';
 import fastAvgColor from 'fast-average-color-node';
 import { isNonEmpty } from 'ts-array-length';
-import client from '../client.ts';
-import { log, logError } from '../lib/log.ts';
 import type { EmbedMessageOptions } from '../../types/bot/index.ts';
 import type { Nullable } from '../../types/index.ts';
+import client from '../client.ts';
+import {
+  log,
+  logError,
+} from '../lib/log.ts';
 
 export const fetchMessageByIds = async (guildId: string, channelId: string, messageId: string): Promise<Message<true> | null> => {
   try {

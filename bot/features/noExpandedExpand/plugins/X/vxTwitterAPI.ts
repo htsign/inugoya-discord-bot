@@ -1,11 +1,21 @@
 import fs from 'node:fs/promises';
-import { type APIEmbed, AttachmentBuilder, EmbedBuilder } from 'discord.js';
+import {
+  type APIEmbed,
+  AttachmentBuilder,
+  EmbedBuilder,
+} from 'discord.js';
 import { runes } from 'runes2';
-import type { MediaInfo, VxTwitterAPIResponse } from '../../../../../types/bot/features/noExpandedExpand/twitterView.ts';
+import type {
+  MediaInfo,
+  VxTwitterAPIResponse,
+} from '../../../../../types/bot/features/noExpandedExpand/twitterView.ts';
 import type { Url } from '../../../../../types/index.ts';
-import { log, logError } from '../../../../lib/log.ts';
+import {
+  log,
+  logError,
+} from '../../../../lib/log.ts';
 
-export const retrieveFromVx = async (url: string, statusId: string): Promise<{ embeds: APIEmbed[]; attachments: AttachmentBuilder[]; }> => {
+export const retrieveFromVx = async (url: string, statusId: string): Promise<{ embeds: APIEmbed[], attachments: AttachmentBuilder[] }> => {
   log(`noExpandedExpand#X#${retrieveFromVx.name}:`, `start for ${url}`);
   try {
     const jsonText = await fetch(`https://api.vxtwitter.com/Twitter/status/${statusId}`)

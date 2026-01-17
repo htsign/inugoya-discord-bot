@@ -1,4 +1,9 @@
-import { type Awaitable, type Client, type ClientEvents, Events } from 'discord.js';
+import {
+  type Awaitable,
+  type Client,
+  type ClientEvents,
+  Events,
+} from 'discord.js';
 
 // biome-ignore lint/suspicious/noExplicitAny: there's no way to type ClientEvents[K] properly
 const listeners = new Map<keyof ClientEvents, Set<(...args: any) => Awaitable<void>>>();

@@ -315,7 +315,7 @@ class HageKeyword {
       keyword,
       createdAt: dayjs.utc(row.created_at).tz(),
       updatedAt: dayjs.utc(row.updated_at).tz(),
-    }
+    };
   }
 }
 
@@ -460,7 +460,7 @@ class HageReactionKeyword {
       reaction,
       createdAt: dayjs.utc(row.created_at).tz(),
       updatedAt: dayjs.utc(row.updated_at).tz(),
-    }
+    };
   }
 }
 

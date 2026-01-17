@@ -1,10 +1,17 @@
-import fs from 'node:fs/promises';
 import { Scraper } from '@the-convocation/twitter-scraper';
-import { type APIEmbed, AttachmentBuilder, EmbedBuilder } from 'discord.js';
+import {
+  type APIEmbed,
+  AttachmentBuilder,
+  EmbedBuilder,
+} from 'discord.js';
+import fs from 'node:fs/promises';
 import { runes } from 'runes2';
 import { Cookie } from 'tough-cookie';
 import type { PluginHooks } from '../../../../../types/bot/features/noExpandedExpand/index.ts';
-import { log, logError } from '../../../../lib/log.ts';
+import {
+  log,
+  logError,
+} from '../../../../lib/log.ts';
 import { getEnv } from '../../../../lib/util.ts';
 import { retrieveFromVx } from './vxTwitterAPI.ts';
 
@@ -209,6 +216,6 @@ export const hooks: PluginHooks = [
         }
         throw e;
       }
-    }
+    },
   ],
 ];

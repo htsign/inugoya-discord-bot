@@ -1,7 +1,17 @@
-import { ActionRowBuilder, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, Events, type MessageReaction } from 'discord.js';
+import {
+  ActionRowBuilder,
+  ApplicationCommandOptionType,
+  ButtonBuilder,
+  ButtonStyle,
+  Events,
+  type MessageReaction,
+} from 'discord.js';
 import type { ChatInputCommandCollection } from '../../../types/bot/index.ts';
 import type { Obj } from '../../../types/index.ts';
-import { log, logError } from '../../lib/log.ts';
+import {
+  log,
+  logError,
+} from '../../lib/log.ts';
 import { addHandler } from '../../listeners.ts';
 import { toEmojis } from './index.ts';
 

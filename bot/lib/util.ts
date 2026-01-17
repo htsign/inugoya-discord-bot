@@ -2,7 +2,10 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { URL } from 'node:url';
 import chardet from 'chardet';
 import { JSDOM } from 'jsdom';
-import type { Nullable, Url } from '../../types';
+import type {
+  Nullable,
+  Url,
+} from '../../types';
 
 export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
 export const DATETIME_FORMAT = 'YYYY/MM/DD HH:mm:ss';
@@ -26,11 +29,12 @@ export const getEnv = (key: string, name: string = key): string => {
   return token;
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: allow any types for general-purpose utility function
 export const debounce = <F extends (...args: any) => any, Args extends Parameters<F>>(
   fn: F,
   delay: number,
   thisArg?: unknown,
-): ((...args: Args) => Promise<Awaited<ReturnType<F>>>) => {
+): (...args: Args) => Promise<Awaited<ReturnType<F>>> => {
   let timeoutId: ReturnType<typeof globalThis.setTimeout> | undefined;
 
   return (...args: Args) =>
@@ -97,11 +101,11 @@ export const urlToDocument = async (url: string): Promise<Document | null> => {
     return Promise.reject(new Error('failed to fetch'));
   };
 
-  const sanitizeHtml = (html: string): string => html
-    .replace(/<script[^>]*?>.*?<\/script>/gs, '')
-    .replace(/<style[^>]*?>.*?<\/style>/gs, '')
-    .replace(/<link [^>]*?rel="stylesheet"[^>]*?>/g, '')
-    ;
+  const sanitizeHtml = (html: string): string =>
+    html
+      .replace(/<script[^>]*?>.*?<\/script>/gs, '')
+      .replace(/<style[^>]*?>.*?<\/style>/gs, '')
+      .replace(/<link [^>]*?rel="stylesheet"[^>]*?>/g, '');
 
   const charsetFromBuffer = (buffer: ArrayBuffer): Nullable<string> => {
     const html = new TextDecoder().decode(buffer);
@@ -110,8 +114,8 @@ export const urlToDocument = async (url: string): Promise<Document | null> => {
     const getAttr = (selector: string, attr: string): Nullable<string> => document.querySelector(selector)?.getAttribute(attr);
 
     return getAttr('meta[charset]', 'charset')
-      ?? getAttr('meta[http-equiv="Content-Type"]', 'content')?.match(/(?<=charset=)[^;]+/i)?.[0]
-  }
+      ?? getAttr('meta[http-equiv="Content-Type"]', 'content')?.match(/(?<=charset=)[^;]+/i)?.[0];
+  };
 
   const res = await _fetch(url);
 
@@ -122,8 +126,7 @@ export const urlToDocument = async (url: string): Promise<Document | null> => {
   }
 
   const buffer = await res.arrayBuffer();
-  const encoding =
-    res.headers.get('Content-Type')?.match(/(?<=charset=)[^;]+/i)?.[0]
+  const encoding = res.headers.get('Content-Type')?.match(/(?<=charset=)[^;]+/i)?.[0]
     ?? charsetFromBuffer(buffer)
     ?? chardet.detect(new Uint8Array(buffer))
     ?? 'utf-8';
@@ -139,9 +142,9 @@ export const urlToDocument = async (url: string): Promise<Document | null> => {
 export const peek = <T>(value: T): T => {
   console.log(value);
   return value;
-}
+};
 
-export const toQueryString =
-  (queries: object, valueFilter: (value: string) => string = identity): string => Object.entries(queries)
+export const toQueryString = (queries: object, valueFilter: (value: string) => string = identity): string =>
+  Object.entries(queries)
     .map(([key, val]) => `${key}=${valueFilter(val)}`)
     .join('&');

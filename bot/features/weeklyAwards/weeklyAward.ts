@@ -1,11 +1,26 @@
-import { type AnyThreadChannel, type APIEmbed, ChannelType, Events, type Message } from 'discord.js';
+import {
+  type AnyThreadChannel,
+  type APIEmbed,
+  ChannelType,
+  Events,
+  type Message,
+} from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
-import type { MessageAndReactions, WeeklyAwardRecord } from '../../../types/bot/features/weeklyAwards.ts';
+import type {
+  MessageAndReactions,
+  WeeklyAwardRecord,
+} from '../../../types/bot/features/weeklyAwards.ts';
 import client from '../../client.ts';
 import dayjs from '../../lib/dayjsSetup.ts';
-import { log, logError } from '../../lib/log.ts';
+import {
+  log,
+  logError,
+} from '../../lib/log.ts';
 import { addHandler } from '../../listeners.ts';
-import { fetchMessageByIds, messageToEmbeds } from '../util.ts';
+import {
+  fetchMessageByIds,
+  messageToEmbeds,
+} from '../util.ts';
 import { db } from './db.ts';
 import type { Weekday } from './weekday.ts';
 
@@ -76,7 +91,17 @@ addHandler(Events.MessageReactionRemove, async (reaction, user) => {
   }
 });
 
-const tick = async (guildId: string, guildName: string, channelId: string, channelName: string, showsRankCount: number, minReacted: number, weekday: Weekday, hour: number, minute: number): Promise<void> => {
+const tick = async (
+  guildId: string,
+  guildName: string,
+  channelId: string,
+  channelName: string,
+  showsRankCount: number,
+  minReacted: number,
+  weekday: Weekday,
+  hour: number,
+  minute: number,
+): Promise<void> => {
   const now = dayjs().tz();
 
   if (now.day() === +weekday && now.hour() === hour && now.minute() === minute) {
@@ -118,13 +143,15 @@ const tick = async (guildId: string, guildName: string, channelId: string, chann
 
         // tally messages by reactions count
         const talliedMessages = messages
-          .reduce((acc: { [count: number]: Message<true>[]; }, { message, reactionsCount }) =>
-            // biome-ignore lint/performance/noAccumulatingSpread: ignore bottleneck of creating temporary object
-            Object.assign(acc, { [reactionsCount]: (acc[reactionsCount] ?? []).concat(message) }), {});
+          .reduce(
+            (acc: { [count: number]: Message<true>[] }, { message, reactionsCount }) =>
+              Object.assign(acc, { [reactionsCount]: (acc[reactionsCount] ?? []).concat(message) }),
+            {},
+          );
         // sort descending order by reactions count
         const messagesArray = Object.entries(talliedMessages).sort(([a], [b]) => (+b) - (+a));
 
-        const contents: { title: string; embeds: APIEmbed[]; }[] = [];
+        const contents: { title: string, embeds: APIEmbed[] }[] = [];
         {
           let rank = 1;
 

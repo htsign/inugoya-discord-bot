@@ -14,17 +14,16 @@ export type WebSocketResponse =
   | EEWDetection
   | EEW
   | UserQuake
-  | UserQuakeEvaluation
-  ;
+  | UserQuakeEvaluation;
 
+export type * from './areaPeers';
+export type * from './eew';
+export type * from './eewDetection';
+export type * from './geocoding';
 export type * from './jmaQuake';
 export type * from './jmaTsunami';
-export type * from './areaPeers';
-export type * from './eewDetection';
-export type * from './eew';
 export type * from './userQuake';
 export type * from './userQuakeEvaluation';
-export type * from './geocoding';
 
 export interface EEWConfigRecord {
   guildId: string;

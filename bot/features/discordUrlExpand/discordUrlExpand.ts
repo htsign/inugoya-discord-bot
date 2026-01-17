@@ -1,7 +1,17 @@
-import { type APIEmbed, Events, type Message } from 'discord.js';
-import { log, logError } from '../../lib/log.ts';
+import {
+  type APIEmbed,
+  Events,
+  type Message,
+} from 'discord.js';
+import {
+  log,
+  logError,
+} from '../../lib/log.ts';
 import { addHandler } from '../../listeners.ts';
-import { fetchMessageByIds, messageToEmbeds } from '../util.ts';
+import {
+  fetchMessageByIds,
+  messageToEmbeds,
+} from '../util.ts';
 
 const TRY_COUNT_THRESHOLD = 3;
 

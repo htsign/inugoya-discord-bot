@@ -2,10 +2,21 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
-import { type APIEmbed, Events, type Message, type PartialMessage } from 'discord.js';
-import type { HookResult, Plugin } from 'types/bot/features/noExpandedExpand';
+import {
+  type APIEmbed,
+  Events,
+  type Message,
+  type PartialMessage,
+} from 'discord.js';
+import type {
+  HookResult,
+  Plugin,
+} from 'types/bot/features/noExpandedExpand';
 import dayjs from '../../lib/dayjsSetup.ts';
-import { log, logError } from '../../lib/log.ts';
+import {
+  log,
+  logError,
+} from '../../lib/log.ts';
 import { urlsOfText } from '../../lib/util.ts';
 import { addHandler } from '../../listeners.ts';
 
@@ -63,16 +74,14 @@ addHandler(Events.MessageCreate, async message => {
   const urls = urlsOfText(content.replace(/\|\|[^\|]+?\|\|/g, '')); // remove spoiled text
   if (targetMessages.has(message) && message.embeds.length < urls.length) {
     const embedUrls = message.embeds.map(embed => embed.url).filter(url => url != null);
-    const ignoringUrls =
-      (
-        await fs.readFile(fileURLToPath(import.meta.resolve('./ignoringUrls.json')), 'utf-8').then(JSON.parse) as string[]
-      )
-      .map(url => RegExp(url))
-      ;
+    const ignoringUrls = (
+      await fs.readFile(fileURLToPath(import.meta.resolve('./ignoringUrls.json')), 'utf-8').then(JSON.parse) as string[]
+    )
+      .map(url => RegExp(url));
     const targetUrls = urls
       .filter(url => !(embedUrls.includes(url) || ignoringUrls.some(ignoringUrl => ignoringUrl.test(url))))
       .map(url => url.endsWith('||') ? url.slice(0, -'||'.length) : url) // remove tailed '||' if exists
-      ;
+    ;
 
     if (targetUrls.length > 0) {
       log(`noExpandedExpand[${sendTo}]:`, 'start expanding process', targetUrls);

@@ -1,5 +1,15 @@
-import { type Channel, ChannelType, Events, type Snowflake, type TextChannel, type VoiceState } from 'discord.js';
-import { log, logError } from '../../lib/log.ts';
+import {
+  type Channel,
+  ChannelType,
+  Events,
+  type Snowflake,
+  type TextChannel,
+  type VoiceState,
+} from 'discord.js';
+import {
+  log,
+  logError,
+} from '../../lib/log.ts';
 import { addHandler } from '../../listeners.ts';
 import { db } from './db.ts';
 
@@ -27,8 +37,8 @@ addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
     log(newState.guild.name, 'member joined:', newChannel?.name, { membersCount });
 
     if (membersCount >= threshold) {
-      const isTargetChannel =
-        (channel: Channel): channel is TextChannel => channel.type === ChannelType.GuildText && channel.id === channelId;
+      const isTargetChannel = (channel: Channel): channel is TextChannel =>
+        channel.type === ChannelType.GuildText && channel.id === channelId;
 
       if (!thrivingVoiceChannels.has(getId(newState))) {
         let targetChannel: TextChannel | undefined;

@@ -1,4 +1,9 @@
-import { Client, GatewayIntentBits, Partials, PresenceUpdateStatus } from 'discord.js';
+import {
+  Client,
+  GatewayIntentBits,
+  Partials,
+  PresenceUpdateStatus,
+} from 'discord.js';
 import { getEnv } from './lib/util.ts';
 import { init } from './listeners.ts';
 
@@ -14,7 +19,7 @@ const client = new Client({
   partials: [
     Partials.Message,
     Partials.Reaction,
-  ]
+  ],
 });
 
 client.login(getEnv('ACCESS_TOKEN')).then(_ => {
