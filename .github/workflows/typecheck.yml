@@ -14,5 +14,6 @@ jobs:
       with:
         node-version: 24
     - uses: actions/checkout@v4
+    - run: curl -fsSL https://github.com/AikidoSec/safe-chain/releases/latest/download/install-safe-chain.sh | sh -s -- --ci
     - run: npm ci
     - run: npm run type-check
