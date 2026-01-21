@@ -119,6 +119,11 @@ export const urlToDocument = async (url: string): Promise<Document | null> => {
 
   const res = await _fetch(url);
 
+  // returns null if response status is not OK
+  if (!res.ok || res.status !== 200) {
+    return null;
+  }
+
   // returns null if the content type is ignored
   const contentType = res.headers.get('Content-Type');
   if (contentType != null && IgnoredContentTypes.has(contentType)) {
@@ -126,7 +131,7 @@ export const urlToDocument = async (url: string): Promise<Document | null> => {
   }
 
   const buffer = await res.arrayBuffer();
-  const encoding = res.headers.get('Content-Type')?.match(/(?<=charset=)[^;]+/i)?.[0]
+  const encoding = contentType?.match(/(?<=charset=)[^;]+/i)?.[0]
     ?? charsetFromBuffer(buffer)
     ?? chardet.detect(new Uint8Array(buffer))
     ?? 'utf-8';
