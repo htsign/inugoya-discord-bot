@@ -99,7 +99,7 @@ export const urlToDocument = async (url: string): Promise<Document | null> => {
         delay(1000);
       }
     }
-    return Promise.reject(new Error('failed to fetch'));
+    return Promise.reject(new Error(`failed to fetch: ${url}`));
   };
 
   const sanitizeHtml = (html: string): string =>
