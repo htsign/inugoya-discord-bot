@@ -9,7 +9,7 @@
     "type-check": "tsc --project ./tsconfig.json"
   },
   "dependencies": {
-    "@dotenvx/dotenvx": "^1.51.4",
+    "@dotenvx/dotenvx": "^1.52.0",
     "@the-convocation/twitter-scraper": "^0.21.1",
     "better-sqlite3": "^12.6.2",
     "chardet": "^2.1.1",
@@ -18,7 +18,7 @@
     "dprint": "^0.51.1",
     "emoji-regex": "^10.6.0",
     "fast-average-color-node": "^3.2.0",
-    "i18next": "^25.7.4",
+    "i18next": "^25.8.0",
     "icojs": "^0.20.1",
     "jsdom": "^27.4.0",
     "mersenne-twister": "^1.1.0",
