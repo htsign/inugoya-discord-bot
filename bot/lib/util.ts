@@ -6,6 +6,7 @@ import type {
   Nullable,
   Url,
 } from '../../types';
+import { log } from './log.ts';
 
 export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
 export const DATETIME_FORMAT = 'YYYY/MM/DD HH:mm:ss';
@@ -121,12 +122,14 @@ export const urlToDocument = async (url: string): Promise<Document | null> => {
 
   // returns null if response status is not OK
   if (!res.ok || res.status !== 200) {
+    log(`failed to fetch ${url}: ${res.status} ${res.statusText}`);
     return null;
   }
 
   // returns null if the content type is ignored
   const contentType = res.headers.get('Content-Type');
   if (contentType != null && IgnoredContentTypes.has(contentType)) {
+    log(`ignored content type for ${url}: ${contentType}`);
     return null;
   }
 
