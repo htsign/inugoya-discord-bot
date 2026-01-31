@@ -12,7 +12,7 @@ addHandler(Events.MessageCreate, message => {
   const re = /(?<=^https?:\/\/(?:www\.)?)(?=instagram\.com\/.+?$)/;
 
   const replacedUrls = urls.flatMap(url => {
-    if (re.test(url)) {
+    if (re.test(url) && !url.includes('/live/')) {
       return [url.replace(re, 'vx')];
     }
     return [];
