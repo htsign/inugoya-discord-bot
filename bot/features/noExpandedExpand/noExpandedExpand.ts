@@ -57,7 +57,7 @@ const plugins: Plugin[] = [];
   }
 })();
 
-const targetMessages = new Set<Message<boolean> | PartialMessage>();
+const targetMessages = new WeakSet<Message<boolean> | PartialMessage>();
 
 addHandler(Events.MessageCreate, async message => {
   const { author, content, guild, channel } = message;
@@ -71,7 +71,7 @@ addHandler(Events.MessageCreate, async message => {
   targetMessages.add(message);
   await setTimeout(THRESHOLD_DELAY);
 
-  const urls = urlsOfText(content.replace(/\|\|[^\|]+?\|\|/g, '')); // remove spoiled text
+  const urls = urlsOfText(content.replace(/\|\|[^|]+?\|\|/g, '')); // remove spoiled text
   if (targetMessages.has(message) && message.embeds.length < urls.length) {
     const embedUrls = message.embeds.map(embed => embed.url).filter(url => url != null);
     const ignoringUrls = (
@@ -81,7 +81,7 @@ addHandler(Events.MessageCreate, async message => {
     const targetUrls = urls
       .filter(url => !(embedUrls.includes(url) || ignoringUrls.some(ignoringUrl => ignoringUrl.test(url))))
       .map(url => url.endsWith('||') ? url.slice(0, -'||'.length) : url) // remove tailed '||' if exists
-    ;
+      ;
 
     if (targetUrls.length > 0) {
       log(`noExpandedExpand[${sendTo}]:`, 'start expanding process', targetUrls);
@@ -134,7 +134,14 @@ addHandler(Events.MessageCreate, async message => {
       do {
         await setTimeout();
 
-        if (!targetMessages.has(message) || replied.embeds.every(re => message.embeds.some(me => me.url === re.url))) {
+        const remainedEmbeds = replied.embeds.filter(embed => !message.embeds.map(me => me.url).includes(embed.url));
+        if (!targetMessages.has(message) || urls.length !== remainedEmbeds.length) {
+          if (remainedEmbeds.length > 0) {
+            log(`noExpandedExpand[${sendTo}]:`, 'some embeds had been removed', remainedEmbeds);
+
+            await replied.edit({ content, embeds: remainedEmbeds, files });
+            break;
+          }
           log(`delete expanded url[${sendTo}]:`, embeds.map(e => e.url));
 
           try {
