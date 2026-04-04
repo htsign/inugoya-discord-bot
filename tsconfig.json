@@ -19,10 +19,7 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "paths": {
-      "types": ["./types"],
-    },
   },
-  "include": ["bot", "types"],
+  "include": ["index.ts", "bot", "types"],
   "exclude": ["node_modules"],
 }
