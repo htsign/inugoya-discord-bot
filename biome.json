@@ -7,14 +7,26 @@
       }
     }
   },
+  "formatter": {
+    "enabled": false
+  },
   "linter": {
+    "enabled": true,
     "rules": {
       "suspicious": {
         "noAssignInExpressions": "off"
+      },
+      "style": {
+        "useImportType": "on"
       }
     }
   },
   "files": {
-    "includes": ["**", "!!tsconfig.json", "!!**/node_modules"]
+    "includes": [
+      "**",
+      "!!tsconfig.json",
+      "!!**/node_modules",
+      "!!.vscode"
+    ]
   }
 }

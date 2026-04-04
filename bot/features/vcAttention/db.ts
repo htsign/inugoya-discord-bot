@@ -135,4 +135,5 @@ class VCAttentionDatabaseConfig {
 }
 
 const _db = new VCAttentionDatabaseConfig();
+
 export { _db as db };

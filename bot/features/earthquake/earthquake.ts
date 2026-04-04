@@ -9,6 +9,15 @@ import {
   ThreadAutoArchiveDuration,
 } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
+import dayjs from '#lib/dayjsSetup.ts';
+import {
+  log,
+  logError,
+} from '#lib/log.ts';
+import {
+  debounce,
+  getEnv,
+} from '#lib/util.ts';
 import type {
   Area,
   AreaPeers,
@@ -23,15 +32,6 @@ import type {
   WebSocketResponse,
 } from '#types/bot/features/earthquake';
 import client from '../../client.ts';
-import dayjs from '#lib/dayjsSetup.ts';
-import {
-  log,
-  logError,
-} from '#lib/log.ts';
-import {
-  debounce,
-  getEnv,
-} from '#lib/util.ts';
 import { db } from './db.ts';
 import { geocode } from './geocoding.ts';
 

@@ -5,11 +5,11 @@ import {
 } from 'discord.js';
 import fastAvgColor from 'fast-average-color-node';
 import { parseICO } from 'icojs';
-import type { PluginHooks } from '#types/bot/features/noExpandedExpand';
 import type {
   Nullable,
   Url,
 } from '#types';
+import type { PluginHooks } from '#types/bot/features/noExpandedExpand';
 import {
   log,
   logError,

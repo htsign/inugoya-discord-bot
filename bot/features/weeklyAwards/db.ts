@@ -528,4 +528,5 @@ class WeeklyAwardTime {
 }
 
 const _db = new WeeklyAward();
+
 export { _db as db };

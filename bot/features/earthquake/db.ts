@@ -253,6 +253,7 @@ class GeoCoding {
 
 const eewConfig = new EEWConfig();
 const geoCoding = new GeoCoding();
+
 export {
   eewConfig as db,
   geoCoding,

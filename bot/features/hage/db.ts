@@ -1,5 +1,7 @@
 import { setTimeout } from 'node:timers/promises';
 import Database, { type Transaction } from 'better-sqlite3';
+import dayjs from '#lib/dayjsSetup.ts';
+import { log } from '#lib/log.ts';
 import type {
   HageConfigRecord,
   HageConfigRow,
@@ -8,8 +10,6 @@ import type {
   HageReactionKeywordRecord,
   HageReactionKeywordRow,
 } from '#types/bot/features/hage';
-import dayjs from '#lib/dayjsSetup.ts';
-import { log } from '#lib/log.ts';
 
 const db = new Database('hage.db');
 
@@ -466,4 +466,5 @@ class HageReactionKeyword {
 }
 
 const _db = new HageConfig();
+
 export { _db as db };

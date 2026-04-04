@@ -11,8 +11,8 @@ import {
 import emojiRegex from 'emoji-regex';
 import { runes } from 'runes2';
 import { isNonEmpty } from 'ts-array-length';
-import type { ChatInputCommandCollection } from '#types/bot';
 import type { Obj } from '#types';
+import type { ChatInputCommandCollection } from '#types/bot';
 import { log } from '../../lib/log.ts';
 import { DATETIME_FORMAT } from '../../lib/util.ts';
 import {

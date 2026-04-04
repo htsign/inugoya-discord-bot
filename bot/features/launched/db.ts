@@ -128,4 +128,5 @@ class LaunchedConfig {
 }
 
 const _db = new LaunchedConfig();
+
 export { _db as db };

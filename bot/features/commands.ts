@@ -1,7 +1,7 @@
 import { Events } from 'discord.js';
-import type { ChatInputCommandCollection } from '#types/bot';
-import type { Obj } from '#types';
 import { log } from '#lib/log.ts';
+import type { Obj } from '#types';
+import type { ChatInputCommandCollection } from '#types/bot';
 import { addHandler } from '../listeners.ts';
 import { commands as earthquakeCommands } from './earthquake/commands.ts';
 import { commands as hageCommands } from './hage/commands.ts';

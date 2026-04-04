@@ -2,11 +2,11 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { URL } from 'node:url';
 import chardet from 'chardet';
 import { JSDOM } from 'jsdom';
+import { log } from '#lib/log.ts';
 import type {
   Nullable,
   Url,
 } from '#types';
-import { log } from './log.ts';
 
 export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
 export const DATETIME_FORMAT = 'YYYY/MM/DD HH:mm:ss';
