@@ -3,7 +3,7 @@ import Database from 'better-sqlite3';
 import type {
   VCAttentionConfigRecord,
   VCAttentionConfigRow,
-} from '../../../types/bot/features/vcAttention.ts';
+} from '#types/bot/features/vcAttention';
 import dayjs from '../../lib/dayjsSetup.ts';
 
 const db = new Database('vcAttention.db');

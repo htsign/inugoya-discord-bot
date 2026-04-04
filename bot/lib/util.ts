@@ -5,7 +5,7 @@ import { JSDOM } from 'jsdom';
 import type {
   Nullable,
   Url,
-} from '../../types';
+} from '#types';
 import { log } from './log.ts';
 
 export const URL_REGEX_GLOBAL = /\bhttps?:\/\/\S+/g;
@@ -68,7 +68,7 @@ export const retrieveRealUrl = async (url: Url): Promise<Url> => {
       return realUrl;
     }
   }
-  catch {}
+  catch { }
 
   return url;
 };

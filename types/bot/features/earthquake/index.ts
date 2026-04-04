@@ -1,11 +1,11 @@
 import type { Dayjs } from 'dayjs';
-import type { AreaPeers } from './areaPeers';
-import type { EEW } from './eew';
-import type { EEWDetection } from './eewDetection';
-import type { JMAQuake } from './jmaQuake';
-import type { JMATsunami } from './jmaTsunami';
-import type { UserQuake } from './userQuake';
-import type { UserQuakeEvaluation } from './userQuakeEvaluation';
+import type { AreaPeers } from './areaPeers.ts';
+import type { EEW } from './eew.ts';
+import type { EEWDetection } from './eewDetection.ts';
+import type { JMAQuake } from './jmaQuake.ts';
+import type { JMATsunami } from './jmaTsunami.ts';
+import type { UserQuake } from './userQuake.ts';
+import type { UserQuakeEvaluation } from './userQuakeEvaluation.ts';
 
 export type WebSocketResponse =
   | JMAQuake
@@ -16,14 +16,14 @@ export type WebSocketResponse =
   | UserQuake
   | UserQuakeEvaluation;
 
-export type * from './areaPeers';
-export type * from './eew';
-export type * from './eewDetection';
-export type * from './geocoding';
-export type * from './jmaQuake';
-export type * from './jmaTsunami';
-export type * from './userQuake';
-export type * from './userQuakeEvaluation';
+export type * from './areaPeers.ts';
+export type * from './eew.ts';
+export type * from './eewDetection.ts';
+export type * from './geocoding.ts';
+export type * from './jmaQuake.ts';
+export type * from './jmaTsunami.ts';
+export type * from './userQuake.ts';
+export type * from './userQuakeEvaluation.ts';
 
 export interface EEWConfigRecord {
   guildId: string;

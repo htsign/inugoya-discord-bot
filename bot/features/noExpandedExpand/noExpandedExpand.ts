@@ -11,7 +11,7 @@ import {
 import type {
   HookResult,
   Plugin,
-} from 'types/bot/features/noExpandedExpand';
+} from '#types/bot/features/noExpandedExpand';
 import dayjs from '../../lib/dayjsSetup.ts';
 import {
   log,

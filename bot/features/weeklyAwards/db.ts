@@ -8,7 +8,7 @@ import type {
   WeeklyAwardRecord,
   WeeklyAwardTimeRecord,
   WeeklyAwardTimeRow,
-} from '../../../types/bot/features/weeklyAwards.ts';
+} from '#types/bot/features/weeklyAwards';
 import dayjs from '../../lib/dayjsSetup.ts';
 import { isUrl } from '../../lib/util.ts';
 import {

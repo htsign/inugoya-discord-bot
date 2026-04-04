@@ -3,7 +3,7 @@ import Database from 'better-sqlite3';
 import type {
   LaunchedConfigRecord,
   LaunchedConfigRow,
-} from '../../../types/bot/features/launched.ts';
+} from '#types/bot/features/launched';
 import dayjs from '../../lib/dayjsSetup.ts';
 
 const db = new Database('launched.db');

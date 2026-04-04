@@ -1,4 +1,4 @@
-import type { Url } from 'types';
+import type { Url } from '#types';
 
 export type XgdUrl = `https://x.gd/${string}`;
 export type XgdSuccessMessage = `\`${Url}\`: <${XgdUrl}>`;

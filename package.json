@@ -4,6 +4,11 @@
   "engines": {
     "node": ">=24.0.0"
   },
+  "imports": {
+    "#bot/*": "./bot/*",
+    "#types": "./types/index.ts",
+    "#types/*": "./types/*/index.ts"
+  },
   "scripts": {
     "start": "dotenvx run -- node index.ts",
     "type-check": "tsc --project ./tsconfig.json"

@@ -3,7 +3,7 @@ import type {
   ChatInputApplicationCommandData,
   ChatInputCommandInteraction,
 } from 'discord.js';
-import type { Obj } from 'types';
+import type { Obj } from '#types';
 
 export interface ChatInputCommandFunction<Result, TCacheType extends CacheType = CacheType> {
   func(interaction: ChatInputCommandInteraction<TCacheType>): Promise<Result>;

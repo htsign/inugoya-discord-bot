@@ -5,6 +5,8 @@ import type {
   ClientEvents,
 } from 'discord.js';
 
+export * from './twitterView.ts';
+
 export interface Plugin {
   handlers?: PluginHandlers;
   hooks?: PluginHooks;

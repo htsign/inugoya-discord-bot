@@ -4,9 +4,10 @@ import type {
   HageConfigRecord,
   HageConfigRow,
   HageKeywordRecord,
+  HageKeywordRow,
   HageReactionKeywordRecord,
   HageReactionKeywordRow,
-} from '../../../types/bot/features/hage.ts';
+} from '#types/bot/features/hage';
 import dayjs from '../../lib/dayjsSetup.ts';
 import { log } from '../../lib/log.ts';
 
@@ -177,7 +178,7 @@ class HageConfig {
 class HageKeyword {
   #TABLE = 'keywords';
 
-  static #isRow(row: unknown): row is import('types/bot/features/hage').HageKeywordRow {
+  static #isRow(row: unknown): row is HageKeywordRow {
     if (row == null || typeof row !== 'object') return false;
 
     if (!('id' in row && typeof row.id === 'number')) return false;

@@ -1,4 +1,4 @@
-import type { RegionalIndicatorsResult } from '../../../types/bot/features/regionalIndicators.ts';
+import type { RegionalIndicatorsResult } from '#types/bot/features/regionalIndicators';
 import { log } from '../../lib/log.ts';
 
 const codeRegionalIndicatorA = '🇦'.codePointAt(0) ?? 0;

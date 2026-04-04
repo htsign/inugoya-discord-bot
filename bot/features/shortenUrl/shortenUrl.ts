@@ -8,7 +8,7 @@ import type {
   XgdRequest,
   XgdResponse,
   XgdSuccessMessage,
-} from 'types/bot/features/shortenUrl';
+} from '#types/bot/features/shortenUrl';
 import type { Url } from '../../../types/index.ts';
 import {
   log,

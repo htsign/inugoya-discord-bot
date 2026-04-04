@@ -21,7 +21,7 @@ import type {
   UserQuake,
   UserQuakeEvaluation,
   WebSocketResponse,
-} from '../../../types/bot/features/earthquake/index.ts';
+} from '#types/bot/features/earthquake';
 import client from '../../client.ts';
 import dayjs from '../../lib/dayjsSetup.ts';
 import {
@@ -487,7 +487,6 @@ const resolveEEW = async (response: EEW): Promise<void> => {
         throw e;
       }
 
-      // biome-ignore lint/correctness/noUnusedVariables: ignore `areas` away from logs
       const { areas, ...restResponse } = response;
       log(`earthquake#${resolveEEW.name}:`, `sent to ${guildName}/${channelName}`, JSON.stringify(restResponse));
     }

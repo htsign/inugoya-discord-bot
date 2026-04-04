@@ -9,7 +9,7 @@ import { isNonEmpty } from 'ts-array-length';
 import type {
   MessageAndReactions,
   WeeklyAwardRecord,
-} from '../../../types/bot/features/weeklyAwards.ts';
+} from '#types/bot/features/weeklyAwards';
 import client from '../../client.ts';
 import dayjs from '../../lib/dayjsSetup.ts';
 import {
