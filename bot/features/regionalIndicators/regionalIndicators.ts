@@ -1,5 +1,5 @@
-import type { RegionalIndicatorsResult } from '../../../types/bot/features/regionalIndicators.ts';
-import { log } from '../../lib/log.ts';
+import { log } from '#lib/log.ts';
+import type { RegionalIndicatorsResult } from '#types/bot/features/regionalIndicators';
 
 const codeRegionalIndicatorA = '🇦'.codePointAt(0) ?? 0;
 const codeLowerA = 'a'.codePointAt(0) ?? 0;

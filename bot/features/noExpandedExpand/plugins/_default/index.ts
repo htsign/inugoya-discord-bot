@@ -5,21 +5,21 @@ import {
 } from 'discord.js';
 import fastAvgColor from 'fast-average-color-node';
 import { parseICO } from 'icojs';
-import type { PluginHooks } from '../../../../../types/bot/features/noExpandedExpand/index.ts';
-import type {
-  Nullable,
-  Url,
-} from '../../../../../types/index.ts';
 import {
   log,
   logError,
-} from '../../../../lib/log.ts';
+} from '#lib/log.ts';
 import {
   getUrlDomain,
   isUrl,
   retrieveRealUrl,
   urlToDocument,
-} from '../../../../lib/util.ts';
+} from '#lib/util.ts';
+import type {
+  Nullable,
+  Url,
+} from '#types';
+import type { PluginHooks } from '#types/bot/features/noExpandedExpand';
 
 const IGNORED_URLS = Object.freeze([
   /^https:\/\/discord\.com\/events\//,
@@ -148,7 +148,7 @@ const getProductInfo = (document: Document): {
   const condition = document.querySelector<HTMLMetaElement>('meta[property="product:condition"]')?.content;
   const brand = document.querySelector<HTMLMetaElement>('meta[property="product:brand"]')?.content;
 
-  const getPrices = function*(): Generator<{ amount: string, currency: string }> {
+  const getPrices = function* (): Generator<{ amount: string, currency: string }> {
     for (const el of document.querySelectorAll<HTMLMetaElement>('meta[property^="product:price"]')) {
       switch (el.getAttribute('property')) {
         case 'product:price:amount': {

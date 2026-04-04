@@ -1,14 +1,14 @@
 import { setTimeout } from 'node:timers/promises';
 import { isNonEmpty } from 'ts-array-length';
-import type {
-  GeocodingResponse,
-  LatLng,
-} from '../../../types/bot/features/earthquake/index.ts';
 import {
   log,
   logError,
-} from '../../lib/log.ts';
-import { getEnv } from '../../lib/util.ts';
+} from '#lib/log.ts';
+import { getEnv } from '#lib/util.ts';
+import type {
+  GeocodingResponse,
+  LatLng,
+} from '#types/bot/features/earthquake';
 import { geoCoding } from './db.ts';
 
 const locationPoints = new Map<string, LatLng | null>();

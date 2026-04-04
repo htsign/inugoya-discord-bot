@@ -8,17 +8,17 @@ import {
   type Message,
   type PartialMessage,
 } from 'discord.js';
-import type {
-  HookResult,
-  Plugin,
-} from 'types/bot/features/noExpandedExpand';
-import dayjs from '../../lib/dayjsSetup.ts';
+import dayjs from '#lib/dayjsSetup.ts';
 import {
   log,
   logError,
-} from '../../lib/log.ts';
-import { urlsOfText } from '../../lib/util.ts';
-import { addHandler } from '../../listeners.ts';
+} from '#lib/log.ts';
+import { urlsOfText } from '#lib/util.ts';
+import { addHandler } from '#listeners';
+import type {
+  HookResult,
+  Plugin,
+} from '#types/bot/features/noExpandedExpand';
 
 const THRESHOLD_DELAY = 5 * 1000;
 const THRESHOLD_FOR_DELETE = 5;

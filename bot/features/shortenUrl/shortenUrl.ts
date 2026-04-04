@@ -3,23 +3,23 @@ import {
   type Message,
 } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
+import {
+  log,
+  logError,
+} from '#lib/log.ts';
+import {
+  getEnv,
+  toQueryString,
+  urlsOfText,
+} from '#lib/util.ts';
+import { addHandler } from '#listeners';
+import type { Url } from '#types';
 import type {
   XgdFailureMessage,
   XgdRequest,
   XgdResponse,
   XgdSuccessMessage,
-} from 'types/bot/features/shortenUrl';
-import type { Url } from '../../../types/index.ts';
-import {
-  log,
-  logError,
-} from '../../lib/log.ts';
-import {
-  getEnv,
-  toQueryString,
-  urlsOfText,
-} from '../../lib/util.ts';
-import { addHandler } from '../../listeners.ts';
+} from '#types/bot/features/shortenUrl';
 
 const API_KEY = getEnv('XGD_API_KEY', 'X.gd API key');
 const API_ENTRYPOINT = 'https://xgd.io/V1/shorten';

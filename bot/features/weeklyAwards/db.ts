@@ -1,6 +1,8 @@
 import { setTimeout } from 'node:timers/promises';
 import Database, { type Transaction } from 'better-sqlite3';
 import type { Message } from 'discord.js';
+import dayjs from '#lib/dayjsSetup.ts';
+import { isUrl } from '#lib/util.ts';
 import type {
   WeeklyAwardConfigRecord,
   WeeklyAwardConfigRow,
@@ -8,9 +10,7 @@ import type {
   WeeklyAwardRecord,
   WeeklyAwardTimeRecord,
   WeeklyAwardTimeRow,
-} from '../../../types/bot/features/weeklyAwards.ts';
-import dayjs from '../../lib/dayjsSetup.ts';
-import { isUrl } from '../../lib/util.ts';
+} from '#types/bot/features/weeklyAwards';
 import {
   fromNumber,
   type Weekday,
@@ -528,4 +528,5 @@ class WeeklyAwardTime {
 }
 
 const _db = new WeeklyAward();
+
 export { _db as db };

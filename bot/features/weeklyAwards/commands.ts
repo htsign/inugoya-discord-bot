@@ -7,10 +7,10 @@ import {
   EmbedBuilder,
   PermissionFlagsBits,
 } from 'discord.js';
-import type { ChatInputCommandCollection } from '../../../types/bot/index.ts';
-import type { Obj } from '../../../types/index.ts';
-import { log } from '../../lib/log.ts';
-import { DATETIME_FORMAT } from '../../lib/util.ts';
+import { log } from '#lib/log.ts';
+import { DATETIME_FORMAT } from '#lib/util.ts';
+import type { Obj } from '#types';
+import type { ChatInputCommandCollection } from '#types/bot';
 import { db } from './db.ts';
 import {
   startAward,

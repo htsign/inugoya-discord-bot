@@ -1,10 +1,10 @@
 import { setTimeout } from 'node:timers/promises';
 import Database from 'better-sqlite3';
+import dayjs from '#lib/dayjsSetup.ts';
 import type {
   VCAttentionConfigRecord,
   VCAttentionConfigRow,
-} from '../../../types/bot/features/vcAttention.ts';
-import dayjs from '../../lib/dayjsSetup.ts';
+} from '#types/bot/features/vcAttention';
 
 const db = new Database('vcAttention.db');
 
@@ -135,4 +135,5 @@ class VCAttentionDatabaseConfig {
 }
 
 const _db = new VCAttentionDatabaseConfig();
+
 export { _db as db };

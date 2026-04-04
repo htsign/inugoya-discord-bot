@@ -4,9 +4,20 @@
   "engines": {
     "node": ">=24.0.0"
   },
+  "imports": {
+    "#bot/*": "./bot/*",
+    "#lib/*": "./bot/lib/*",
+    "#client": "./bot/client.ts",
+    "#listeners": "./bot/listeners.ts",
+    "#types": "./types/index.ts",
+    "#types/*": "./types/*/index.ts"
+  },
   "scripts": {
     "start": "dotenvx run -- node index.ts",
-    "type-check": "tsc --project ./tsconfig.json"
+    "type-check": "tsc --project ./tsconfig.json",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "prepare": "git config core.hooksPath .githooks"
   },
   "dependencies": {
     "@dotenvx/dotenvx": "^1.59.1",

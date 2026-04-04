@@ -1,10 +1,9 @@
 {
   "compilerOptions": {
     "checkJs": true,
-    "module": "ESNext",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "esModuleInterop": true,
-    "baseUrl": "./",
     "target": "ESNext",
     "strict": true,
     "noImplicitReturns": true,
@@ -21,5 +20,6 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
   },
+  "include": ["index.ts", "bot", "types"],
   "exclude": ["node_modules"],
 }

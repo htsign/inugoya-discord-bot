@@ -7,13 +7,13 @@ import {
 } from 'discord.js';
 import fastAvgColor from 'fast-average-color-node';
 import { isNonEmpty } from 'ts-array-length';
-import type { EmbedMessageOptions } from '../../types/bot/index.ts';
-import type { Nullable } from '../../types/index.ts';
-import client from '../client.ts';
+import client from '#client';
 import {
   log,
   logError,
-} from '../lib/log.ts';
+} from '#lib/log.ts';
+import type { Nullable } from '#types';
+import type { EmbedMessageOptions } from '#types/bot';
 
 export const fetchMessageByIds = async (guildId: string, channelId: string, messageId: string): Promise<Message<true> | null> => {
   try {

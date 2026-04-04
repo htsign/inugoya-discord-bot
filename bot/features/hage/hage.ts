@@ -7,13 +7,13 @@ import {
   type Snowflake,
 } from 'discord.js';
 import MersenneTwister from 'mersenne-twister';
-import dayjs from '../../lib/dayjsSetup.ts';
+import dayjs from '#lib/dayjsSetup.ts';
 import {
   log,
   logError,
-} from '../../lib/log.ts';
-import { Timeout } from '../../lib/timeout.ts';
-import { addHandler } from '../../listeners.ts';
+} from '#lib/log.ts';
+import { Timeout } from '#lib/timeout.ts';
+import { addHandler } from '#listeners';
 import { db } from './db.ts';
 
 const reactedMessageIds = new Set<`${Snowflake},${Snowflake},${Snowflake}`>();

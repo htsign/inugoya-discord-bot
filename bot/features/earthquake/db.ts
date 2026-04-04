@@ -1,12 +1,12 @@
-import Database from 'better-sqlite3';
 import { setTimeout } from 'node:timers/promises';
+import Database from 'better-sqlite3';
+import dayjs from '#lib/dayjsSetup.ts';
 import type {
   EEWConfigRecord,
   EEWConfigRow,
   GeoCodingRecord,
   GeoCodingRow,
-} from 'types/bot/features/earthquake';
-import dayjs from '../../lib/dayjsSetup.ts';
+} from '#types/bot/features/earthquake';
 
 const db = new Database('earthquake.db');
 
@@ -253,6 +253,7 @@ class GeoCoding {
 
 const eewConfig = new EEWConfig();
 const geoCoding = new GeoCoding();
+
 export {
   eewConfig as db,
   geoCoding,

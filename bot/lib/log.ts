@@ -1,5 +1,5 @@
 import { writeFile } from 'node:fs/promises';
-import dayjs from './dayjsSetup.ts';
+import dayjs from '#lib/dayjsSetup.ts';
 
 /**
  * @param {unknown} value

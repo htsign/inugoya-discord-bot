@@ -5,15 +5,15 @@ import {
   EmbedBuilder,
 } from 'discord.js';
 import { runes } from 'runes2';
-import type {
-  MediaInfo,
-  VxTwitterAPIResponse,
-} from '../../../../../types/bot/features/noExpandedExpand/twitterView.ts';
-import type { Url } from '../../../../../types/index.ts';
 import {
   log,
   logError,
-} from '../../../../lib/log.ts';
+} from '#lib/log.ts';
+import type { Url } from '#types';
+import type {
+  MediaInfo,
+  VxTwitterAPIResponse,
+} from '#types/bot/features/noExpandedExpand';
 
 export const retrieveFromVx = async (url: string, statusId: string): Promise<{ embeds: APIEmbed[], attachments: AttachmentBuilder[] }> => {
   log(`noExpandedExpand#X#${retrieveFromVx.name}:`, `start for ${url}`);
