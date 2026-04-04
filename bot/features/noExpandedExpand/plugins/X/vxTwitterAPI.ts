@@ -5,11 +5,11 @@ import {
   EmbedBuilder,
 } from 'discord.js';
 import { runes } from 'runes2';
+import type { Url } from '#types';
 import type {
   MediaInfo,
   VxTwitterAPIResponse,
-} from '../../../../../types/bot/features/noExpandedExpand/twitterView.ts';
-import type { Url } from '../../../../../types/index.ts';
+} from '#types/bot/features/noExpandedExpand';
 import {
   log,
   logError,

@@ -6,8 +6,8 @@ import {
   Events,
   type MessageReaction,
 } from 'discord.js';
-import type { ChatInputCommandCollection } from '../../../types/bot/index.ts';
-import type { Obj } from '../../../types/index.ts';
+import type { Obj } from '#types';
+import type { ChatInputCommandCollection } from '#types/bot';
 import {
   log,
   logError,

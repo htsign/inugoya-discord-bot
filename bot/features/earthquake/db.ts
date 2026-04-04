@@ -1,5 +1,5 @@
-import Database from 'better-sqlite3';
 import { setTimeout } from 'node:timers/promises';
+import Database from 'better-sqlite3';
 import type {
   EEWConfigRecord,
   EEWConfigRow,

@@ -6,6 +6,7 @@
   },
   "imports": {
     "#bot/*": "./bot/*",
+    "#lib/*": "./bot/lib/*",
     "#types": "./types/index.ts",
     "#types/*": "./types/*/index.ts"
   },

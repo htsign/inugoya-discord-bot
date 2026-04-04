@@ -8,8 +8,8 @@ import type {
   HageReactionKeywordRecord,
   HageReactionKeywordRow,
 } from '#types/bot/features/hage';
-import dayjs from '../../lib/dayjsSetup.ts';
-import { log } from '../../lib/log.ts';
+import dayjs from '#lib/dayjsSetup.ts';
+import { log } from '#lib/log.ts';
 
 const db = new Database('hage.db');
 

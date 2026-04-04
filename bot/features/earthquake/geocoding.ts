@@ -3,7 +3,7 @@ import { isNonEmpty } from 'ts-array-length';
 import type {
   GeocodingResponse,
   LatLng,
-} from '../../../types/bot/features/earthquake/index.ts';
+} from '#types/bot/features/earthquake';
 import {
   log,
   logError,

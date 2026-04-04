@@ -7,7 +7,7 @@ import {
 import fs from 'node:fs/promises';
 import { runes } from 'runes2';
 import { Cookie } from 'tough-cookie';
-import type { PluginHooks } from '../../../../../types/bot/features/noExpandedExpand/index.ts';
+import type { PluginHooks } from '#types/bot/features/noExpandedExpand';
 import {
   log,
   logError,

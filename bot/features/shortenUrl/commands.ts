@@ -1,6 +1,6 @@
 import { ApplicationCommandOptionType } from 'discord.js';
-import type { ChatInputCommandCollection } from '../../../types/bot/index.ts';
-import type { Obj } from '../../../types/index.ts';
+import type { Obj } from '#types';
+import type { ChatInputCommandCollection } from '#types/bot';
 import { shortenUrlsOfContent } from './shortenUrl.ts';
 
 export const commands: ChatInputCommandCollection<void, Obj> = {

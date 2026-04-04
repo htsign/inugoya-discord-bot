@@ -3,13 +3,13 @@ import {
   type Message,
 } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
+import type { Url } from '#types';
 import type {
   XgdFailureMessage,
   XgdRequest,
   XgdResponse,
   XgdSuccessMessage,
 } from '#types/bot/features/shortenUrl';
-import type { Url } from '../../../types/index.ts';
 import {
   log,
   logError,
