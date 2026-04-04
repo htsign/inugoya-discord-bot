@@ -12,6 +12,7 @@ import {
   toQueryString,
   urlsOfText,
 } from '#lib/util.ts';
+import { addHandler } from '#listeners';
 import type { Url } from '#types';
 import type {
   XgdFailureMessage,
@@ -19,7 +20,6 @@ import type {
   XgdResponse,
   XgdSuccessMessage,
 } from '#types/bot/features/shortenUrl';
-import { addHandler } from '../../listeners.ts';
 
 const API_KEY = getEnv('XGD_API_KEY', 'X.gd API key');
 const API_ENTRYPOINT = 'https://xgd.io/V1/shorten';

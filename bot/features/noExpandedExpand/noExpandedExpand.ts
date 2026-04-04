@@ -14,11 +14,11 @@ import {
   logError,
 } from '#lib/log.ts';
 import { urlsOfText } from '#lib/util.ts';
+import { addHandler } from '#listeners';
 import type {
   HookResult,
   Plugin,
 } from '#types/bot/features/noExpandedExpand';
-import { addHandler } from '../../listeners.ts';
 
 const THRESHOLD_DELAY = 5 * 1000;
 const THRESHOLD_FOR_DELETE = 5;

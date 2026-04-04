@@ -10,7 +10,7 @@ import {
   log,
   logError,
 } from '#lib/log.ts';
-import { addHandler } from '../../listeners.ts';
+import { addHandler } from '#listeners';
 import { db } from './db.ts';
 
 const thrivingVoiceChannels = new Set<`${Snowflake},${Snowflake}`>();

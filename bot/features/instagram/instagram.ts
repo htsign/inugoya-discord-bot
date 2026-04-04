@@ -1,7 +1,7 @@
 import { Events } from 'discord.js';
 import { logError } from '#lib/log.ts';
 import { urlsOfText } from '#lib/util.ts';
-import { addHandler } from '../../listeners.ts';
+import { addHandler } from '#listeners';
 
 addHandler(Events.MessageCreate, message => {
   const { content, author, guild, channel } = message;

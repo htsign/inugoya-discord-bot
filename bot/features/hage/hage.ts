@@ -13,7 +13,7 @@ import {
   logError,
 } from '#lib/log.ts';
 import { Timeout } from '#lib/timeout.ts';
-import { addHandler } from '../../listeners.ts';
+import { addHandler } from '#listeners';
 import { db } from './db.ts';
 
 const reactedMessageIds = new Set<`${Snowflake},${Snowflake},${Snowflake}`>();

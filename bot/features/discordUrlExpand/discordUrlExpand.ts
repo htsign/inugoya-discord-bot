@@ -7,7 +7,7 @@ import {
   log,
   logError,
 } from '#lib/log.ts';
-import { addHandler } from '../../listeners.ts';
+import { addHandler } from '#listeners';
 import {
   fetchMessageByIds,
   messageToEmbeds,

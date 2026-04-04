@@ -10,9 +10,9 @@ import {
   log,
   logError,
 } from '#lib/log.ts';
+import { addHandler } from '#listeners';
 import type { Obj } from '#types';
 import type { ChatInputCommandCollection } from '#types/bot';
-import { addHandler } from '../../listeners.ts';
 import { toEmojis } from './index.ts';
 
 addHandler(Events.InteractionCreate, async interaction => {

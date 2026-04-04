@@ -9,6 +9,7 @@ import {
   ThreadAutoArchiveDuration,
 } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
+import client from '#client';
 import dayjs from '#lib/dayjsSetup.ts';
 import {
   log,
@@ -31,7 +32,6 @@ import type {
   UserQuakeEvaluation,
   WebSocketResponse,
 } from '#types/bot/features/earthquake';
-import client from '../../client.ts';
 import { db } from './db.ts';
 import { geocode } from './geocoding.ts';
 
