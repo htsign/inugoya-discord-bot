@@ -3,6 +3,15 @@ import {
   type Message,
 } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
+import {
+  log,
+  logError,
+} from '#lib/log.ts';
+import {
+  getEnv,
+  toQueryString,
+  urlsOfText,
+} from '#lib/util.ts';
 import type { Url } from '#types';
 import type {
   XgdFailureMessage,
@@ -10,15 +19,6 @@ import type {
   XgdResponse,
   XgdSuccessMessage,
 } from '#types/bot/features/shortenUrl';
-import {
-  log,
-  logError,
-} from '../../lib/log.ts';
-import {
-  getEnv,
-  toQueryString,
-  urlsOfText,
-} from '../../lib/util.ts';
 import { addHandler } from '../../listeners.ts';
 
 const API_KEY = getEnv('XGD_API_KEY', 'X.gd API key');

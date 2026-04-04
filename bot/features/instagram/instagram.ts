@@ -1,6 +1,6 @@
 import { Events } from 'discord.js';
-import { logError } from '../../lib/log.ts';
-import { urlsOfText } from '../../lib/util.ts';
+import { logError } from '#lib/log.ts';
+import { urlsOfText } from '#lib/util.ts';
 import { addHandler } from '../../listeners.ts';
 
 addHandler(Events.MessageCreate, message => {

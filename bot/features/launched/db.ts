@@ -1,10 +1,10 @@
 import { setTimeout } from 'node:timers/promises';
 import Database from 'better-sqlite3';
+import dayjs from '#lib/dayjsSetup.ts';
 import type {
   LaunchedConfigRecord,
   LaunchedConfigRow,
 } from '#types/bot/features/launched';
-import dayjs from '../../lib/dayjsSetup.ts';
 
 const db = new Database('launched.db');
 

@@ -14,7 +14,7 @@ import './bot/features/vcAttention/index.ts';
 import './bot/features/shortenUrl/index.ts';
 import './bot/features/discordUrlExpand/index.ts';
 
-import { instance as processManager } from './bot/lib/processManager.ts';
+import { instance as processManager } from '#lib/processManager.ts';
 
 process.on('SIGINT', () => {
   console.log('SIGINT received');

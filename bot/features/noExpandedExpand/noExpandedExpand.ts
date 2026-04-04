@@ -8,16 +8,16 @@ import {
   type Message,
   type PartialMessage,
 } from 'discord.js';
+import dayjs from '#lib/dayjsSetup.ts';
+import {
+  log,
+  logError,
+} from '#lib/log.ts';
+import { urlsOfText } from '#lib/util.ts';
 import type {
   HookResult,
   Plugin,
 } from '#types/bot/features/noExpandedExpand';
-import dayjs from '../../lib/dayjsSetup.ts';
-import {
-  log,
-  logError,
-} from '../../lib/log.ts';
-import { urlsOfText } from '../../lib/util.ts';
 import { addHandler } from '../../listeners.ts';
 
 const THRESHOLD_DELAY = 5 * 1000;

@@ -6,12 +6,12 @@ import {
   Events,
   type MessageReaction,
 } from 'discord.js';
-import type { Obj } from '#types';
-import type { ChatInputCommandCollection } from '#types/bot';
 import {
   log,
   logError,
-} from '../../lib/log.ts';
+} from '#lib/log.ts';
+import type { Obj } from '#types';
+import type { ChatInputCommandCollection } from '#types/bot';
 import { addHandler } from '../../listeners.ts';
 import { toEmojis } from './index.ts';
 

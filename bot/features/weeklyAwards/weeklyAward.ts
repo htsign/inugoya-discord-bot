@@ -6,16 +6,16 @@ import {
   type Message,
 } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
+import dayjs from '#lib/dayjsSetup.ts';
+import {
+  log,
+  logError,
+} from '#lib/log.ts';
 import type {
   MessageAndReactions,
   WeeklyAwardRecord,
 } from '#types/bot/features/weeklyAwards';
 import client from '../../client.ts';
-import dayjs from '../../lib/dayjsSetup.ts';
-import {
-  log,
-  logError,
-} from '../../lib/log.ts';
 import { addHandler } from '../../listeners.ts';
 import {
   fetchMessageByIds,

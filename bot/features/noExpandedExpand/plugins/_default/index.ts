@@ -5,21 +5,21 @@ import {
 } from 'discord.js';
 import fastAvgColor from 'fast-average-color-node';
 import { parseICO } from 'icojs';
-import type {
-  Nullable,
-  Url,
-} from '#types';
-import type { PluginHooks } from '#types/bot/features/noExpandedExpand';
 import {
   log,
   logError,
-} from '../../../../lib/log.ts';
+} from '#lib/log.ts';
 import {
   getUrlDomain,
   isUrl,
   retrieveRealUrl,
   urlToDocument,
-} from '../../../../lib/util.ts';
+} from '#lib/util.ts';
+import type {
+  Nullable,
+  Url,
+} from '#types';
+import type { PluginHooks } from '#types/bot/features/noExpandedExpand';
 
 const IGNORED_URLS = Object.freeze([
   /^https:\/\/discord\.com\/events\//,

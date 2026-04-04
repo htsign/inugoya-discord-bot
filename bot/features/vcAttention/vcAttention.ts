@@ -9,7 +9,7 @@ import {
 import {
   log,
   logError,
-} from '../../lib/log.ts';
+} from '#lib/log.ts';
 import { addHandler } from '../../listeners.ts';
 import { db } from './db.ts';
 
