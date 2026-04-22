@@ -357,7 +357,21 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
           .setColor(getColorsOfIntensity(intensity));
 
         for (const [pref, points] of groupedByPrefPoints) {
-          embed.addFields({ name: pref, value: points.join('、') });
+          try {
+            // it may occurs `CombinedPropertyError` in @sapphire/shapeshift
+            embed.addFields({ name: pref, value: points.join('、') });
+          }
+          catch (e) {
+            if (e instanceof Error && e.name === 'CombinedPropertyError') {
+              logError(
+                e,
+                `earthquake#${resolveJMAQuake.name}:`,
+                `failed to add field that ${JSON.stringify({ pref, points })}`,
+              );
+              continue;
+            }
+            throw e;
+          }
         }
 
         try {
