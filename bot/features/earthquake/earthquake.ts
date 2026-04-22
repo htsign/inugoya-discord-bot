@@ -366,7 +366,7 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
               logError(
                 e,
                 `earthquake#${resolveJMAQuake.name}:`,
-                `failed to add field that ${{ pref, points: JSON.stringify(points) }}`,
+                `failed to add field that ${JSON.stringify({ pref, points })}`,
               );
               continue;
             }
