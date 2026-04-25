@@ -39,8 +39,6 @@ const debug = false;
 const ENDPOINT = `wss://${debug ? 'api-realtime-sandbox' : 'api'}.p2pquake.net/v2/ws`;
 
 const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => void): void => {
-  const reconnect = debounce(() => connectWebSocket(address, onMessage), 1000);
-
   try {
     const ws = new WebSocket(address);
 
@@ -51,29 +49,25 @@ const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => v
       }
       catch (error) {
         log('earthquake#onmessage: unhandled error', error);
-        reconnect();
+        ws.close();
       }
     };
     ws.onerror = event => {
       log('earthquake#onerror: error', event);
-      try {
-        ws.close();
-      }
-      catch (error) {
-        log('earthquake#onerror: unhandled error', error);
-        reconnect();
-      }
     };
     ws.onclose = ({ code, reason }) => {
       log('earthquake#onclose: disconnected', `[${code}] ${reason}`);
-      reconnect();
+      scheduleReconnect(address, onMessage);
     };
   }
   catch (error) {
     log(`earthquake#${connectWebSocket.name}: unhandled error`, error);
-    reconnect();
+    scheduleReconnect(address, onMessage);
   }
 };
+
+// singleton debounce
+const scheduleReconnect = debounce(connectWebSocket, 1000);
 
 connectWebSocket(ENDPOINT, ({ data }) => {
   if (data == null) return;
