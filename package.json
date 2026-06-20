@@ -30,7 +30,7 @@
     "emoji-regex": "^10.6.0",
     "fast-average-color-node": "^3.2.0",
     "i18next": "^26.0.3",
-    "icojs": "^0.20.1",
+    "icojs": "^1.0.0",
     "jsdom": "^29.0.1",
     "mersenne-twister": "^1.1.0",
     "runes2": "^1.1.4"
