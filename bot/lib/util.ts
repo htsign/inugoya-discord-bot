@@ -33,16 +33,15 @@ export const getEnv = (key: string, name: string = key): string => {
 // biome-ignore lint/suspicious/noExplicitAny: allow any types for general-purpose utility function
 export const debounce = <F extends (...args: any) => any, Args extends Parameters<F>>(
   fn: F,
-  delay: number,
+  ms: number,
   thisArg?: unknown,
-): (...args: Args) => Promise<Awaited<ReturnType<F>>> => {
+): (...args: Args) => void => {
   let timeoutId: ReturnType<typeof globalThis.setTimeout> | undefined;
 
-  return (...args: Args) =>
-    new Promise(resolve => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => resolve(fn.apply(thisArg, args)), delay);
-    });
+  return (...args: Args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn.apply(thisArg, args), ms);
+  };
 };
 
 export const getUrlDomain = (url: string): string => {
