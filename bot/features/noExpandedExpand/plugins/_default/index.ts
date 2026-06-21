@@ -4,7 +4,7 @@ import {
   EmbedBuilder,
 } from 'discord.js';
 import fastAvgColor from 'fast-average-color-node';
-import { parseICO } from 'icojs';
+import { decodeIco } from 'icojs';
 import {
   log,
   logError,
@@ -33,7 +33,7 @@ const getFavicon = async (url: Url, index: number): Promise<string | ReturnType<
       const buffer = await res.arrayBuffer();
 
       try {
-        const icons = await parseICO(buffer, 'image/png');
+        const icons = await decodeIco(buffer, 'image/png');
 
         // sort with image width descending
         const icon = icons.sort((a, b) => b.width - a.width)[0]?.buffer;
