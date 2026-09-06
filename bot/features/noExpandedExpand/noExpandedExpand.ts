@@ -80,8 +80,7 @@ addHandler(Events.MessageCreate, async message => {
       .map(url => RegExp(url));
     const targetUrls = urls
       .filter(url => !(embedUrls.includes(url) || ignoringUrls.some(ignoringUrl => ignoringUrl.test(url))))
-      .map(url => url.endsWith('||') ? url.slice(0, -'||'.length) : url) // remove tailed '||' if exists
-      ;
+      .map(url => url.endsWith('||') ? url.slice(0, -'||'.length) : url); // remove tailed '||' if exists
 
     if (targetUrls.length > 0) {
       log(`noExpandedExpand[${sendTo}]:`, 'start expanding process', targetUrls);

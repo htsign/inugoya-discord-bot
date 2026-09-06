@@ -174,10 +174,13 @@ const tick = async (
         }
 
         if (isNonEmpty(contents)) {
-          log(`weeklyAward#${tick.name}: ${contents.length} contents of ${guildName}`, contents.map(content => ({
-            title: content.title,
-            content: content.embeds.map(e => e.description).join('\n'),
-          })));
+          log(
+            `weeklyAward#${tick.name}: ${contents.length} contents of ${guildName}`,
+            contents.map(content => ({
+              title: content.title,
+              content: content.embeds.map(e => e.description).join('\n'),
+            })),
+          );
           const [{ title, embeds }, ...restContents] = contents;
 
           let firstMessage: Message<true>;

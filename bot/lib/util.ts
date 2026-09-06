@@ -67,7 +67,7 @@ export const retrieveRealUrl = async (url: Url): Promise<Url> => {
       return realUrl;
     }
   }
-  catch { }
+  catch {}
 
   return url;
 };
