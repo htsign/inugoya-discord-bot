@@ -148,7 +148,7 @@ const getProductInfo = (document: Document): {
   const condition = document.querySelector<HTMLMetaElement>('meta[property="product:condition"]')?.content;
   const brand = document.querySelector<HTMLMetaElement>('meta[property="product:brand"]')?.content;
 
-  const getPrices = function* (): Generator<{ amount: string, currency: string }> {
+  const getPrices = function*(): Generator<{ amount: string, currency: string }> {
     for (const el of document.querySelectorAll<HTMLMetaElement>('meta[property^="product:price"]')) {
       switch (el.getAttribute('property')) {
         case 'product:price:amount': {
