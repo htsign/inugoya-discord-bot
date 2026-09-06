@@ -15,8 +15,8 @@
   "scripts": {
     "start": "dotenvx run -- node index.ts",
     "type-check": "tsc --project ./tsconfig.json",
-    "check": "biome check .",
-    "check:fix": "biome check --write .",
+    "format": "biome check . && dprint check",
+    "format:fix": "biome check --write . && dprint fmt",
     "prepare": "git config core.hooksPath .githooks"
   },
   "dependencies": {
