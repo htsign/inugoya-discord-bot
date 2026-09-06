@@ -1,6 +1,6 @@
 name: type check
 
-on: [push, pull_request]
+on: [pull_request]
 
 permissions:
   contents: read
@@ -9,11 +9,10 @@ jobs:
   type-check:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v7
     - name: setup node
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
-        node-version: 24
-    - uses: actions/checkout@v5
-    - run: curl -fsSL https://github.com/AikidoSec/safe-chain/releases/latest/download/install-safe-chain.sh | sh -s -- --ci
+        node-version: 26
     - run: npm ci
     - run: npm run type-check
