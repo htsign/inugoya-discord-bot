@@ -2,7 +2,7 @@
   "main": "index.ts",
   "type": "module",
   "engines": {
-    "node": ">=24.0.0"
+    "node": ">=24.4.0"
   },
   "imports": {
     "#bot/*": "./bot/*",
