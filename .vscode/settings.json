@@ -6,6 +6,7 @@
     "apos",
     "chardet",
     "datetime",
+    "dotenvx",
     "emojify",
     "filterbots",
     "Hage",
@@ -30,7 +31,9 @@
   "editor.codeActionsOnSave": {
     "source.organizeImports.biome": "explicit",
   },
-  "i18n-ally.enabledFrameworks": ["i18next"],
+  "i18n-ally.enabledFrameworks": [
+    "i18next"
+  ],
   "i18n-ally.localesPaths": [
     "./locales",
   ],
