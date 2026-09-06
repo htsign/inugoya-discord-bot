@@ -2,7 +2,10 @@ import { DatabaseSync } from 'node:sqlite';
 import { setTimeout } from 'node:timers/promises';
 import dayjs from '#lib/dayjsSetup.ts';
 import { log } from '#lib/log.ts';
-import { isBusyOrLocked } from '#lib/sqlite.ts';
+import {
+  isBusyOrLocked,
+  runInTransaction,
+} from '#lib/sqlite.ts';
 import type {
   HageConfigRecord,
   HageConfigRow,
@@ -13,18 +16,6 @@ import type {
 } from '#types/bot/features/hage';
 
 const db = new DatabaseSync('hage.db');
-
-const runInTransaction = (fn: () => void): void => {
-  try {
-    db.exec('begin');
-    fn();
-    db.exec('commit');
-  }
-  catch (e) {
-    if (db.isTransaction) db.exec('rollback');
-    throw e;
-  }
-};
 
 class HageConfig {
   #TABLE = 'config';
@@ -273,7 +264,7 @@ class HageKeyword {
     `);
 
     try {
-      runInTransaction(() => {
+      runInTransaction(db, () => {
         for (const keyword of keywords) {
           if (this.get(guildId, keyword) == null) {
             return log(`${HageKeyword.name}#${this.delete.name}:`, 'not found', guildId, keyword);
@@ -418,7 +409,7 @@ class HageReactionKeyword {
     `);
 
     try {
-      runInTransaction(() => {
+      runInTransaction(db, () => {
         for (const reaction of reactions) {
           if (this.get(guildId, reaction) == null) {
             return log(`${HageReactionKeyword.name}#${this.delete.name}:`, 'not found', guildId, reaction);

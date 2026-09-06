@@ -2,7 +2,10 @@ import { DatabaseSync } from 'node:sqlite';
 import { setTimeout } from 'node:timers/promises';
 import type { Message } from 'discord.js';
 import dayjs from '#lib/dayjsSetup.ts';
-import { isBusyOrLocked } from '#lib/sqlite.ts';
+import {
+  isBusyOrLocked,
+  runInTransaction,
+} from '#lib/sqlite.ts';
 import { isUrl } from '#lib/util.ts';
 import type {
   WeeklyAwardConfigRecord,
@@ -214,12 +217,9 @@ class WeeklyAward {
 
   async transaction<T>(values: T[], callback: (arg: T) => void): Promise<void> {
     try {
-      db.exec('begin');
-      values.forEach(callback);
-      db.exec('commit');
+      runInTransaction(db, () => values.forEach(callback));
     }
     catch (e) {
-      if (db.isTransaction) db.exec('rollback');
       if (isBusyOrLocked(e)) {
         await setTimeout();
         return this.transaction(values, callback);
