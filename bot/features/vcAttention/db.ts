@@ -1,13 +1,12 @@
 import { DatabaseSync } from 'node:sqlite';
-import { setTimeout } from 'node:timers/promises';
 import dayjs from '#lib/dayjsSetup.ts';
-import { isBusyOrLocked } from '#lib/sqlite.ts';
+import { retryOnBusy } from '#lib/sqlite.ts';
 import type {
   VCAttentionConfigRecord,
   VCAttentionConfigRow,
 } from '#types/bot/features/vcAttention';
 
-const db = new DatabaseSync('vcAttention.db');
+const db = new DatabaseSync('vcAttention.db', { timeout: 1000 });
 
 class VCAttentionDatabaseConfig {
   #TABLE = 'thresholds';
@@ -82,16 +81,7 @@ class VCAttentionDatabaseConfig {
           updated_at = datetime('now')
     `);
 
-    try {
-      stmt.run({ guildId, guildName, channelId, channelName, threshold });
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.register(guildId, guildName, channelId, channelName, threshold);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId, guildName, channelId, channelName, threshold }));
   }
 
   async unregister(guildId: string): Promise<void> {
@@ -101,16 +91,7 @@ class VCAttentionDatabaseConfig {
         guild_id = ?
     `);
 
-    try {
-      stmt.run(guildId);
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.unregister(guildId);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run(guildId));
   }
 
   get(guildId: string): VCAttentionConfigRecord | null {

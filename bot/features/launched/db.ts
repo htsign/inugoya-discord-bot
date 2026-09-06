@@ -1,13 +1,12 @@
 import { DatabaseSync } from 'node:sqlite';
-import { setTimeout } from 'node:timers/promises';
 import dayjs from '#lib/dayjsSetup.ts';
-import { isBusyOrLocked } from '#lib/sqlite.ts';
+import { retryOnBusy } from '#lib/sqlite.ts';
 import type {
   LaunchedConfigRecord,
   LaunchedConfigRow,
 } from '#types/bot/features/launched';
 
-const db = new DatabaseSync('launched.db');
+const db = new DatabaseSync('launched.db', { timeout: 1000 });
 
 class LaunchedConfig {
   #TABLE = 'config';
@@ -76,16 +75,7 @@ class LaunchedConfig {
           updated_at = datetime('now')
     `);
 
-    try {
-      stmt.run({ guildId, guildName, channelId, channelName });
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.register(guildId, guildName, channelId, channelName);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId, guildName, channelId, channelName }));
   }
 
   async unregister(guildId: string): Promise<void> {
@@ -95,16 +85,7 @@ class LaunchedConfig {
         guild_id = ?
     `);
 
-    try {
-      stmt.run(guildId);
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.unregister(guildId);
-      }
-      stmt.run(guildId);
-    }
+    await retryOnBusy(() => stmt.run(guildId));
   }
 
   get(guildId: string): LaunchedConfigRecord | null {

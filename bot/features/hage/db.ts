@@ -1,9 +1,8 @@
 import { DatabaseSync } from 'node:sqlite';
-import { setTimeout } from 'node:timers/promises';
 import dayjs from '#lib/dayjsSetup.ts';
 import { log } from '#lib/log.ts';
 import {
-  isBusyOrLocked,
+  retryOnBusy,
   runInTransaction,
 } from '#lib/sqlite.ts';
 import type {
@@ -15,7 +14,7 @@ import type {
   HageReactionKeywordRow,
 } from '#types/bot/features/hage';
 
-const db = new DatabaseSync('hage.db');
+const db = new DatabaseSync('hage.db', { timeout: 1000 });
 
 class HageConfig {
   #TABLE = 'config';
@@ -124,16 +123,7 @@ class HageConfig {
           updated_at = datetime('now')
     `);
 
-    try {
-      stmt.run({ guildId, guildName, template, moreTemplate, rareTemplate, timeout, stackSize });
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.register(guildId, guildName, template, moreTemplate, rareTemplate, timeout, stackSize);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId, guildName, template, moreTemplate, rareTemplate, timeout, stackSize }));
   }
 
   async unregister(guildId: string): Promise<void> {
@@ -143,16 +133,7 @@ class HageConfig {
         guild_id = ?
     `);
 
-    try {
-      stmt.run(guildId);
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.unregister(guildId);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run(guildId));
   }
 
   get(guildId: string): HageConfigRecord | null {
@@ -243,16 +224,7 @@ class HageKeyword {
       )
     `);
 
-    try {
-      stmt.run({ guildId, keyword });
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.add(guildId, keyword);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId, keyword }));
   }
 
   async delete(guildId: string, ...keywords: string[]): Promise<void> {
@@ -263,7 +235,7 @@ class HageKeyword {
         keyword  = @keyword
     `);
 
-    try {
+    await retryOnBusy(() =>
       runInTransaction(db, () => {
         for (const keyword of keywords) {
           if (this.get(guildId, keyword) == null) {
@@ -273,15 +245,8 @@ class HageKeyword {
           stmt.run({ guildId, keyword });
         }
         return;
-      });
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.delete(guildId, ...keywords);
-      }
-      throw e;
-    }
+      })
+    );
   }
 
   async deleteAll(guildId: string): Promise<void> {
@@ -291,16 +256,7 @@ class HageKeyword {
         guild_id = @guildId
     `);
 
-    try {
-      stmt.run({ guildId });
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.deleteAll(guildId);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId }));
   }
 
   get(guildId: string, keyword: string): HageKeywordRecord | null {
@@ -388,16 +344,7 @@ class HageReactionKeyword {
       )
     `);
 
-    try {
-      stmt.run({ guildId, reaction });
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.add(guildId, reaction);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId, reaction }));
   }
 
   async delete(guildId: string, ...reactions: string[]): Promise<void> {
@@ -408,7 +355,7 @@ class HageReactionKeyword {
         reaction = @reaction
     `);
 
-    try {
+    await retryOnBusy(() =>
       runInTransaction(db, () => {
         for (const reaction of reactions) {
           if (this.get(guildId, reaction) == null) {
@@ -418,15 +365,8 @@ class HageReactionKeyword {
           stmt.run({ guildId, reaction });
         }
         return;
-      });
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.delete(guildId, ...reactions);
-      }
-      throw e;
-    }
+      })
+    );
   }
 
   async deleteAll(guildId: string): Promise<void> {
@@ -436,16 +376,7 @@ class HageReactionKeyword {
         guild_id = @guildId
     `);
 
-    try {
-      stmt.run({ guildId });
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.deleteAll(guildId);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId }));
   }
 
   get(guildId: string, reaction: string): HageReactionKeywordRecord | null {

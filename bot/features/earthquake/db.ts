@@ -1,7 +1,6 @@
 import { DatabaseSync } from 'node:sqlite';
-import { setTimeout } from 'node:timers/promises';
 import dayjs from '#lib/dayjsSetup.ts';
-import { isBusyOrLocked } from '#lib/sqlite.ts';
+import { retryOnBusy } from '#lib/sqlite.ts';
 import type {
   EEWConfigRecord,
   EEWConfigRow,
@@ -9,7 +8,7 @@ import type {
   GeoCodingRow,
 } from '#types/bot/features/earthquake';
 
-const db = new DatabaseSync('earthquake.db');
+const db = new DatabaseSync('earthquake.db', { timeout: 1000 });
 
 class EEWConfig {
   #TABLE = 'post_target';
@@ -96,16 +95,7 @@ class EEWConfig {
           updated_at = datetime('now')
     `);
 
-    try {
-      stmt.run({ guildId, guildName, channelId, channelName, minIntensity, alertThreshold });
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.register(guildId, guildName, channelId, channelName, minIntensity, alertThreshold);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId, guildName, channelId, channelName, minIntensity, alertThreshold }));
   }
 
   async unregister(guildId: string): Promise<void> {
@@ -115,16 +105,7 @@ class EEWConfig {
         guild_id = ?
     `);
 
-    try {
-      stmt.run(guildId);
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.unregister(guildId);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run(guildId));
   }
 
   get(guildId: string): EEWConfigRecord | null {
@@ -218,16 +199,7 @@ class GeoCoding {
           updated_at = datetime('now')
     `);
 
-    try {
-      stmt.run({ prefecture, address, latitude, longitude });
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.add(prefecture, address, latitude, longitude);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ prefecture, address, latitude, longitude }));
   }
 
   get(prefecture: string, address: string, timeoutDays = 50): GeoCodingRecord | null {

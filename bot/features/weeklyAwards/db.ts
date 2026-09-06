@@ -1,9 +1,8 @@
 import { DatabaseSync } from 'node:sqlite';
-import { setTimeout } from 'node:timers/promises';
 import type { Message } from 'discord.js';
 import dayjs from '#lib/dayjsSetup.ts';
 import {
-  isBusyOrLocked,
+  retryOnBusy,
   runInTransaction,
 } from '#lib/sqlite.ts';
 import { isUrl } from '#lib/util.ts';
@@ -20,7 +19,7 @@ import {
   type Weekday,
 } from './weekday.ts';
 
-const db = new DatabaseSync('weeklyAward.db');
+const db = new DatabaseSync('weeklyAward.db', { timeout: 1000 });
 
 class WeeklyAward {
   #TABLE = 'reacted_messages';
@@ -146,7 +145,7 @@ class WeeklyAward {
     const { channel } = message;
     const channelName = 'name' in channel ? channel.name : '';
 
-    try {
+    await retryOnBusy(() =>
       stmt.run({
         guildId: message.guildId,
         channelId: message.channelId,
@@ -158,15 +157,8 @@ class WeeklyAward {
         url: message.url,
         reactionsCount,
         timestamp: dayjs(message.createdTimestamp).utc().toISOString(),
-      });
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.set(message, reactionsCount);
-      }
-      throw e;
-    }
+      })
+    );
   }
 
   all(): WeeklyAwardRecord[] {
@@ -216,16 +208,7 @@ class WeeklyAward {
   }
 
   async transaction<T>(values: T[], callback: (arg: T) => void): Promise<void> {
-    try {
-      runInTransaction(db, () => values.forEach(callback));
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.transaction(values, callback);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => runInTransaction(db, () => values.forEach(callback)));
   }
 
   async delete(guildId: string, channelId: string, messageId: string): Promise<void> {
@@ -237,16 +220,7 @@ class WeeklyAward {
         message_id = @messageId
     `);
 
-    try {
-      stmt.run({ guildId, channelId, messageId });
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.delete(guildId, channelId, messageId);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId, channelId, messageId }));
   }
 
   async *deleteOutdated(guildId: string, days: number): AsyncGenerator<number | undefined> {
@@ -258,29 +232,19 @@ class WeeklyAward {
     const cntStmt = db.prepare(`select count(*) as count from ${this.#TABLE} ${whereStatement}`);
     const delStmt = db.prepare(`delete from ${this.#TABLE} ${whereStatement}`);
 
-    try {
-      // return outdated records count
+    // return outdated records count
+    const count = await retryOnBusy(() => {
       const row = cntStmt.get({ guildId, days });
-      const count = row != null && typeof row.count === 'number' ? row.count : null;
-
-      if (count != null) {
-        yield count;
-      }
-      else {
+      if (row == null || typeof row.count !== 'number') {
         throw new TypeError('count must be a number');
       }
+      return row.count;
+    });
+    yield count;
 
-      if (count > 0) {
-        delStmt.run({ guildId, days });
-        yield;
-      }
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return yield* this.deleteOutdated(guildId, days);
-      }
-      throw e;
+    if (count > 0) {
+      await retryOnBusy(() => delStmt.run({ guildId, days }));
+      yield;
     }
   }
 
@@ -375,16 +339,7 @@ class WeeklyAwardConfig {
           updated_at = datetime('now')
     `);
 
-    try {
-      stmt.run({ guildId, guildName, channelId, channelName, showsRankCount, minReacted });
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.register(guildId, guildName, channelId, channelName, showsRankCount, minReacted);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId, guildName, channelId, channelName, showsRankCount, minReacted }));
   }
 
   async unregister(guildId: string): Promise<void> {
@@ -394,16 +349,7 @@ class WeeklyAwardConfig {
         guild_id = ?
     `);
 
-    try {
-      stmt.run(guildId);
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.unregister(guildId);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run(guildId));
   }
 
   get(guildId: string): WeeklyAwardConfigRecord | null {
@@ -480,16 +426,7 @@ class WeeklyAwardTime {
           updated_at = datetime('now')
     `);
 
-    try {
-      stmt.run({ guildId, weekday, hour, minute });
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.set(guildId, weekday, hour, minute);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId, weekday, hour, minute }));
   }
 
   async delete(guildId: string): Promise<void> {
@@ -499,16 +436,7 @@ class WeeklyAwardTime {
         guild_id = ?
     `);
 
-    try {
-      stmt.run(guildId);
-    }
-    catch (e) {
-      if (isBusyOrLocked(e)) {
-        await setTimeout();
-        return this.delete(guildId);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run(guildId));
   }
 
   get(guildId: string): WeeklyAwardTimeRecord | null {
