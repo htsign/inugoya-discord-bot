@@ -1,12 +1,13 @@
+import { DatabaseSync } from 'node:sqlite';
 import { setTimeout } from 'node:timers/promises';
-import Database from 'better-sqlite3';
 import dayjs from '#lib/dayjsSetup.ts';
+import { isBusyOrLocked } from '#lib/sqlite.ts';
 import type {
   VCAttentionConfigRecord,
   VCAttentionConfigRow,
 } from '#types/bot/features/vcAttention';
 
-const db = new Database('vcAttention.db');
+const db = new DatabaseSync('vcAttention.db');
 
 class VCAttentionDatabaseConfig {
   #TABLE = 'thresholds';
@@ -28,18 +29,19 @@ class VCAttentionDatabaseConfig {
   get records(): VCAttentionConfigRecord[] {
     const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
-    const rows = stmt.all();
-    return rows
-      .filter(VCAttentionDatabaseConfig.#isRow)
-      .map(row => ({
-        guildId: row.guild_id,
-        guildName: row.guild_name,
-        channelId: row.channel_id,
-        channelName: row.channel_name,
-        threshold: row.threshold,
-        createdAt: dayjs.utc(row.created_at).tz(),
-        updatedAt: dayjs.utc(row.updated_at).tz(),
-      }));
+    return stmt.all().flatMap(row =>
+      VCAttentionDatabaseConfig.#isRow(row)
+        ? [{
+          guildId: row.guild_id,
+          guildName: row.guild_name,
+          channelId: row.channel_id,
+          channelName: row.channel_name,
+          threshold: row.threshold,
+          createdAt: dayjs.utc(row.created_at).tz(),
+          updatedAt: dayjs.utc(row.updated_at).tz(),
+        }]
+        : []
+    );
   }
 
   constructor() {
@@ -84,7 +86,7 @@ class VCAttentionDatabaseConfig {
       stmt.run({ guildId, guildName, channelId, channelName, threshold });
     }
     catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+      if (isBusyOrLocked(e)) {
         await setTimeout();
         return this.register(guildId, guildName, channelId, channelName, threshold);
       }
@@ -103,7 +105,7 @@ class VCAttentionDatabaseConfig {
       stmt.run(guildId);
     }
     catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+      if (isBusyOrLocked(e)) {
         await setTimeout();
         return this.unregister(guildId);
       }

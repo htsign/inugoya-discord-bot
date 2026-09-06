@@ -1,6 +1,7 @@
+import { DatabaseSync } from 'node:sqlite';
 import { setTimeout } from 'node:timers/promises';
-import Database from 'better-sqlite3';
 import dayjs from '#lib/dayjsSetup.ts';
+import { isBusyOrLocked } from '#lib/sqlite.ts';
 import type {
   EEWConfigRecord,
   EEWConfigRow,
@@ -8,7 +9,7 @@ import type {
   GeoCodingRow,
 } from '#types/bot/features/earthquake';
 
-const db = new Database('earthquake.db');
+const db = new DatabaseSync('earthquake.db');
 
 class EEWConfig {
   #TABLE = 'post_target';
@@ -30,19 +31,20 @@ class EEWConfig {
   get records(): EEWConfigRecord[] {
     const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
-    const rows = stmt.all();
-    return rows
-      .filter(EEWConfig.#isRow)
-      .map(row => ({
-        guildId: row.guild_id,
-        guildName: row.guild_name,
-        channelId: row.channel_id,
-        channelName: row.channel_name,
-        minIntensity: row.min_intensity,
-        alertThreshold: row.alert_threshold,
-        createdAt: dayjs.utc(row.created_at).tz(),
-        updatedAt: dayjs.utc(row.updated_at).tz(),
-      }));
+    return stmt.all().flatMap(row =>
+      EEWConfig.#isRow(row)
+        ? [{
+          guildId: row.guild_id,
+          guildName: row.guild_name,
+          channelId: row.channel_id,
+          channelName: row.channel_name,
+          minIntensity: row.min_intensity,
+          alertThreshold: row.alert_threshold,
+          createdAt: dayjs.utc(row.created_at).tz(),
+          updatedAt: dayjs.utc(row.updated_at).tz(),
+        }]
+        : []
+    );
   }
 
   constructor() {
@@ -98,7 +100,7 @@ class EEWConfig {
       stmt.run({ guildId, guildName, channelId, channelName, minIntensity, alertThreshold });
     }
     catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+      if (isBusyOrLocked(e)) {
         await setTimeout();
         return this.register(guildId, guildName, channelId, channelName, minIntensity, alertThreshold);
       }
@@ -117,7 +119,7 @@ class EEWConfig {
       stmt.run(guildId);
     }
     catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+      if (isBusyOrLocked(e)) {
         await setTimeout();
         return this.unregister(guildId);
       }
@@ -168,17 +170,18 @@ class GeoCoding {
   get records(): GeoCodingRecord[] {
     const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
-    const rows = stmt.all();
-    return rows
-      .filter(GeoCoding.#isRow)
-      .map(row => ({
-        prefecture: row.prefecture,
-        address: row.address,
-        latitude: row.latitude,
-        longitude: row.longitude,
-        createdAt: dayjs.utc(row.created_at).tz(),
-        updatedAt: dayjs.utc(row.updated_at).tz(),
-      }));
+    return stmt.all().flatMap(row =>
+      GeoCoding.#isRow(row)
+        ? [{
+          prefecture: row.prefecture,
+          address: row.address,
+          latitude: row.latitude,
+          longitude: row.longitude,
+          createdAt: dayjs.utc(row.created_at).tz(),
+          updatedAt: dayjs.utc(row.updated_at).tz(),
+        }]
+        : []
+    );
   }
 
   constructor() {
@@ -219,7 +222,7 @@ class GeoCoding {
       stmt.run({ prefecture, address, latitude, longitude });
     }
     catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+      if (isBusyOrLocked(e)) {
         await setTimeout();
         return this.add(prefecture, address, latitude, longitude);
       }

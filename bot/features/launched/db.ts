@@ -1,12 +1,13 @@
+import { DatabaseSync } from 'node:sqlite';
 import { setTimeout } from 'node:timers/promises';
-import Database from 'better-sqlite3';
 import dayjs from '#lib/dayjsSetup.ts';
+import { isBusyOrLocked } from '#lib/sqlite.ts';
 import type {
   LaunchedConfigRecord,
   LaunchedConfigRow,
 } from '#types/bot/features/launched';
 
-const db = new Database('launched.db');
+const db = new DatabaseSync('launched.db');
 
 class LaunchedConfig {
   #TABLE = 'config';
@@ -27,17 +28,18 @@ class LaunchedConfig {
   get records(): LaunchedConfigRecord[] {
     const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
-    const rows = stmt.all();
-    return rows
-      .filter(LaunchedConfig.#isRow)
-      .map(row => ({
-        guildId: row.guild_id,
-        guildName: row.guild_name,
-        channelId: row.channel_id,
-        channelName: row.channel_name,
-        createdAt: dayjs.utc(row.created_at).tz(),
-        updatedAt: dayjs.utc(row.updated_at).tz(),
-      }));
+    return stmt.all().flatMap(row =>
+      LaunchedConfig.#isRow(row)
+        ? [{
+          guildId: row.guild_id,
+          guildName: row.guild_name,
+          channelId: row.channel_id,
+          channelName: row.channel_name,
+          createdAt: dayjs.utc(row.created_at).tz(),
+          updatedAt: dayjs.utc(row.updated_at).tz(),
+        }]
+        : []
+    );
   }
 
   constructor() {
@@ -78,7 +80,7 @@ class LaunchedConfig {
       stmt.run({ guildId, guildName, channelId, channelName });
     }
     catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+      if (isBusyOrLocked(e)) {
         await setTimeout();
         return this.register(guildId, guildName, channelId, channelName);
       }
@@ -97,7 +99,7 @@ class LaunchedConfig {
       stmt.run(guildId);
     }
     catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
+      if (isBusyOrLocked(e)) {
         await setTimeout();
         return this.unregister(guildId);
       }
