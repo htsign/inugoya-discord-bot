@@ -39,7 +39,7 @@ addHandler(Events.ClientReady, async () => {
 addHandler(Events.GuildDelete, async guild => {
   await stopAward(guild.id);
   await Promise.all([
-    db.deleteOutdated(guild.id, 0),
+    Array.fromAsync(db.deleteOutdated(guild.id, 0)),
     db.times.delete(guild.id),
     db.config.unregister(guild.id),
   ]);
