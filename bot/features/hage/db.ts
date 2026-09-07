@@ -1,7 +1,10 @@
-import { setTimeout } from 'node:timers/promises';
-import Database, { type Transaction } from 'better-sqlite3';
+import { DatabaseSync } from 'node:sqlite';
 import dayjs from '#lib/dayjsSetup.ts';
 import { log } from '#lib/log.ts';
+import {
+  retryOnBusy,
+  runInTransaction,
+} from '#lib/sqlite.ts';
 import type {
   HageConfigRecord,
   HageConfigRow,
@@ -11,7 +14,7 @@ import type {
   HageReactionKeywordRow,
 } from '#types/bot/features/hage';
 
-const db = new Database('hage.db');
+const db = new DatabaseSync('hage.db', { timeout: 1000 });
 
 class HageConfig {
   #TABLE = 'config';
@@ -38,20 +41,21 @@ class HageConfig {
   get records(): HageConfigRecord[] {
     const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
-    const rows = stmt.all();
-    return rows
-      .filter(HageConfig.#isRow)
-      .map(row => ({
-        guildId: row.guild_id,
-        guildName: row.guild_name,
-        template: row.template,
-        moreTemplate: row.more_template,
-        rareTemplate: row.rare_template,
-        timeout: row.timeout,
-        stackSize: row.stack_size,
-        createdAt: dayjs.utc(row.created_at).tz(),
-        updatedAt: dayjs.utc(row.updated_at).tz(),
-      }));
+    return stmt.all().flatMap(row =>
+      HageConfig.#isRow(row)
+        ? [{
+          guildId: row.guild_id,
+          guildName: row.guild_name,
+          template: row.template,
+          moreTemplate: row.more_template,
+          rareTemplate: row.rare_template,
+          timeout: row.timeout,
+          stackSize: row.stack_size,
+          createdAt: dayjs.utc(row.created_at).tz(),
+          updatedAt: dayjs.utc(row.updated_at).tz(),
+        }]
+        : []
+    );
   }
 
   get keywords(): HageKeyword {
@@ -119,16 +123,7 @@ class HageConfig {
           updated_at = datetime('now')
     `);
 
-    try {
-      stmt.run({ guildId, guildName, template, moreTemplate, rareTemplate, timeout, stackSize });
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.register(guildId, guildName, template, moreTemplate, rareTemplate, timeout, stackSize);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId, guildName, template, moreTemplate, rareTemplate, timeout, stackSize }));
   }
 
   async unregister(guildId: string): Promise<void> {
@@ -138,16 +133,7 @@ class HageConfig {
         guild_id = ?
     `);
 
-    try {
-      stmt.run(guildId);
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.unregister(guildId);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run(guildId));
   }
 
   get(guildId: string): HageConfigRecord | null {
@@ -210,15 +196,17 @@ class HageKeyword {
         guild_id = ?
     `);
 
-    return stmt.all(guildId)
-      .filter(HageKeyword.#isRow)
-      .map(row => ({
-        id: row.id,
-        guildId: row.guild_id,
-        keyword: row.keyword,
-        createdAt: dayjs.utc(row.created_at).tz(),
-        updatedAt: dayjs.utc(row.updated_at).tz(),
-      }));
+    return stmt.all(guildId).flatMap(row =>
+      HageKeyword.#isRow(row)
+        ? [{
+          id: row.id,
+          guildId: row.guild_id,
+          keyword: row.keyword,
+          createdAt: dayjs.utc(row.created_at).tz(),
+          updatedAt: dayjs.utc(row.updated_at).tz(),
+        }]
+        : []
+    );
   }
 
   async add(guildId: string, keyword: string): Promise<void> {
@@ -236,16 +224,7 @@ class HageKeyword {
       )
     `);
 
-    try {
-      stmt.run({ guildId, keyword });
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.add(guildId, keyword);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId, keyword }));
   }
 
   async delete(guildId: string, ...keywords: string[]): Promise<void> {
@@ -256,27 +235,18 @@ class HageKeyword {
         keyword  = @keyword
     `);
 
-    const deleteKeywords: Transaction<(keywords: string[]) => void> = db.transaction(keywords => {
-      for (const keyword of keywords) {
-        if (this.get(guildId, keyword) == null) {
-          return log(`${HageKeyword.name}#${this.delete.name}:`, 'not found', guildId, keyword);
+    await retryOnBusy(() =>
+      runInTransaction(db, () => {
+        for (const keyword of keywords) {
+          if (this.get(guildId, keyword) == null) {
+            return log(`${HageKeyword.name}#${this.delete.name}:`, 'not found', guildId, keyword);
+          }
+
+          stmt.run({ guildId, keyword });
         }
-
-        stmt.run({ guildId, keyword });
-      }
-      return;
-    });
-
-    try {
-      deleteKeywords(keywords);
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.delete(guildId, ...keywords);
-      }
-      throw e;
-    }
+        return;
+      })
+    );
   }
 
   async deleteAll(guildId: string): Promise<void> {
@@ -286,16 +256,7 @@ class HageKeyword {
         guild_id = @guildId
     `);
 
-    try {
-      stmt.run({ guildId });
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.deleteAll(guildId);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId }));
   }
 
   get(guildId: string, keyword: string): HageKeywordRecord | null {
@@ -355,15 +316,17 @@ class HageReactionKeyword {
         guild_id = ?
     `);
 
-    return stmt.all(guildId)
-      .filter(HageReactionKeyword.#isRow)
-      .map(row => ({
-        id: row.id,
-        guildId: row.guild_id,
-        reaction: row.reaction,
-        createdAt: dayjs.utc(row.created_at).tz(),
-        updatedAt: dayjs.utc(row.updated_at).tz(),
-      }));
+    return stmt.all(guildId).flatMap(row =>
+      HageReactionKeyword.#isRow(row)
+        ? [{
+          id: row.id,
+          guildId: row.guild_id,
+          reaction: row.reaction,
+          createdAt: dayjs.utc(row.created_at).tz(),
+          updatedAt: dayjs.utc(row.updated_at).tz(),
+        }]
+        : []
+    );
   }
 
   async add(guildId: string, reaction: string): Promise<void> {
@@ -381,16 +344,7 @@ class HageReactionKeyword {
       )
     `);
 
-    try {
-      stmt.run({ guildId, reaction });
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.add(guildId, reaction);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId, reaction }));
   }
 
   async delete(guildId: string, ...reactions: string[]): Promise<void> {
@@ -401,27 +355,18 @@ class HageReactionKeyword {
         reaction = @reaction
     `);
 
-    const deleteReactions: Transaction<(reactions: string[]) => void> = db.transaction(reactions => {
-      for (const reaction of reactions) {
-        if (this.get(guildId, reaction) == null) {
-          return log(`${HageReactionKeyword.name}#${this.delete.name}:`, 'not found', guildId, reaction);
+    await retryOnBusy(() =>
+      runInTransaction(db, () => {
+        for (const reaction of reactions) {
+          if (this.get(guildId, reaction) == null) {
+            return log(`${HageReactionKeyword.name}#${this.delete.name}:`, 'not found', guildId, reaction);
+          }
+
+          stmt.run({ guildId, reaction });
         }
-
-        stmt.run({ guildId, reaction });
-      }
-      return;
-    });
-
-    try {
-      deleteReactions(reactions);
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.delete(guildId, ...reactions);
-      }
-      throw e;
-    }
+        return;
+      })
+    );
   }
 
   async deleteAll(guildId: string): Promise<void> {
@@ -431,16 +376,7 @@ class HageReactionKeyword {
         guild_id = @guildId
     `);
 
-    try {
-      stmt.run({ guildId });
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.deleteAll(guildId);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId }));
   }
 
   get(guildId: string, reaction: string): HageReactionKeywordRecord | null {

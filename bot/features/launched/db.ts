@@ -1,12 +1,12 @@
-import { setTimeout } from 'node:timers/promises';
-import Database from 'better-sqlite3';
+import { DatabaseSync } from 'node:sqlite';
 import dayjs from '#lib/dayjsSetup.ts';
+import { retryOnBusy } from '#lib/sqlite.ts';
 import type {
   LaunchedConfigRecord,
   LaunchedConfigRow,
 } from '#types/bot/features/launched';
 
-const db = new Database('launched.db');
+const db = new DatabaseSync('launched.db', { timeout: 1000 });
 
 class LaunchedConfig {
   #TABLE = 'config';
@@ -27,17 +27,18 @@ class LaunchedConfig {
   get records(): LaunchedConfigRecord[] {
     const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
-    const rows = stmt.all();
-    return rows
-      .filter(LaunchedConfig.#isRow)
-      .map(row => ({
-        guildId: row.guild_id,
-        guildName: row.guild_name,
-        channelId: row.channel_id,
-        channelName: row.channel_name,
-        createdAt: dayjs.utc(row.created_at).tz(),
-        updatedAt: dayjs.utc(row.updated_at).tz(),
-      }));
+    return stmt.all().flatMap(row =>
+      LaunchedConfig.#isRow(row)
+        ? [{
+          guildId: row.guild_id,
+          guildName: row.guild_name,
+          channelId: row.channel_id,
+          channelName: row.channel_name,
+          createdAt: dayjs.utc(row.created_at).tz(),
+          updatedAt: dayjs.utc(row.updated_at).tz(),
+        }]
+        : []
+    );
   }
 
   constructor() {
@@ -74,16 +75,7 @@ class LaunchedConfig {
           updated_at = datetime('now')
     `);
 
-    try {
-      stmt.run({ guildId, guildName, channelId, channelName });
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.register(guildId, guildName, channelId, channelName);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId, guildName, channelId, channelName }));
   }
 
   async unregister(guildId: string): Promise<void> {
@@ -93,16 +85,7 @@ class LaunchedConfig {
         guild_id = ?
     `);
 
-    try {
-      stmt.run(guildId);
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.unregister(guildId);
-      }
-      stmt.run(guildId);
-    }
+    await retryOnBusy(() => stmt.run(guildId));
   }
 
   get(guildId: string): LaunchedConfigRecord | null {

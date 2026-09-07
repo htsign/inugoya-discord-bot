@@ -1,7 +1,10 @@
-import { setTimeout } from 'node:timers/promises';
-import Database, { type Transaction } from 'better-sqlite3';
+import { DatabaseSync } from 'node:sqlite';
 import type { Message } from 'discord.js';
 import dayjs from '#lib/dayjsSetup.ts';
+import {
+  retryOnBusy,
+  runInTransaction,
+} from '#lib/sqlite.ts';
 import { isUrl } from '#lib/util.ts';
 import type {
   WeeklyAwardConfigRecord,
@@ -16,7 +19,7 @@ import {
   type Weekday,
 } from './weekday.ts';
 
-const db = new Database('weeklyAward.db');
+const db = new DatabaseSync('weeklyAward.db', { timeout: 1000 });
 
 class WeeklyAward {
   #TABLE = 'reacted_messages';
@@ -52,7 +55,7 @@ class WeeklyAward {
   }
 
   constructor() {
-    db.pragma('auto_vacuum = incremental');
+    db.exec('pragma auto_vacuum = incremental');
     db.prepare(`
       create table if not exists ${this.#TABLE} (
         guild_id text not null,
@@ -142,7 +145,7 @@ class WeeklyAward {
     const { channel } = message;
     const channelName = 'name' in channel ? channel.name : '';
 
-    try {
+    await retryOnBusy(() =>
       stmt.run({
         guildId: message.guildId,
         channelId: message.channelId,
@@ -154,36 +157,31 @@ class WeeklyAward {
         url: message.url,
         reactionsCount,
         timestamp: dayjs(message.createdTimestamp).utc().toISOString(),
-      });
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.set(message, reactionsCount);
-      }
-      throw e;
-    }
+      })
+    );
   }
 
   all(): WeeklyAwardRecord[] {
     const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
-    return stmt.all()
-      .filter(WeeklyAward.#isRow)
-      .map(row => ({
-        guildId: row.guild_id,
-        channelId: row.channel_id,
-        messageId: row.message_id,
-        guildName: row.guild_name,
-        channelName: row.channel_name,
-        content: row.content,
-        author: row.author,
-        url: row.url,
-        reactionsCount: row.reactions_count,
-        timestamp: dayjs.utc(row.timestamp).tz(),
-        createdAt: dayjs.utc(row.created_at).tz(),
-        updatedAt: dayjs.utc(row.updated_at).tz(),
-      }));
+    return stmt.all().flatMap(row =>
+      WeeklyAward.#isRow(row)
+        ? [{
+          guildId: row.guild_id,
+          channelId: row.channel_id,
+          messageId: row.message_id,
+          guildName: row.guild_name,
+          channelName: row.channel_name,
+          content: row.content,
+          author: row.author,
+          url: row.url,
+          reactionsCount: row.reactions_count,
+          timestamp: dayjs.utc(row.timestamp).tz(),
+          createdAt: dayjs.utc(row.created_at).tz(),
+          updatedAt: dayjs.utc(row.updated_at).tz(),
+        }]
+        : []
+    );
   }
 
   *iterate(): Generator<WeeklyAwardRecord> {
@@ -210,18 +208,7 @@ class WeeklyAward {
   }
 
   async transaction<T>(values: T[], callback: (arg: T) => void): Promise<void> {
-    const fn: Transaction<(values: T[]) => void> = db.transaction(values => values.forEach(callback));
-
-    try {
-      fn(values);
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.transaction(values, callback);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => runInTransaction(db, () => values.forEach(callback)));
   }
 
   async delete(guildId: string, channelId: string, messageId: string): Promise<void> {
@@ -233,16 +220,7 @@ class WeeklyAward {
         message_id = @messageId
     `);
 
-    try {
-      stmt.run({ guildId, channelId, messageId });
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.delete(guildId, channelId, messageId);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId, channelId, messageId }));
   }
 
   async *deleteOutdated(guildId: string, days: number): AsyncGenerator<number | undefined> {
@@ -251,36 +229,27 @@ class WeeklyAward {
         guild_id = @guildId and
         julianday('now') - julianday(timestamp) > @days
     `;
-    const cntStmt = db.prepare(`select count(*) from ${this.#TABLE} ${whereStatement}`).pluck();
+    const cntStmt = db.prepare(`select count(*) as count from ${this.#TABLE} ${whereStatement}`);
     const delStmt = db.prepare(`delete from ${this.#TABLE} ${whereStatement}`);
 
-    try {
-      // return outdated records count
-      const count = cntStmt.get({ guildId, days });
-
-      if (typeof count === 'number') {
-        yield count;
-      }
-      else {
+    // return outdated records count
+    const count = await retryOnBusy(() => {
+      const row = cntStmt.get({ guildId, days });
+      if (row == null || typeof row.count !== 'number') {
         throw new TypeError('count must be a number');
       }
+      return row.count;
+    });
+    yield count;
 
-      if (count > 0) {
-        delStmt.run({ guildId, days });
-        yield;
-      }
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return yield* this.deleteOutdated(guildId, days);
-      }
-      throw e;
+    if (count > 0) {
+      await retryOnBusy(() => delStmt.run({ guildId, days }));
+      yield;
     }
   }
 
   vacuum() {
-    db.pragma('incremental_vacuum');
+    db.exec('pragma incremental_vacuum');
   }
 }
 
@@ -305,19 +274,20 @@ class WeeklyAwardConfig {
   get records(): WeeklyAwardConfigRecord[] {
     const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
-    const rows = stmt.all();
-    return rows
-      .filter(WeeklyAwardConfig.#isRow)
-      .map(row => ({
-        guildId: row.guild_id,
-        guildName: row.guild_name,
-        channelId: row.channel_id,
-        channelName: row.channel_name,
-        showsRankCount: row.shows_rank_count,
-        minReacted: row.min_reacted,
-        createdAt: dayjs.utc(row.created_at).tz(),
-        updatedAt: dayjs.utc(row.updated_at).tz(),
-      }));
+    return stmt.all().flatMap(row =>
+      WeeklyAwardConfig.#isRow(row)
+        ? [{
+          guildId: row.guild_id,
+          guildName: row.guild_name,
+          channelId: row.channel_id,
+          channelName: row.channel_name,
+          showsRankCount: row.shows_rank_count,
+          minReacted: row.min_reacted,
+          createdAt: dayjs.utc(row.created_at).tz(),
+          updatedAt: dayjs.utc(row.updated_at).tz(),
+        }]
+        : []
+    );
   }
 
   constructor() {
@@ -369,16 +339,7 @@ class WeeklyAwardConfig {
           updated_at = datetime('now')
     `);
 
-    try {
-      stmt.run({ guildId, guildName, channelId, channelName, showsRankCount, minReacted });
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.register(guildId, guildName, channelId, channelName, showsRankCount, minReacted);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId, guildName, channelId, channelName, showsRankCount, minReacted }));
   }
 
   async unregister(guildId: string): Promise<void> {
@@ -388,16 +349,7 @@ class WeeklyAwardConfig {
         guild_id = ?
     `);
 
-    try {
-      stmt.run(guildId);
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.unregister(guildId);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run(guildId));
   }
 
   get(guildId: string): WeeklyAwardConfigRecord | null {
@@ -474,16 +426,7 @@ class WeeklyAwardTime {
           updated_at = datetime('now')
     `);
 
-    try {
-      stmt.run({ guildId, weekday, hour, minute });
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.set(guildId, weekday, hour, minute);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId, weekday, hour, minute }));
   }
 
   async delete(guildId: string): Promise<void> {
@@ -493,16 +436,7 @@ class WeeklyAwardTime {
         guild_id = ?
     `);
 
-    try {
-      stmt.run(guildId);
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.delete(guildId);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run(guildId));
   }
 
   get(guildId: string): WeeklyAwardTimeRecord | null {

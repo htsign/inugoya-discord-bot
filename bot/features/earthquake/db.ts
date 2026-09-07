@@ -1,6 +1,6 @@
-import { setTimeout } from 'node:timers/promises';
-import Database from 'better-sqlite3';
+import { DatabaseSync } from 'node:sqlite';
 import dayjs from '#lib/dayjsSetup.ts';
+import { retryOnBusy } from '#lib/sqlite.ts';
 import type {
   EEWConfigRecord,
   EEWConfigRow,
@@ -8,7 +8,7 @@ import type {
   GeoCodingRow,
 } from '#types/bot/features/earthquake';
 
-const db = new Database('earthquake.db');
+const db = new DatabaseSync('earthquake.db', { timeout: 1000 });
 
 class EEWConfig {
   #TABLE = 'post_target';
@@ -30,19 +30,20 @@ class EEWConfig {
   get records(): EEWConfigRecord[] {
     const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
-    const rows = stmt.all();
-    return rows
-      .filter(EEWConfig.#isRow)
-      .map(row => ({
-        guildId: row.guild_id,
-        guildName: row.guild_name,
-        channelId: row.channel_id,
-        channelName: row.channel_name,
-        minIntensity: row.min_intensity,
-        alertThreshold: row.alert_threshold,
-        createdAt: dayjs.utc(row.created_at).tz(),
-        updatedAt: dayjs.utc(row.updated_at).tz(),
-      }));
+    return stmt.all().flatMap(row =>
+      EEWConfig.#isRow(row)
+        ? [{
+          guildId: row.guild_id,
+          guildName: row.guild_name,
+          channelId: row.channel_id,
+          channelName: row.channel_name,
+          minIntensity: row.min_intensity,
+          alertThreshold: row.alert_threshold,
+          createdAt: dayjs.utc(row.created_at).tz(),
+          updatedAt: dayjs.utc(row.updated_at).tz(),
+        }]
+        : []
+    );
   }
 
   constructor() {
@@ -94,16 +95,7 @@ class EEWConfig {
           updated_at = datetime('now')
     `);
 
-    try {
-      stmt.run({ guildId, guildName, channelId, channelName, minIntensity, alertThreshold });
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.register(guildId, guildName, channelId, channelName, minIntensity, alertThreshold);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ guildId, guildName, channelId, channelName, minIntensity, alertThreshold }));
   }
 
   async unregister(guildId: string): Promise<void> {
@@ -113,16 +105,7 @@ class EEWConfig {
         guild_id = ?
     `);
 
-    try {
-      stmt.run(guildId);
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.unregister(guildId);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run(guildId));
   }
 
   get(guildId: string): EEWConfigRecord | null {
@@ -168,17 +151,18 @@ class GeoCoding {
   get records(): GeoCodingRecord[] {
     const stmt = db.prepare(`select * from ${this.#TABLE}`);
 
-    const rows = stmt.all();
-    return rows
-      .filter(GeoCoding.#isRow)
-      .map(row => ({
-        prefecture: row.prefecture,
-        address: row.address,
-        latitude: row.latitude,
-        longitude: row.longitude,
-        createdAt: dayjs.utc(row.created_at).tz(),
-        updatedAt: dayjs.utc(row.updated_at).tz(),
-      }));
+    return stmt.all().flatMap(row =>
+      GeoCoding.#isRow(row)
+        ? [{
+          prefecture: row.prefecture,
+          address: row.address,
+          latitude: row.latitude,
+          longitude: row.longitude,
+          createdAt: dayjs.utc(row.created_at).tz(),
+          updatedAt: dayjs.utc(row.updated_at).tz(),
+        }]
+        : []
+    );
   }
 
   constructor() {
@@ -215,16 +199,7 @@ class GeoCoding {
           updated_at = datetime('now')
     `);
 
-    try {
-      stmt.run({ prefecture, address, latitude, longitude });
-    }
-    catch (e) {
-      if (e instanceof TypeError && e.message.includes('database connection is busy')) {
-        await setTimeout();
-        return this.add(prefecture, address, latitude, longitude);
-      }
-      throw e;
-    }
+    await retryOnBusy(() => stmt.run({ prefecture, address, latitude, longitude }));
   }
 
   get(prefecture: string, address: string, timeoutDays = 50): GeoCodingRecord | null {
