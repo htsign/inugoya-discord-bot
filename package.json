@@ -27,7 +27,7 @@
     "discord.js": "^14.27.0",
     "dprint": "^0.56.1",
     "emoji-regex": "^10.6.0",
-    "fast-average-color-node": "^3.2.0",
+    "fast-average-color-node": "^3.3.0",
     "i18next": "^26.4.2",
     "icojs": "^1.0.1",
     "jsdom": "30.0.0",
