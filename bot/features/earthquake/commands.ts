@@ -2,6 +2,7 @@ import {
   type APIEmbedField,
   ApplicationCommandOptionType,
   ApplicationCommandType,
+  BaseChannel,
   ChannelType,
   Colors,
   EmbedBuilder,
@@ -57,7 +58,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const minIntensity = interaction.options.getInteger('minintensity') ?? DEFAULT_MIN_INTENSITY;
       const alertThreshold = interaction.options.getInteger('alertthreshold') ?? DEFAULT_MIN_INTENSITY;
 
-      if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || 'permissions' in channel) {
+      if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
         interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
         return;
       }
@@ -172,7 +173,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
         interaction.reply({ content: '指定されたチャンネルは見つかりません。', ephemeral: true });
         return;
       }
-      if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || 'permissions' in channel) {
+      if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
         interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
         return;
       }
