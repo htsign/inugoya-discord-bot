@@ -1,3 +1,4 @@
+import { monitorEventLoopDelay } from 'node:perf_hooks';
 import { URL } from 'node:url';
 import {
   type AnyThreadChannel,
@@ -173,6 +174,35 @@ const getColorsOfIntensity = (intensity: ReturnType<typeof intensityFromNumber>)
   }
 };
 
+const sendWithDiagnostics = async <T>(
+  caller: string,
+  target: string,
+  attachmentBytes: number,
+  send: () => Promise<T>,
+): Promise<T> => {
+  const eventLoopDelay = monitorEventLoopDelay();
+  eventLoopDelay.enable();
+  const startedAt = performance.now();
+  let ok = false;
+  try {
+    const result = await send();
+    ok = true;
+    return result;
+  }
+  finally {
+    eventLoopDelay.disable();
+    const sampled = eventLoopDelay.count > 0;
+    log(`earthquake#${caller}:`, 'send diagnostics', {
+      target,
+      ok,
+      elapsedMs: Math.round(performance.now() - startedAt),
+      attachmentBytes,
+      loopDelayMaxMs: sampled ? Math.round(eventLoopDelay.max / 1e6) : null,
+      loopDelayMeanMs: sampled ? Math.round(eventLoopDelay.mean / 1e6) : null,
+    });
+  }
+};
+
 const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
   const { points = [] } = response;
 
@@ -313,7 +343,12 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
 
       let message: Message<true>;
       try {
-        message = await channel.send(payload);
+        message = await sendWithDiagnostics(
+          resolveJMAQuake.name,
+          `${guildName}/${channel.name}`,
+          mapBuffer?.byteLength ?? 0,
+          () => channel.send(payload),
+        );
       }
       catch (e) {
         if (e instanceof Error) {
@@ -485,7 +520,12 @@ const resolveEEW = async (response: EEW): Promise<void> => {
       }
 
       try {
-        await channel.send(payload);
+        await sendWithDiagnostics(
+          resolveEEW.name,
+          `${guildName}/${channelName}`,
+          mapBuffer?.byteLength ?? 0,
+          () => channel.send(payload),
+        );
       }
       catch (e) {
         if (e instanceof Error) {
