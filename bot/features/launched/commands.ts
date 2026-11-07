@@ -1,6 +1,7 @@
 import {
   ApplicationCommandOptionType,
   ApplicationCommandType,
+  BaseChannel,
   ChannelType,
   Colors,
   EmbedBuilder,
@@ -36,7 +37,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       const channel = interaction.options.getChannel('channel', true);
 
-      if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || 'permissions' in channel) {
+      if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
         interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
         return;
       }

@@ -3,7 +3,7 @@ import {
   type EmbedAuthorOptions,
   EmbedBuilder,
 } from 'discord.js';
-import fastAvgColor from 'fast-average-color-node';
+import { getAverageColor } from 'fast-average-color-node';
 import { decodeIco } from 'icojs';
 import {
   log,
@@ -187,7 +187,7 @@ const getColorAsInt = async (resource: string | Buffer): Promise<number> => {
   const timeout = new Promise<{ value: [0, 0, 0] }>(resolve => setTimeout(() => resolve({ value: [0, 0, 0] }), 10 * 1000));
   try {
     const { value: [red, green, blue] } = await Promise.race([
-      fastAvgColor.getAverageColor(resource, { silent: true }),
+      getAverageColor(resource, { silent: true }),
       timeout,
     ]);
     return (red << 16) + (green << 8) + blue;

@@ -5,7 +5,7 @@ import {
   type Message,
   type User,
 } from 'discord.js';
-import fastAvgColor from 'fast-average-color-node';
+import { getAverageColor as _getAverageColor } from 'fast-average-color-node';
 import { isNonEmpty } from 'ts-array-length';
 import client from '#client';
 import {
@@ -67,7 +67,7 @@ export const messageToEmbeds = async (message: Message<boolean>, options: EmbedM
   const getAverageColor = async (avatarUrl: Nullable<string>): Promise<number | null> => {
     if (avatarUrl == null) return null;
 
-    const { value: [red, green, blue] } = await fastAvgColor.getAverageColor(avatarUrl, { silent: true });
+    const { value: [red, green, blue] } = await _getAverageColor(avatarUrl, { silent: true });
     return (red << 16) + (green << 8) + blue;
   };
 
