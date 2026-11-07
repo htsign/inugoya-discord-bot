@@ -32,7 +32,8 @@
     "icojs": "^1.0.1",
     "jsdom": "30.0.0",
     "mersenne-twister": "^1.1.0",
-    "runes2": "^1.1.4"
+    "runes2": "^1.1.4",
+    "undici": "^6.29.1"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.12",
