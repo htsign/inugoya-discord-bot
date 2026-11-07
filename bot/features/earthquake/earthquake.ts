@@ -485,7 +485,7 @@ const resolveEEW = async (response: EEW): Promise<void> => {
       }
 
       try {
-        await channel.send({ embeds: [embed] });
+        await channel.send(payload);
       }
       catch (e) {
         if (e instanceof Error) {
