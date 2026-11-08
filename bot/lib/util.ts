@@ -95,7 +95,7 @@ export const urlToDocument = async (url: string): Promise<Document | null> => {
         return await fetch(url, { headers });
       }
       catch {
-        delay(1000);
+        await delay(1000);
       }
     }
     return Promise.reject(new Error(`failed to fetch: ${url}`));
