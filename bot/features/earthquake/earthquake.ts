@@ -601,15 +601,17 @@ const getMapImageAsBuffer = async (
   }
 
   const url = mapImageUrl.toString();
+  const maskedUrl = new URL(url);
+  maskedUrl.searchParams.set('key', '***');
   try {
-    log(`earthquake#${getMapImageAsBuffer.name}:`, { url, len: url.length, markersCount });
+    log(`earthquake#${getMapImageAsBuffer.name}:`, { url: maskedUrl.toString(), len: url.length, markersCount });
 
     const buffer = await fetch(url).then(x => x.arrayBuffer());
     return Buffer.from(buffer);
   }
   catch (e) {
     if (e instanceof Error) {
-      logError(e, `earthquake#${getMapImageAsBuffer.name}:`, `failed to fetch ${url}`);
+      logError(e, `earthquake#${getMapImageAsBuffer.name}:`, `failed to fetch ${maskedUrl}`);
       return null;
     }
     throw e;

@@ -40,6 +40,9 @@ export const geocode = async (prefecture: string, address: string, loopCount = 0
   url.searchParams.set('address', address);
   url.searchParams.set('key', getEnv('GOOGLE_MAPS_API_KEY', 'Googlemaps API Key'));
 
+  const maskedUrl = new URL(url);
+  maskedUrl.searchParams.set('key', '***');
+
   try {
     const response = await fetch(url.toString());
 
@@ -60,11 +63,11 @@ export const geocode = async (prefecture: string, address: string, loopCount = 0
       return location;
     }
 
-    log(`earthquake#${geocode.name}:`, 'failed to geocode', [...url.searchParams], json);
+    log(`earthquake#${geocode.name}:`, 'failed to geocode', [...maskedUrl.searchParams], json);
   }
   catch (e) {
     if (e instanceof Error) {
-      logError(e, `earthquake#${geocode.name}:`, 'failed to geocode', [...url.searchParams]);
+      logError(e, `earthquake#${geocode.name}:`, 'failed to geocode', [...maskedUrl.searchParams]);
     }
     else {
       throw e;
