@@ -122,7 +122,7 @@ const tick = async (
         }
       }
 
-      if (db.all().some(({ reactionsCount: count }) => count >= minReacted)) {
+      if (db.all().some(record => record.guildId === guildId && record.reactionsCount >= minReacted)) {
         const fetchesMessage = async (record: WeeklyAwardRecord): Promise<MessageAndReactions | null> => {
           if (record.guildId !== guildId) return null;
 
