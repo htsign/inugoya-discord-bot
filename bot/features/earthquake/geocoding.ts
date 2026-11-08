@@ -11,7 +11,7 @@ import type {
 } from '#types/bot/features/earthquake';
 import { geoCoding } from './db.ts';
 
-const locationPoints = new Map<string, LatLng | null>();
+const locationPoints = new Set<string>();
 
 export const geocode = async (prefecture: string, address: string, loopCount = 0): Promise<LatLng | null> => {
   const fromDb = geoCoding.get(prefecture, address);
@@ -20,20 +20,15 @@ export const geocode = async (prefecture: string, address: string, loopCount = 0
   }
 
   const concatenatedAddress = prefecture + address;
-  const location = locationPoints.get(concatenatedAddress);
 
   // wait for previous geocoding to finish
-  if (location === null) {
+  if (locationPoints.has(concatenatedAddress)) {
     // avoid infinite loop
     if (loopCount > 10000) return null;
 
     await setTimeout(1);
     return await geocode(prefecture, address, loopCount + 1);
   }
-
-  // prevent multiple geocoding at the same time
-  // `null` means that geocoding is in progress
-  locationPoints.set(concatenatedAddress, null);
 
   const url = new URL('https://maps.googleapis.com/maps/api/geocode/json');
   url.searchParams.set('region', 'jp');
@@ -42,6 +37,9 @@ export const geocode = async (prefecture: string, address: string, loopCount = 0
 
   const maskedUrl = new URL(url);
   maskedUrl.searchParams.set('key', '***');
+
+  // prevent multiple geocoding at the same time
+  locationPoints.add(concatenatedAddress);
 
   try {
     const response = await fetch(url.toString());
@@ -59,7 +57,6 @@ export const geocode = async (prefecture: string, address: string, loopCount = 0
       });
 
       geoCoding.add(prefecture, address, location.lat, location.lng);
-      locationPoints.set(concatenatedAddress, location);
       return location;
     }
 
@@ -72,6 +69,9 @@ export const geocode = async (prefecture: string, address: string, loopCount = 0
     else {
       throw e;
     }
+  }
+  finally {
+    locationPoints.delete(concatenatedAddress);
   }
   return null;
 };
