@@ -112,13 +112,13 @@ addHandler(Events.MessageCreate, async message => {
     if (targetMessages.has(message) && embeds.length > 0) {
       log(`expand no expanded url[${sendTo}]:`, embeds.map(e => e.url));
 
+      const replyContent = 'URL が展開されてないみたいだからこっちで付けとくね';
       let replied: Message<boolean>;
 
       try {
         log(`noExpandedExpand[${sendTo}]:`, 'try to reply', message.author.username, message.url);
 
-        const content = 'URL が展開されてないみたいだからこっちで付けとくね';
-        replied = await message.reply({ content, embeds, files });
+        replied = await message.reply({ content: replyContent, embeds, files });
       }
       catch (e) {
         if (e instanceof Error) {
@@ -138,7 +138,7 @@ addHandler(Events.MessageCreate, async message => {
           if (remainedEmbeds.length > 0) {
             log(`noExpandedExpand[${sendTo}]:`, 'some embeds had been removed', remainedEmbeds);
 
-            await replied.edit({ content, embeds: remainedEmbeds, files });
+            await replied.edit({ content: replyContent, embeds: remainedEmbeds, files });
             break;
           }
           log(`delete expanded url[${sendTo}]:`, embeds.map(e => e.url));
