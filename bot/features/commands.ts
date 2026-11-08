@@ -40,7 +40,7 @@ addHandler(Events.ClientReady, async client => {
   const app = await client.application.fetch();
 
   const _commands = Object.entries(commands).map(([name, content]) => ({ ...content, name }));
-  app.commands.set(_commands);
+  await app.commands.set(_commands);
 });
 addHandler(Events.GuildCreate, async ({ name }) => {
   log('bot has been added to', name);
