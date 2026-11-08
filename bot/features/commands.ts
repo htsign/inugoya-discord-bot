@@ -46,10 +46,5 @@ addHandler(Events.GuildCreate, async ({ name }) => {
   log('bot has been added to', name);
 });
 addHandler(Events.GuildDelete, async guild => {
-  const { commands } = guild.client.application;
-
-  for (const command of commands.cache.values()) {
-    commands.delete(command);
-  }
   log('bot has been kicked out from', guild.name);
 });
