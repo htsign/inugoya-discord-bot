@@ -271,7 +271,7 @@ export const startAward = async (guildId: string): Promise<void> => {
   const configRecord = db.config.get(guildId);
   const timeRecord = db.times.get(guildId);
   if (configRecord == null || timeRecord == null) {
-    return log(`startAward: ${{ guildId }} is not registered.`);
+    return log(`startAward: ${JSON.stringify({ guildId })} is not registered.`);
   }
 
   const { guildName, channelId, channelName, showsRankCount, minReacted, createdAt, updatedAt } = configRecord;
@@ -291,7 +291,7 @@ export const startAward = async (guildId: string): Promise<void> => {
 export const stopAward = async (guildId: string): Promise<void> => {
   const configRecord = db.config.get(guildId);
   if (configRecord == null) {
-    return await log(`stopAward: ${{ guildId }} is not registered.`);
+    return await log(`stopAward: ${JSON.stringify({ guildId })} is not registered.`);
   }
 
   const { createdAt, updatedAt } = configRecord;
