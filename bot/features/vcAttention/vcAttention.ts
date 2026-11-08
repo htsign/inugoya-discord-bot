@@ -29,6 +29,18 @@ addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
   const { channelId: oldChannelId } = oldState;
   const { channelId: newChannelId } = newState;
 
+  // someone left from one of voice channels
+  if (oldChannelId != null && oldChannelId !== newChannelId) {
+    const oldChannel = oldState.channel;
+    const membersCount = oldChannel?.members.size ?? 0;
+
+    log(oldState.guild.name, 'member left:', oldChannel?.name, { membersCount });
+
+    if (membersCount < threshold) {
+      thrivingVoiceChannels.delete(getId(oldState));
+    }
+  }
+
   // someone joined into one of voice channels
   if (newChannelId != null) {
     const newChannel = newState.channel;
@@ -67,17 +79,6 @@ addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
           }
         }
       }
-    }
-  }
-  // someone left from one of voice channels
-  else if (oldChannelId != null) {
-    const oldChannel = oldState.channel;
-    const membersCount = oldChannel?.members.size ?? 0;
-
-    log(oldState.guild.name, 'member left:', oldChannel?.name, { membersCount });
-
-    if (membersCount < configRecord.threshold) {
-      thrivingVoiceChannels.delete(getId(oldState));
     }
   }
 });
