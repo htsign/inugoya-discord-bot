@@ -3,6 +3,7 @@ import { URL } from 'node:url';
 import {
   type AnyThreadChannel,
   AttachmentBuilder,
+  type Awaitable,
   Colors,
   EmbedBuilder,
   type Message,
@@ -39,14 +40,20 @@ import { geocode } from './geocoding.ts';
 const debug = false;
 const ENDPOINT = `wss://${debug ? 'api-realtime-sandbox' : 'api'}.p2pquake.net/v2/ws`;
 
-const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => void): void => {
+const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => Awaitable<void>): void => {
   try {
     const ws = new WebSocket(address);
 
     ws.onopen = () => log('earthquake: connected');
     ws.onmessage = event => {
       try {
-        onMessage(event);
+        Promise.resolve(onMessage(event)).catch((e: unknown) => {
+          if (e instanceof Error) {
+            logError(e, 'earthquake#onmessage:', 'handler failed');
+            return;
+          }
+          throw e;
+        });
       }
       catch (error) {
         log('earthquake#onmessage: unhandled error', error);
