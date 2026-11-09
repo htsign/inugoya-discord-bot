@@ -107,6 +107,13 @@ const tick = async (
   if (now.day() === +weekday && now.hour() === hour && now.minute() === minute) {
     log('WeeklyAward: report initiated', guildName);
 
+    // run again almost next week.
+    const timeout = setTimeout(
+      () => tick(guildId, guildName, channelId, channelName, showsRankCount, minReacted, weekday, hour, minute),
+      86400 * 1000 * 6.9,
+    );
+    instances.set(guildId, timeout);
+
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
     const channel = guild.channels?.cache?.find(channel => channel.id === channelId);
 
@@ -251,13 +258,6 @@ const tick = async (
     }
 
     log(guildName, 'WeeklyAward: report finished');
-
-    // run again almost next week.
-    const timeout = setTimeout(
-      () => tick(guildId, guildName, channelId, channelName, showsRankCount, minReacted, weekday, hour, minute),
-      86400 * 1000 * 6.9,
-    );
-    instances.set(guildId, timeout);
   }
   // or else, after 1 sec.
   else {
