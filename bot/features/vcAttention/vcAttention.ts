@@ -13,7 +13,7 @@ import {
 import { addHandler } from '#listeners';
 import { db } from './db.ts';
 
-const thrivingVoiceChannels = new Set<`${Snowflake},${Snowflake}`>();
+const thrivingVoiceChannels = new Map<`${Snowflake},${Snowflake}`, symbol>();
 
 const getId: (state: VoiceState) => `${Snowflake},${Snowflake}` = state => `${state.guild.id},${state.channelId}`;
 
@@ -52,31 +52,41 @@ addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
       const isTargetChannel = (channel: Channel): channel is TextChannel =>
         channel.type === ChannelType.GuildText && channel.id === channelId;
 
-      if (!thrivingVoiceChannels.has(getId(newState))) {
-        let targetChannel: TextChannel | undefined;
-        try {
-          targetChannel = await newState.guild.channels.cache.find(isTargetChannel)?.fetch();
-        }
-        catch (e) {
-          if (e instanceof Error) {
-            logError(e, 'vcAttention:', `failed to fetch target channel of ${guildName}`);
-            return;
-          }
-          throw e;
-        }
+      const id = getId(newState);
+      if (!thrivingVoiceChannels.has(id)) {
+        const mark = Symbol();
+        thrivingVoiceChannels.set(id, mark);
 
-        if (targetChannel?.type === ChannelType.GuildText && newChannel?.name != null) {
-          thrivingVoiceChannels.add(getId(newState));
+        let notified = false;
+        try {
+          let targetChannel: TextChannel | undefined;
           try {
-            await targetChannel.send(`@here <#${newChannelId}> が盛り上がっているみたい！`);
+            targetChannel = await newState.guild.channels.cache.find(isTargetChannel)?.fetch();
           }
           catch (e) {
             if (e instanceof Error) {
-              logError(e, 'vcAttention:', `failed to send message to ${guildName}/${channelName}`);
+              logError(e, 'vcAttention:', `failed to fetch target channel of ${guildName}`);
               return;
             }
             throw e;
           }
+
+          if (targetChannel?.type === ChannelType.GuildText && newChannel?.name != null) {
+            try {
+              await targetChannel.send(`@here <#${newChannelId}> が盛り上がっているみたい！`);
+              notified = true;
+            }
+            catch (e) {
+              if (e instanceof Error) {
+                logError(e, 'vcAttention:', `failed to send message to ${guildName}/${channelName}`);
+                return;
+              }
+              throw e;
+            }
+          }
+        }
+        finally {
+          if (!notified && thrivingVoiceChannels.get(id) === mark) thrivingVoiceChannels.delete(id);
         }
       }
     }
