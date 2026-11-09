@@ -122,6 +122,8 @@ const tick = async (
         }
       }
 
+      const contents: { title: string, embeds: APIEmbed[] }[] = [];
+
       if (db.all().some(record => record.guildId === guildId && record.reactionsCount >= minReacted)) {
         const fetchesMessage = async (record: WeeklyAwardRecord): Promise<MessageAndReactions | null> => {
           if (record.guildId !== guildId) return null;
@@ -151,7 +153,6 @@ const tick = async (
         // sort descending order by reactions count
         const messagesArray = Object.entries(talliedMessages).sort(([a], [b]) => (+b) - (+a));
 
-        const contents: { title: string, embeds: APIEmbed[] }[] = [];
         {
           let rank = 1;
 
@@ -234,7 +235,8 @@ const tick = async (
           }
         }
       }
-      else {
+
+      if (contents.length === 0) {
         try {
           await channel.send('【リアクション大賞】\n先週はリアクションが付いた投稿はありませんでした！！');
         }
