@@ -56,7 +56,13 @@ export const geocode = async (prefecture: string, address: string, loopCount = 0
         lng: Math.round(location.lng * 100) / 100,
       });
 
-      geoCoding.add(prefecture, address, location.lat, location.lng);
+      geoCoding.add(prefecture, address, location.lat, location.lng).catch((e: unknown) => {
+        if (e instanceof Error) {
+          logError(e, `earthquake#${geocode.name}:`, 'failed to save geocoding', concatenatedAddress);
+          return;
+        }
+        throw e;
+      });
       return location;
     }
 
