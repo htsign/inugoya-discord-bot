@@ -277,13 +277,13 @@ export const commands: ChatInputCommandCollection<void, Obj> = {
       const subCommandName = interaction.options.getSubcommand(true);
 
       if (!interaction.inGuild()) {
-        interaction.reply({ content: 'サーバー内で実行してください。', ephemeral: true });
+        await interaction.reply({ content: 'サーバー内で実行してください。', ephemeral: true });
         return;
       }
 
       const subCommand = subCommands[subCommandName];
       if (subCommand != null) {
-        subCommand.func(interaction);
+        return subCommand.func(interaction);
       }
     },
     defaultMemberPermissions: PermissionFlagsBits.CreateInstantInvite | PermissionFlagsBits.KickMembers,
