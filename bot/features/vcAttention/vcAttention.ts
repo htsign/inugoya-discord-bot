@@ -17,8 +17,15 @@ const thrivingVoiceChannels = new Map<`${Snowflake},${Snowflake}`, symbol>();
 
 const getId: (state: VoiceState) => `${Snowflake},${Snowflake}` = state => `${state.guild.id},${state.channelId}`;
 
-addHandler(Events.GuildDelete, guild => {
-  db.unregister(guild.id);
+export const clearThrivingVoiceChannels = (guildId: Snowflake): void => {
+  for (const id of thrivingVoiceChannels.keys()) {
+    if (id.startsWith(`${guildId},`)) thrivingVoiceChannels.delete(id);
+  }
+};
+
+addHandler(Events.GuildDelete, async guild => {
+  await db.unregister(guild.id);
+  clearThrivingVoiceChannels(guild.id);
 });
 addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
   const configRecord = db.get(newState.guild.id);

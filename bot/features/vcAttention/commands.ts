@@ -12,6 +12,7 @@ import { DATETIME_FORMAT } from '#lib/util.ts';
 import type { Obj } from '#types';
 import type { ChatInputCommandCollection } from '#types/bot';
 import { db } from './db.ts';
+import { clearThrivingVoiceChannels } from './vcAttention.ts';
 
 const DEFAULT_THRESHOLD = 5;
 
@@ -80,6 +81,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const response = await interaction.deferReply();
 
       await db.unregister(guildId);
+      clearThrivingVoiceChannels(guildId);
 
       response.edit('VC盛り上がり通知の巡回対象からこのサーバーを削除しました。');
     },
