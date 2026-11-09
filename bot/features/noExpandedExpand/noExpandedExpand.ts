@@ -134,7 +134,7 @@ addHandler(Events.MessageCreate, async message => {
         await setTimeout();
 
         const remainedEmbeds = replied.embeds.filter(embed => !message.embeds.map(me => me.url).includes(embed.url));
-        if (!targetMessages.has(message) || urls.length !== remainedEmbeds.length) {
+        if (!targetMessages.has(message) || embeds.length !== remainedEmbeds.length) {
           if (remainedEmbeds.length > 0) {
             log(`noExpandedExpand[${sendTo}]:`, 'some embeds had been removed', remainedEmbeds);
 
