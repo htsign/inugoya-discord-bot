@@ -84,7 +84,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = interaction.guild?.name;
 
       if (guildName == null) {
-        interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
 
@@ -96,11 +96,11 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const minute = interaction.options.getInteger('minute') ?? DEFAULT_MINUTE;
 
       if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
-        interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
+        await interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
         return;
       }
       if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
-        interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
+        await interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
         return;
       }
       log('register weeklyAward:', interaction.user.username, guildName);
@@ -115,7 +115,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       const hourString = String(hour).padStart(2, '0');
       const minuteString = String(minute).padStart(2, '0');
-      response.edit([
+      await response.edit([
         'リアクション大賞の巡回対象にこのサーバーを登録し、',
         `週の報告を ${jpString(weekday)}の ${hourString}:${minuteString} に ${channel} で行うよう設定しました。`,
       ].join(''));
@@ -128,7 +128,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = interaction.guild?.name;
 
       if (guildName == null) {
-        interaction.reply({ content: '登録解除したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '登録解除したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       log('unregister weeklyAward:', interaction.user.username, guildName);
@@ -141,7 +141,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
         db.config.unregister(guildId),
       ]);
 
-      response.edit('リアクション大賞の巡回対象からこのサーバーを削除しました。');
+      await response.edit('リアクション大賞の巡回対象からこのサーバーを削除しました。');
     },
   },
   update: {
@@ -195,14 +195,14 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = guild?.name;
 
       if (guild == null || guildName == null) {
-        interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
 
       const configRecord = db.config.get(guildId);
       const timeRecord = db.times.get(guildId);
       if (configRecord == null || timeRecord == null) {
-        interaction.reply({ content: 'このサーバーはまだ登録されていません。', ephemeral: true });
+        await interaction.reply({ content: 'このサーバーはまだ登録されていません。', ephemeral: true });
         return;
       }
 
@@ -223,19 +223,19 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       };
 
       if (Object.values(isSet).every(x => !x)) {
-        interaction.reply({ content: '最低一つは設定してください。', ephemeral: true });
+        await interaction.reply({ content: '最低一つは設定してください。', ephemeral: true });
         return;
       }
       if (channel == null) {
-        interaction.reply({ content: '指定されたチャンネルは見つかりません。', ephemeral: true });
+        await interaction.reply({ content: '指定されたチャンネルは見つかりません。', ephemeral: true });
         return;
       }
       if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
-        interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
+        await interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
         return;
       }
       if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
-        interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
+        await interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
         return;
       }
       log('update weeklyAward:', user.username, guildName);
@@ -267,7 +267,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
         fields.push({ name: '表彰に必要なリアクション数', value: `${minReacted} 個` });
       }
 
-      response.edit({ content: 'リアクション大賞の設定を変更しました。', embeds: [{ fields }] });
+      await response.edit({ content: 'リアクション大賞の設定を変更しました。', embeds: [{ fields }] });
     },
   },
   status: {
@@ -277,7 +277,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = guild?.name;
 
       if (guildName == null) {
-        interaction.reply({ content: '確認したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '確認したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       log('peek status weeklyAward:', interaction.user.username, guildName);
@@ -313,7 +313,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       else {
         embed.setDescription('未登録').setColor(Colors.Red);
       }
-      response.edit({ embeds: [embed] });
+      await response.edit({ embeds: [embed] });
     },
   },
 };
