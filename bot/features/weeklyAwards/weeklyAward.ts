@@ -128,7 +128,7 @@ const tick = async (
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
     const channel = guild.channels?.cache?.find(channel => channel.id === channelId);
 
-    if (channel?.type === ChannelType.GuildText) {
+    if (channel?.type === ChannelType.GuildText || channel?.type === ChannelType.GuildAnnouncement) {
       // remove messages sent over a week ago
       for await (const count of db.deleteOutdated(guildId, 7)) {
         if (typeof count === 'number') {
