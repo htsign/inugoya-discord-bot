@@ -39,7 +39,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const bot = guild?.members.me;
 
       if (guild == null || guildName == null || bot == null) {
-        interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
 
@@ -47,12 +47,12 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const threshold = interaction.options.getInteger('threshold') ?? DEFAULT_THRESHOLD;
 
       if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
-        interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
+        await interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
         return;
       }
       const permissions = bot.permissionsIn(channel);
       if (!permissions.has(PermissionFlagsBits.SendMessages) || !permissions.has(PermissionFlagsBits.MentionEveryone)) {
-        interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
+        await interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
         return;
       }
       log('register vcAttention:', interaction.user.username, guildName);
@@ -61,7 +61,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       await db.register(guildId, guildName, channel.id, channel.name, threshold);
 
-      response.edit(
+      await response.edit(
         `VC盛り上がり通知の巡回対象にこのサーバーを登録し、VCの参加人数が ${threshold} 以上の場合に ${channel} に通知するよう設定しました。`,
       );
     },
@@ -73,7 +73,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = interaction.guild?.name;
 
       if (guildName == null) {
-        interaction.reply({ content: '登録解除したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '登録解除したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       log('unregister vcAttention:', interaction.user.username, guildName);
@@ -83,7 +83,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       await db.unregister(guildId);
       clearThrivingVoiceChannels(guildId);
 
-      response.edit('VC盛り上がり通知の巡回対象からこのサーバーを削除しました。');
+      await response.edit('VC盛り上がり通知の巡回対象からこのサーバーを削除しました。');
     },
   },
   status: {
@@ -93,7 +93,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = guild?.name;
 
       if (guildName == null) {
-        interaction.reply({ content: '確認したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '確認したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       log('peek status vcAttention:', interaction.user.username, guildName);
@@ -116,7 +116,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       else {
         embed.setDescription('未登録').setColor(Colors.Red);
       }
-      response.edit({ embeds: [embed] });
+      await response.edit({ embeds: [embed] });
     },
   },
 };
