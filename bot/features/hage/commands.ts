@@ -82,7 +82,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const stackSize = interaction.options.getInteger('stack_size') ?? STACK_SIZE;
 
       if (guildName == null) {
-        interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       log('register hage:', user.username, guildName);
@@ -91,7 +91,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       await db.register(guildId, guildName, template, moreTemplate, rareTemplate, timeout, stackSize);
 
-      response.edit('このサーバーでキーワードに反応するようになりました。');
+      await response.edit('このサーバーでキーワードに反応するようになりました。');
     },
   },
   unregister: {
@@ -101,7 +101,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = guild?.name;
 
       if (guildName == null) {
-        interaction.reply({ content: '登録解除したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '登録解除したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       log('unregister hage:', user.username, guildName);
@@ -110,7 +110,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       await db.unregister(guildId);
 
-      response.edit('このサーバーでキーワードに反応しなくなりました。');
+      await response.edit('このサーバーでキーワードに反応しなくなりました。');
     },
   },
   update: {
@@ -148,7 +148,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       const configRecord = db.get(guildId);
       if (configRecord == null) {
-        interaction.reply({ content: 'このサーバーはまだ登録されていません。', ephemeral: true });
+        await interaction.reply({ content: 'このサーバーはまだ登録されていません。', ephemeral: true });
         return;
       }
 
@@ -167,11 +167,11 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       };
 
       if (Object.values(isSet).every(x => !x)) {
-        interaction.reply({ content: '最低一つは設定してください。', ephemeral: true });
+        await interaction.reply({ content: '最低一つは設定してください。', ephemeral: true });
         return;
       }
       if (guildName == null) {
-        interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       log('update hage:', user.username, guildName);
@@ -198,7 +198,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
         fields.push({ name: '累積反応数', value: `${stackSize} 回` });
       }
 
-      response.edit({ content: 'ハゲ監視の設定を変更しました。', embeds: [{ fields }] });
+      await response.edit({ content: 'ハゲ監視の設定を変更しました。', embeds: [{ fields }] });
     },
   },
   status: {
@@ -207,7 +207,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const { guildId, guild, user } = interaction;
 
       if (guild == null) {
-        interaction.reply({ content: '確認したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '確認したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
 
@@ -258,7 +258,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       else {
         embed.setDescription('未登録').setColor(Colors.Red);
       }
-      response.edit({ embeds: [embed] });
+      await response.edit({ embeds: [embed] });
     },
   },
   initkeywords: {
@@ -268,7 +268,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = guild?.name;
 
       if (guildName == null) {
-        interaction.reply({ content: 'キーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: 'キーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       log('initialize keywords for hage:', user.username, guildName);
@@ -286,10 +286,10 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
         }
         await Promise.all(addKeywordPromises);
 
-        response.edit(`キーワードに${newKeywords.map(keyword => `「 ${keyword} 」`).join('')}を登録しました。`);
+        await response.edit(`キーワードに${newKeywords.map(keyword => `「 ${keyword} 」`).join('')}を登録しました。`);
       }
       else {
-        response.edit('予め用意されたテンプレートからキーワードを追加しようとしましたが、全て既に追加されています。');
+        await response.edit('予め用意されたテンプレートからキーワードを追加しようとしましたが、全て既に追加されています。');
       }
     },
   },
@@ -309,11 +309,11 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const keyword = interaction.options.getString('keyword', true).trim();
 
       if (guildName == null) {
-        interaction.reply({ content: 'キーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: 'キーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       if (db.keywords.get(guildId, keyword) != null) {
-        interaction.reply({ content: 'そのキーワードは登録済みです。', ephemeral: true });
+        await interaction.reply({ content: 'そのキーワードは登録済みです。', ephemeral: true });
         return;
       }
       log('add keyword for hage:', user.username, guildName);
@@ -322,7 +322,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       await db.keywords.add(guildId, keyword);
 
-      response.edit(`キーワードに「 ${keyword} 」を登録しました。`);
+      await response.edit(`キーワードに「 ${keyword} 」を登録しました。`);
     },
   },
   removekeyword: {
@@ -341,11 +341,11 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const keyword = interaction.options.getString('keyword', true).trim();
 
       if (guildName == null) {
-        interaction.reply({ content: 'キーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: 'キーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       if (db.keywords.get(guildId, keyword) == null) {
-        interaction.reply({ content: 'そのキーワードは登録されていません。', ephemeral: true });
+        await interaction.reply({ content: 'そのキーワードは登録されていません。', ephemeral: true });
         return;
       }
       log('remove keyword for hage:', user.username, guildName);
@@ -354,7 +354,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       await db.keywords.delete(guildId, keyword);
 
-      response.edit(`「 ${keyword} 」をキーワードから削除しました。`);
+      await response.edit(`「 ${keyword} 」をキーワードから削除しました。`);
     },
   },
   initreactions: {
@@ -364,7 +364,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = guild?.name;
 
       if (guildName == null) {
-        interaction.reply({ content: 'リアクションキーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: 'リアクションキーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       log('initialize reaction keywords for hage:', user.username, guildName);
@@ -384,10 +384,10 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
         }
         await Promise.all(addReactionPromises);
 
-        response.edit(`リアクションキーワードに${newReactions.map(reaction => `「 ${reaction} 」`).join('')}を登録しました。`);
+        await response.edit(`リアクションキーワードに${newReactions.map(reaction => `「 ${reaction} 」`).join('')}を登録しました。`);
       }
       else {
-        response.edit('予め用意されたテンプレートからリアクションキーワードを追加しようとしましたが、全て既に追加されています。');
+        await response.edit('予め用意されたテンプレートからリアクションキーワードを追加しようとしましたが、全て既に追加されています。');
       }
     },
   },
@@ -407,15 +407,15 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const reaction = interaction.options.getString('reaction', true).trim();
 
       if (guildName == null) {
-        interaction.reply({ content: 'リアクションキーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: 'リアクションキーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       if (!isSingleEmoji(reaction)) {
-        interaction.reply({ content: 'reaction には一つの絵文字のみ指定してください。', ephemeral: true });
+        await interaction.reply({ content: 'reaction には一つの絵文字のみ指定してください。', ephemeral: true });
         return;
       }
       if (db.reactionKeywords.get(guildId, reaction) != null) {
-        interaction.reply({ content: 'そのリアクションキーワードは登録済みです。', ephemeral: true });
+        await interaction.reply({ content: 'そのリアクションキーワードは登録済みです。', ephemeral: true });
         return;
       }
       log('add reaction keyword for hage:', user.username, guildName);
@@ -424,7 +424,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       await db.reactionKeywords.add(guildId, reaction);
 
-      response.edit(`リアクションキーワードに「 ${reaction} 」を登録しました。`);
+      await response.edit(`リアクションキーワードに「 ${reaction} 」を登録しました。`);
     },
   },
   removereaction: {
@@ -443,15 +443,15 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const reaction = interaction.options.getString('keyword', true).trim();
 
       if (guildName == null) {
-        interaction.reply({ content: 'リアクションキーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: 'リアクションキーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       if (!isSingleEmoji(reaction)) {
-        interaction.reply({ content: 'reaction には一つの絵文字のみ指定してください。', ephemeral: true });
+        await interaction.reply({ content: 'reaction には一つの絵文字のみ指定してください。', ephemeral: true });
         return;
       }
       if (db.reactionKeywords.get(guildId, reaction) == null) {
-        interaction.reply({ content: 'そのリアクションキーワードは登録されていません。', ephemeral: true });
+        await interaction.reply({ content: 'そのリアクションキーワードは登録されていません。', ephemeral: true });
         return;
       }
       log('remove reaction keyword for hage:', user.username, guildName);
@@ -460,7 +460,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       await db.reactionKeywords.delete(guildId, reaction);
 
-      response.edit(`「 ${reaction} 」をリアクションキーワードから削除しました。`);
+      await response.edit(`「 ${reaction} 」をリアクションキーワードから削除しました。`);
     },
   },
 };
