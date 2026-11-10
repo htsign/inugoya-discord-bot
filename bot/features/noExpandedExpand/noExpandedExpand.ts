@@ -130,16 +130,18 @@ addHandler(Events.MessageCreate, async message => {
 
       // delete replied message if all of original embeds had been created
       const now = dayjs().tz();
+      let expectedLength = embeds.length;
       do {
         await setTimeout();
 
         const remainedEmbeds = replied.embeds.filter(embed => !message.embeds.map(me => me.url).includes(embed.url));
-        if (!targetMessages.has(message) || embeds.length !== remainedEmbeds.length) {
+        if (!targetMessages.has(message) || expectedLength !== remainedEmbeds.length) {
           if (targetMessages.has(message) && remainedEmbeds.length > 0) {
             log(`noExpandedExpand[${sendTo}]:`, 'some embeds had been removed', remainedEmbeds);
 
-            await replied.edit({ content: replyContent, embeds: remainedEmbeds, files });
-            break;
+            replied = await replied.edit({ content: replyContent, embeds: remainedEmbeds, files });
+            expectedLength = remainedEmbeds.length;
+            continue;
           }
           log(`delete expanded url[${sendTo}]:`, embeds.map(e => e.url));
 
