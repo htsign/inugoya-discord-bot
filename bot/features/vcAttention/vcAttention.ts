@@ -2,6 +2,7 @@ import {
   type Channel,
   ChannelType,
   Events,
+  type NewsChannel,
   type Snowflake,
   type TextChannel,
   type VoiceState,
@@ -56,8 +57,8 @@ addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
     log(newState.guild.name, 'member joined:', newChannel?.name, { membersCount });
 
     if (membersCount >= threshold) {
-      const isTargetChannel = (channel: Channel): channel is TextChannel =>
-        channel.type === ChannelType.GuildText && channel.id === channelId;
+      const isTargetChannel = (channel: Channel): channel is TextChannel | NewsChannel =>
+        (channel.type === ChannelType.GuildText || channel.type === ChannelType.GuildAnnouncement) && channel.id === channelId;
 
       const id = getId(newState);
       if (!thrivingVoiceChannels.has(id)) {
@@ -66,7 +67,7 @@ addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
 
         let notified = false;
         try {
-          let targetChannel: TextChannel | undefined;
+          let targetChannel: TextChannel | NewsChannel | undefined;
           try {
             targetChannel = await newState.guild.channels.cache.find(isTargetChannel)?.fetch();
           }
@@ -78,7 +79,7 @@ addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
             throw e;
           }
 
-          if (targetChannel?.type === ChannelType.GuildText && newChannel?.name != null) {
+          if (targetChannel != null && newChannel?.name != null) {
             try {
               await targetChannel.send(`@here <#${newChannelId}> が盛り上がっているみたい！`);
               notified = true;
