@@ -18,7 +18,7 @@ addHandler(Events.ClientReady, async client => {
   for (const { guildId, channelId } of db.records) {
     const channel = await client.channels.fetch(channelId);
 
-    if (channel != null && channel.type === ChannelType.GuildText) {
+    if (channel != null && (channel.type === ChannelType.GuildText || channel.type === ChannelType.GuildAnnouncement)) {
       let guild: Guild | undefined;
       try {
         guild = await client.guilds.fetch(guildId);
