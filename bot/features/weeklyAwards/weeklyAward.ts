@@ -29,12 +29,20 @@ import type { Weekday } from './weekday.ts';
  */
 const instances = new Map<string, NodeJS.Timeout>();
 
-addHandler(Events.ClientReady, async () => {
-  for (const { guildId } of db.config.records) {
-    startAward(guildId);
+const catchTickError = (guildName: string) => (e: unknown): void => {
+  if (e instanceof Error) {
+    logError(e, `weeklyAward#${tick.name}:`, `failed to run for ${guildName}`);
+    return;
   }
+  throw e;
+};
+
+addHandler(Events.ClientReady, async () => {
+  const starting = db.config.records.map(({ guildId, guildName }) => startAward(guildId).catch(catchTickError(guildName)));
 
   log('weekly award is ready.');
+
+  await Promise.all(starting);
 });
 addHandler(Events.GuildDelete, async guild => {
   await stopAward(guild.id);
@@ -102,17 +110,20 @@ const tick = async (
   hour: number,
   minute: number,
 ): Promise<void> => {
+  const scheduleNext = (ms: number): void => {
+    const timeout = setTimeout(() => {
+      tick(guildId, guildName, channelId, channelName, showsRankCount, minReacted, weekday, hour, minute).catch(catchTickError(guildName));
+    }, ms);
+    instances.set(guildId, timeout);
+  };
+
   const now = dayjs().tz();
 
   if (now.day() === +weekday && now.hour() === hour && now.minute() === minute) {
     log('WeeklyAward: report initiated', guildName);
 
     // run again almost next week.
-    const timeout = setTimeout(
-      () => tick(guildId, guildName, channelId, channelName, showsRankCount, minReacted, weekday, hour, minute),
-      86400 * 1000 * 6.9,
-    );
-    instances.set(guildId, timeout);
+    scheduleNext(86400 * 1000 * 6.9);
 
     const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
     const channel = guild.channels?.cache?.find(channel => channel.id === channelId);
@@ -261,11 +272,7 @@ const tick = async (
   }
   // or else, after 1 sec.
   else {
-    const timeout = setTimeout(
-      () => tick(guildId, guildName, channelId, channelName, showsRankCount, minReacted, weekday, hour, minute),
-      1000,
-    );
-    instances.set(guildId, timeout);
+    scheduleNext(1000);
   }
 };
 
