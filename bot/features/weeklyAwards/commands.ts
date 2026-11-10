@@ -282,18 +282,18 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       }
       log('peek status weeklyAward:', interaction.user.username, guildName);
 
-      const response = await interaction.deferReply();
-
       const configRecord = db.config.get(guildId);
       const timeRecord = db.times.get(guildId);
+      if (configRecord != null && timeRecord == null) {
+        await interaction.reply({ content: 'DBデータ不整合です。 `/weeklyaward register` し直してください。', ephemeral: true });
+        return;
+      }
+
+      const response = await interaction.deferReply();
+
       const embed = new EmbedBuilder({ title: '登録状況' });
 
-      if (configRecord != null) {
-        if (timeRecord == null) {
-          interaction.reply({ content: 'DBデータ不整合です。 `/weeklyaward register` し直してください。', ephemeral: true });
-          return;
-        }
-
+      if (configRecord != null && timeRecord != null) {
         const { channelId, showsRankCount, minReacted, createdAt, updatedAt } = configRecord;
         const { weekday, hour, minute } = timeRecord;
         const hourString = String(hour).padStart(2, '0');
