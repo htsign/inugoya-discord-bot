@@ -1,7 +1,6 @@
 import {
   ApplicationCommandOptionType,
   ApplicationCommandType,
-  BaseChannel,
   ChannelType,
   Colors,
   EmbedBuilder,
@@ -11,7 +10,7 @@ import { log } from '#lib/log.ts';
 import { DATETIME_FORMAT } from '#lib/util.ts';
 import type { Obj } from '#types';
 import type { ChatInputCommandCollection } from '#types/bot';
-import { canPostIn } from '../util.ts';
+import { resolvePostChannel } from '../util.ts';
 import { db } from './db.ts';
 
 const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
@@ -38,21 +37,16 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       const channel = interaction.options.getChannel('channel', true);
 
-      if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
-        await interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
-        return;
-      }
-      if (!canPostIn(bot, channel)) {
-        await interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
-        return;
-      }
+      const target = await resolvePostChannel(interaction, channel, bot);
+      if (target == null) return;
+
       log('register launched:', interaction.user.username, guildName);
 
       const response = await interaction.deferReply();
 
-      await db.register(guildId, guildName, channel.id, channel.name);
+      await db.register(guildId, guildName, target.id, target.name);
 
-      await response.edit(`このサーバーを登録し、${channel} に通知するよう設定しました。`);
+      await response.edit(`このサーバーを登録し、${target} に通知するよう設定しました。`);
     },
   },
   unregister: {

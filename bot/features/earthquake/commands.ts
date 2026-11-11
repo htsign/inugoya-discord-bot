@@ -2,7 +2,6 @@ import {
   type APIEmbedField,
   ApplicationCommandOptionType,
   ApplicationCommandType,
-  BaseChannel,
   ChannelType,
   Colors,
   EmbedBuilder,
@@ -12,7 +11,7 @@ import { log } from '#lib/log.ts';
 import { DATETIME_FORMAT } from '#lib/util.ts';
 import type { Obj } from '#types';
 import type { ChatInputCommandCollection } from '#types/bot';
-import { canPostIn } from '../util.ts';
+import { resolvePostChannel } from '../util.ts';
 import { db } from './db.ts';
 import {
   intensityFromNumber,
@@ -59,14 +58,9 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const minIntensity = interaction.options.getInteger('minintensity') ?? DEFAULT_MIN_INTENSITY;
       const alertThreshold = interaction.options.getInteger('alertthreshold') ?? DEFAULT_MIN_INTENSITY;
 
-      if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
-        await interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
-        return;
-      }
-      if (!canPostIn(interaction.guild?.members.me, channel)) {
-        await interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
-        return;
-      }
+      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me);
+      if (target == null) return;
+
       try {
         if (minIntensity < 10 || 70 < minIntensity) {
           throw new UnexpectedIntensityError(minIntensity);
@@ -95,9 +89,9 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       const response = await interaction.deferReply();
 
-      await db.register(guildId, guildName, channel.id, channel.name, minIntensity, alertThreshold);
+      await db.register(guildId, guildName, target.id, target.name, minIntensity, alertThreshold);
 
-      await response.edit(`${intensityFromNumber(minIntensity)}以上の地震速報をこのサーバーの ${channel} に通知するよう設定しました。`);
+      await response.edit(`${intensityFromNumber(minIntensity)}以上の地震速報をこのサーバーの ${target} に通知するよう設定しました。`);
     },
   },
   unregister: {
@@ -174,14 +168,10 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
         await interaction.reply({ content: '指定されたチャンネルは見つかりません。', ephemeral: true });
         return;
       }
-      if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
-        await interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
-        return;
-      }
-      if (!canPostIn(interaction.guild?.members.me, channel)) {
-        await interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
-        return;
-      }
+
+      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me);
+      if (target == null) return;
+
       try {
         if (minIntensity < 10 || 70 < minIntensity) {
           throw new UnexpectedIntensityError(minIntensity);
@@ -210,12 +200,12 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       const response = await interaction.deferReply();
 
-      await db.register(guildId, guildName, channel.id, channel.name, minIntensity, alertThreshold);
+      await db.register(guildId, guildName, target.id, target.name, minIntensity, alertThreshold);
 
       const fields: APIEmbedField[] = [];
 
       if (isSet.channel) {
-        fields.push({ name: '通知チャンネル', value: `<#${channel.id}>` });
+        fields.push({ name: '通知チャンネル', value: `<#${target.id}>` });
       }
       if (isSet.minIntensity) {
         fields.push({ name: '報告する最低の震度', value: intensityFromNumber(minIntensity) });

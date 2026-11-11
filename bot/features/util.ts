@@ -1,11 +1,18 @@
 import {
   type APIEmbed,
+  type APIInteractionDataResolvedChannel,
   type Attachment,
+  BaseChannel,
+  ChannelType,
+  type ChatInputCommandInteraction,
   EmbedBuilder,
+  type GuildBasedChannel,
   type GuildChannelResolvable,
   type GuildMember,
   type Message,
+  type NewsChannel,
   PermissionFlagsBits,
+  type TextChannel,
   type User,
 } from 'discord.js';
 import { getAverageColor as _getAverageColor } from 'fast-average-color-node';
@@ -153,3 +160,23 @@ export const messageToEmbeds = async (message: Message<boolean>, options: EmbedM
 
 export const canPostIn = (me: Nullable<GuildMember>, channel: GuildChannelResolvable): boolean =>
   me?.permissionsIn(channel).has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]) ?? false;
+
+/**
+ * Narrows `channel` to a text or announcement channel that `me` can post to, or replies with the reason and returns `null`.
+ */
+export const resolvePostChannel = async (
+  interaction: Pick<ChatInputCommandInteraction, 'reply'>,
+  channel: GuildBasedChannel | APIInteractionDataResolvedChannel,
+  me: Nullable<GuildMember>,
+): Promise<TextChannel | NewsChannel | null> => {
+  if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
+    await interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
+    return null;
+  }
+  if (!canPostIn(me, channel)) {
+    await interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
+    return null;
+  }
+
+  return channel;
+};
