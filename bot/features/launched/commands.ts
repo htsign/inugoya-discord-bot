@@ -11,6 +11,7 @@ import { log } from '#lib/log.ts';
 import { DATETIME_FORMAT } from '#lib/util.ts';
 import type { Obj } from '#types';
 import type { ChatInputCommandCollection } from '#types/bot';
+import { canPostIn } from '../util.ts';
 import { db } from './db.ts';
 
 const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
@@ -41,8 +42,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
         await interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
         return;
       }
-      const permissions = bot.permissionsIn(channel);
-      if (!permissions.has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages])) {
+      if (!canPostIn(bot, channel)) {
         await interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
         return;
       }

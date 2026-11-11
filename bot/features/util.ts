@@ -2,7 +2,10 @@ import {
   type APIEmbed,
   type Attachment,
   EmbedBuilder,
+  type GuildChannelResolvable,
+  type GuildMember,
   type Message,
+  PermissionFlagsBits,
   type User,
 } from 'discord.js';
 import { getAverageColor as _getAverageColor } from 'fast-average-color-node';
@@ -147,3 +150,6 @@ export const messageToEmbeds = async (message: Message<boolean>, options: EmbedM
 
   return embeds;
 };
+
+export const canPostIn = (me: Nullable<GuildMember>, channel: GuildChannelResolvable): boolean =>
+  me?.permissionsIn(channel).has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]) ?? false;

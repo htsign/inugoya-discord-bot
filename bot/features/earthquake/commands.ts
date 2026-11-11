@@ -12,6 +12,7 @@ import { log } from '#lib/log.ts';
 import { DATETIME_FORMAT } from '#lib/util.ts';
 import type { Obj } from '#types';
 import type { ChatInputCommandCollection } from '#types/bot';
+import { canPostIn } from '../util.ts';
 import { db } from './db.ts';
 import {
   intensityFromNumber,
@@ -62,7 +63,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
         await interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
         return;
       }
-      if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
+      if (!canPostIn(interaction.guild?.members.me, channel)) {
         await interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
         return;
       }
@@ -177,7 +178,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
         await interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
         return;
       }
-      if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
+      if (!canPostIn(interaction.guild?.members.me, channel)) {
         await interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
         return;
       }
