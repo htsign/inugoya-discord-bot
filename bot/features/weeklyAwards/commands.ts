@@ -2,7 +2,6 @@ import {
   type APIEmbedField,
   ApplicationCommandOptionType,
   ApplicationCommandType,
-  BaseChannel,
   ChannelType,
   Colors,
   EmbedBuilder,
@@ -12,6 +11,7 @@ import { log } from '#lib/log.ts';
 import { DATETIME_FORMAT } from '#lib/util.ts';
 import type { Obj } from '#types';
 import type { ChatInputCommandCollection } from '#types/bot';
+import { resolvePostChannel } from '../util.ts';
 import { db } from './db.ts';
 import {
   startAward,
@@ -95,20 +95,15 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const hour = interaction.options.getInteger('hour') ?? DEFAULT_HOUR;
       const minute = interaction.options.getInteger('minute') ?? DEFAULT_MINUTE;
 
-      if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
-        await interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
-        return;
-      }
-      if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
-        await interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
-        return;
-      }
+      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me);
+      if (target == null) return;
+
       log('register weeklyAward:', interaction.user.username, guildName);
 
       const response = await interaction.deferReply();
 
       await Promise.all([
-        db.config.register(guildId, guildName, channel.id, channel.name, showsRankCount, minReacted),
+        db.config.register(guildId, guildName, target.id, target.name, showsRankCount, minReacted),
         db.times.set(guildId, weekday, hour, minute),
       ]);
       await startAward(guildId);
@@ -117,7 +112,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const minuteString = String(minute).padStart(2, '0');
       await response.edit([
         'リアクション大賞の巡回対象にこのサーバーを登録し、',
-        `週の報告を ${jpString(weekday)}の ${hourString}:${minuteString} に ${channel} で行うよう設定しました。`,
+        `週の報告を ${jpString(weekday)}の ${hourString}:${minuteString} に ${target} で行うよう設定しました。`,
       ].join(''));
     },
   },
@@ -230,20 +225,16 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
         await interaction.reply({ content: '指定されたチャンネルは見つかりません。', ephemeral: true });
         return;
       }
-      if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
-        await interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
-        return;
-      }
-      if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
-        await interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
-        return;
-      }
+
+      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me);
+      if (target == null) return;
+
       log('update weeklyAward:', user.username, guildName);
 
       const response = await interaction.deferReply();
 
       await Promise.all([
-        db.config.register(guildId, guildName, channel.id, channel.name, showsRankCount, minReacted),
+        db.config.register(guildId, guildName, target.id, target.name, showsRankCount, minReacted),
         db.times.set(guildId, weekday, hour, minute),
       ]);
       await stopAward(guildId);
@@ -252,7 +243,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const fields: APIEmbedField[] = [];
 
       if (isSet.channel) {
-        fields.push({ name: '報告チャンネル', value: `<#${channel.id}>` });
+        fields.push({ name: '報告チャンネル', value: `<#${target.id}>` });
       }
       if (isSet.weekday || isSet.hour || isSet.minute) {
         const hourString = String(hour).padStart(2, '0');
