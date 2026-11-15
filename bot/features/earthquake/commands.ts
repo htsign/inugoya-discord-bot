@@ -11,7 +11,10 @@ import { log } from '#lib/log.ts';
 import { DATETIME_FORMAT } from '#lib/util.ts';
 import type { Obj } from '#types';
 import type { ChatInputCommandCollection } from '#types/bot';
-import { resolvePostChannel } from '../util.ts';
+import {
+  fetchGuildChannelOrNull,
+  resolvePostChannel,
+} from '../util.ts';
 import { db } from './db.ts';
 import {
   intensityFromNumber,
@@ -150,7 +153,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
         return;
       }
 
-      const channel = interaction.options.getChannel('channel') ?? await guild.channels.fetch(configRecord.channelId);
+      const channel = interaction.options.getChannel('channel') ?? await fetchGuildChannelOrNull(guild, configRecord.channelId);
       const minIntensity = interaction.options.getInteger('minintensity') ?? configRecord.minIntensity;
       const alertThreshold = interaction.options.getInteger('alertthreshold') ?? configRecord.alertThreshold;
 

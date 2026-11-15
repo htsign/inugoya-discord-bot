@@ -5,7 +5,9 @@ import {
   BaseChannel,
   ChannelType,
   type ChatInputCommandInteraction,
+  DiscordAPIError,
   EmbedBuilder,
+  type Guild,
   type GuildBasedChannel,
   type GuildChannelResolvable,
   type GuildMember,
@@ -13,6 +15,8 @@ import {
   type NewsChannel,
   PermissionFlagsBits,
   type PermissionResolvable,
+  RESTJSONErrorCodes,
+  type Snowflake,
   type TextChannel,
   type User,
 } from 'discord.js';
@@ -157,6 +161,20 @@ export const messageToEmbeds = async (message: Message<boolean>, options: EmbedM
   }
 
   return embeds;
+};
+
+/**
+ * Fetches a channel of `guild`, resolving to `null` instead of rejecting when Discord reports it as an Unknown Channel (e.g. deleted).
+ */
+export const fetchGuildChannelOrNull = async (guild: Guild, channelId: Snowflake): Promise<GuildBasedChannel | null> => {
+  try {
+    return await guild.channels.fetch(channelId);
+  }
+  catch (e) {
+    if (e instanceof DiscordAPIError && e.code === RESTJSONErrorCodes.UnknownChannel) return null;
+
+    throw e;
+  }
 };
 
 export const canPostIn = (me: Nullable<GuildMember>, channel: GuildChannelResolvable, extra: PermissionResolvable = []): boolean =>
