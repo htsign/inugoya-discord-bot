@@ -1,7 +1,6 @@
 import {
   ApplicationCommandOptionType,
   ApplicationCommandType,
-  BaseChannel,
   ChannelType,
   Colors,
   EmbedBuilder,
@@ -11,6 +10,7 @@ import { log } from '#lib/log.ts';
 import { DATETIME_FORMAT } from '#lib/util.ts';
 import type { Obj } from '#types';
 import type { ChatInputCommandCollection } from '#types/bot';
+import { resolvePostChannel } from '../util.ts';
 import { db } from './db.ts';
 import { clearThrivingVoiceChannels } from './vcAttention.ts';
 
@@ -46,23 +46,17 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const channel = interaction.options.getChannel('channel', true);
       const threshold = interaction.options.getInteger('threshold') ?? DEFAULT_THRESHOLD;
 
-      if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
-        await interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
-        return;
-      }
-      const permissions = bot.permissionsIn(channel);
-      if (!permissions.has(PermissionFlagsBits.SendMessages) || !permissions.has(PermissionFlagsBits.MentionEveryone)) {
-        await interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
-        return;
-      }
+      const target = await resolvePostChannel(interaction, channel, bot, { extra: PermissionFlagsBits.MentionEveryone });
+      if (target == null) return;
+
       log('register vcAttention:', interaction.user.username, guildName);
 
       const response = await interaction.deferReply();
 
-      await db.register(guildId, guildName, channel.id, channel.name, threshold);
+      await db.register(guildId, guildName, target.id, target.name, threshold);
 
       await response.edit(
-        `VC盛り上がり通知の巡回対象にこのサーバーを登録し、VCの参加人数が ${threshold} 以上の場合に ${channel} に通知するよう設定しました。`,
+        `VC盛り上がり通知の巡回対象にこのサーバーを登録し、VCの参加人数が ${threshold} 以上の場合に ${target} に通知するよう設定しました。`,
       );
     },
   },
