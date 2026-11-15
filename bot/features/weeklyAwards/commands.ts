@@ -11,7 +11,10 @@ import { log } from '#lib/log.ts';
 import { DATETIME_FORMAT } from '#lib/util.ts';
 import type { Obj } from '#types';
 import type { ChatInputCommandCollection } from '#types/bot';
-import { resolvePostChannel } from '../util.ts';
+import {
+  fetchGuildChannelOrNull,
+  resolvePostChannel,
+} from '../util.ts';
 import { db } from './db.ts';
 import {
   startAward,
@@ -211,7 +214,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
         return;
       }
 
-      const channel = interaction.options.getChannel('channel') ?? await guild.channels.fetch(configRecord.channelId);
+      const channel = interaction.options.getChannel('channel') ?? await fetchGuildChannelOrNull(guild, configRecord.channelId);
       const showsRankCount = interaction.options.getInteger('showsrankcount') ?? configRecord.showsRankCount;
       const minReacted = interaction.options.getInteger('minreacted') ?? configRecord.minReacted;
       const weekday = fromNumber(interaction.options.getInteger('weekday') ?? timeRecord.weekday);
