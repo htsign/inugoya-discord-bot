@@ -341,7 +341,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const keyword = interaction.options.getString('keyword', true).trim();
 
       if (guildName == null) {
-        await interaction.reply({ content: 'キーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: 'キーワードを削除したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       if (db.keywords.get(guildId, keyword) == null) {
@@ -443,7 +443,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const reaction = interaction.options.getString('keyword', true).trim();
 
       if (guildName == null) {
-        await interaction.reply({ content: 'リアクションキーワードを追加したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: 'リアクションキーワードを削除したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       if (!isSingleEmoji(reaction)) {
