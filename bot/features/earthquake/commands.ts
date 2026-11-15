@@ -24,6 +24,15 @@ import {
 
 const DEFAULT_MIN_INTENSITY = 30;
 
+// on top of ViewChannel and SendMessages, the notice needs embeds, the map image, `@here` and the details thread
+const POST_PERMISSIONS = [
+  PermissionFlagsBits.EmbedLinks,
+  PermissionFlagsBits.AttachFiles,
+  PermissionFlagsBits.MentionEveryone,
+  PermissionFlagsBits.CreatePublicThreads,
+  PermissionFlagsBits.SendMessagesInThreads,
+] as const;
+
 const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
   register: {
     description: '初期登録をします。',
@@ -61,7 +70,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const minIntensity = interaction.options.getInteger('minintensity') ?? DEFAULT_MIN_INTENSITY;
       const alertThreshold = interaction.options.getInteger('alertthreshold') ?? DEFAULT_MIN_INTENSITY;
 
-      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me);
+      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me, { extra: POST_PERMISSIONS });
       if (target == null) return;
 
       try {
@@ -172,7 +181,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
         return;
       }
 
-      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me);
+      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me, { extra: POST_PERMISSIONS });
       if (target == null) return;
 
       try {
