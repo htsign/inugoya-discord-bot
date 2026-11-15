@@ -105,10 +105,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const hour = interaction.options.getInteger('hour') ?? DEFAULT_HOUR;
       const minute = interaction.options.getInteger('minute') ?? DEFAULT_MINUTE;
 
-      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me, {
-        extra: POST_PERMISSIONS,
-        message: 'このチャンネルには発言する権限か、スレッドを作成・発言する権限がありません。',
-      });
+      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me, { extra: POST_PERMISSIONS });
       if (target == null) return;
 
       log('register weeklyAward:', interaction.user.username, guildName);
@@ -239,10 +236,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
         return;
       }
 
-      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me, {
-        extra: POST_PERMISSIONS,
-        message: 'このチャンネルには発言する権限か、スレッドを作成・発言する権限がありません。',
-      });
+      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me, { extra: POST_PERMISSIONS });
       if (target == null) return;
 
       log('update weeklyAward:', user.username, guildName);

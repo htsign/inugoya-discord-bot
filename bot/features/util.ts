@@ -9,7 +9,6 @@ import {
   EmbedBuilder,
   type Guild,
   type GuildBasedChannel,
-  type GuildChannelResolvable,
   type GuildMember,
   type Message,
   type NewsChannel,
@@ -177,9 +176,6 @@ export const fetchGuildChannelOrNull = async (guild: Guild, channelId: Snowflake
   }
 };
 
-export const canPostIn = (me: Nullable<GuildMember>, channel: GuildChannelResolvable, extra: PermissionResolvable = []): boolean =>
-  me?.permissionsIn(channel).has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, extra]) ?? false;
-
 /**
  * Narrows `channel` to a text or announcement channel that `me` can post to (plus `extra`), or replies with the reason and returns `null`.
  */
@@ -187,14 +183,18 @@ export const resolvePostChannel = async (
   interaction: Pick<ChatInputCommandInteraction, 'reply'>,
   channel: GuildBasedChannel | APIInteractionDataResolvedChannel,
   me: Nullable<GuildMember>,
-  { extra, message = 'このチャンネルには発言する権限がありません。' }: { extra?: PermissionResolvable, message?: string } = {},
+  { extra = [] }: { extra?: PermissionResolvable } = {},
 ): Promise<TextChannel | NewsChannel | null> => {
   if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
     await interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
     return null;
   }
-  if (!canPostIn(me, channel, extra)) {
-    await interaction.reply({ content: message, ephemeral: true });
+
+  const missing = me?.permissionsIn(channel).missing([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, extra]);
+  if (missing == null || missing.length > 0) {
+    const detail = missing == null ? '' : ` (不足: ${missing.join(', ')})`;
+
+    await interaction.reply({ content: `このチャンネルには発言する権限がありません。${detail}`, ephemeral: true });
     return null;
   }
 
