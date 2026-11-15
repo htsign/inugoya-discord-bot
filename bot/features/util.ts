@@ -31,8 +31,7 @@ import type { EmbedMessageOptions } from '#types/bot';
 
 export const fetchMessageByIds = async (guildId: string, channelId: string, messageId: string): Promise<Message<true> | null> => {
   try {
-    const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
-    const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
+    const { channel } = await fetchGuildChannel(guildId, channelId);
 
     if (channel?.isTextBased() && !channel.isVoiceBased()) {
       return channel.messages.cache.get(messageId) ?? await channel.messages.fetch(messageId);
