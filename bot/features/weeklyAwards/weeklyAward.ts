@@ -6,7 +6,6 @@ import {
   type Message,
 } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
-import client from '#client';
 import dayjs from '#lib/dayjsSetup.ts';
 import {
   log,
@@ -18,6 +17,7 @@ import type {
   WeeklyAwardRecord,
 } from '#types/bot/features/weeklyAwards';
 import {
+  fetchGuildChannel,
   fetchMessageByIds,
   messageToEmbeds,
 } from '../util.ts';
@@ -125,8 +125,7 @@ const tick = async (
     // run again almost next week.
     scheduleNext(86400 * 1000 * 6.9);
 
-    const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
-    const channel = guild.channels?.cache?.find(channel => channel.id === channelId);
+    const { channel } = await fetchGuildChannel(guildId, channelId);
 
     if (channel?.type === ChannelType.GuildText || channel?.type === ChannelType.GuildAnnouncement) {
       // remove messages sent over a week ago
