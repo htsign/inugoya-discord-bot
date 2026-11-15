@@ -6,12 +6,12 @@ import {
   type Awaitable,
   Colors,
   EmbedBuilder,
+  type GuildBasedChannel,
   type Message,
   type MessageCreateOptions,
   ThreadAutoArchiveDuration,
 } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
-import client from '#client';
 import dayjs from '#lib/dayjsSetup.ts';
 import {
   log,
@@ -34,6 +34,7 @@ import type {
   UserQuakeEvaluation,
   WebSocketResponse,
 } from '#types/bot/features/earthquake';
+import { fetchGuildChannel } from '../util.ts';
 import { db } from './db.ts';
 import { geocode } from './geocoding.ts';
 
@@ -210,6 +211,25 @@ const sendWithDiagnostics = async <T>(
   }
 };
 
+const fetchRegisteredChannel = async (
+  caller: string,
+  guildId: string,
+  guildName: string,
+  channelId: string,
+): Promise<GuildBasedChannel | null> => {
+  try {
+    const { channel } = await fetchGuildChannel(guildId, channelId);
+    return channel;
+  }
+  catch (e) {
+    if (e instanceof Error) {
+      logError(e, `earthquake#${caller}:`, `failed to fetch the channel which id is ${channelId} of ${guildName} (guild id: ${guildId})`);
+      return null;
+    }
+    throw e;
+  }
+};
+
 const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
   const { points = [] } = response;
 
@@ -268,8 +288,7 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
   for (const { guildId, guildName, channelId, minIntensity, alertThreshold } of records) {
     if (maxScale < minIntensity) continue;
 
-    const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
-    const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
+    const channel = await fetchRegisteredChannel(resolveJMAQuake.name, guildId, guildName, channelId);
 
     if (channel?.isTextBased()) {
       const tsunamiToMessage = (tsunami: DomesticTsunami | undefined): [string] | [] => {
@@ -500,8 +519,7 @@ const resolveEEW = async (response: EEW): Promise<void> => {
   for (const { guildId, guildName, channelId, channelName, minIntensity, alertThreshold } of records) {
     if (maxIntensity < minIntensity) continue;
 
-    const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
-    const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
+    const channel = await fetchRegisteredChannel(resolveEEW.name, guildId, guildName, channelId);
 
     if (channel?.isTextBased()) {
       const embed = new EmbedBuilder()

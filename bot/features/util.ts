@@ -163,6 +163,18 @@ export const messageToEmbeds = async (message: Message<boolean>, options: EmbedM
 };
 
 /**
+ * Fetches `{ guild, channel }` by the ids, preferring the caches; rejects when either cannot be fetched.
+ */
+export const fetchGuildChannel = async (
+  guildId: Snowflake,
+  channelId: Snowflake,
+): Promise<{ guild: Guild, channel: GuildBasedChannel | null }> => {
+  const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
+  const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
+  return { guild, channel };
+};
+
+/**
  * Fetches a channel of `guild`, resolving to `null` instead of rejecting when Discord reports it as an Unknown Channel (e.g. deleted).
  */
 export const fetchGuildChannelOrNull = async (guild: Guild, channelId: Snowflake): Promise<GuildBasedChannel | null> => {
