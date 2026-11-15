@@ -6,6 +6,7 @@ import {
   type Awaitable,
   Colors,
   EmbedBuilder,
+  Events,
   type GuildBasedChannel,
   type Message,
   type MessageCreateOptions,
@@ -21,6 +22,7 @@ import {
   debounce,
   getEnv,
 } from '#lib/util.ts';
+import { addHandler } from '#listeners';
 import type {
   Area,
   AreaPeers,
@@ -104,6 +106,10 @@ connectWebSocket(ENDPOINT, ({ data }) => {
     case 9611:
       return resolveUserQuakeEvaluation(response);
   }
+});
+
+addHandler(Events.GuildDelete, async guild => {
+  await db.unregister(guild.id);
 });
 
 export const intensityFromNumber = (
