@@ -31,6 +31,13 @@ const DEFAULT_WEEKDAY = SUNDAY;
 const DEFAULT_HOUR = 12;
 const DEFAULT_MINUTE = 0;
 
+// on top of ViewChannel and SendMessages, the report needs embeds and the thread of the 2nd and lower ranks
+const POST_PERMISSIONS = [
+  PermissionFlagsBits.EmbedLinks,
+  PermissionFlagsBits.CreatePublicThreads,
+  PermissionFlagsBits.SendMessagesInThreads,
+] as const;
+
 const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
   register: {
     description: '初期登録をします。',
@@ -95,7 +102,10 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const hour = interaction.options.getInteger('hour') ?? DEFAULT_HOUR;
       const minute = interaction.options.getInteger('minute') ?? DEFAULT_MINUTE;
 
-      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me);
+      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me, {
+        extra: POST_PERMISSIONS,
+        message: 'このチャンネルには発言する権限か、スレッドを作成・発言する権限がありません。',
+      });
       if (target == null) return;
 
       log('register weeklyAward:', interaction.user.username, guildName);
@@ -226,7 +236,10 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
         return;
       }
 
-      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me);
+      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me, {
+        extra: POST_PERMISSIONS,
+        message: 'このチャンネルには発言する権限か、スレッドを作成・発言する権限がありません。',
+      });
       if (target == null) return;
 
       log('update weeklyAward:', user.username, guildName);
