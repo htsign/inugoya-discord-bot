@@ -3,6 +3,7 @@ import {
   type APIEmbed,
   ChannelType,
   Events,
+  type GuildBasedChannel,
   type Message,
 } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
@@ -20,6 +21,7 @@ import {
   fetchGuildChannel,
   fetchMessageByIds,
   messageToEmbeds,
+  unregisterIfUnreachable,
 } from '../util.ts';
 import { db } from './db.ts';
 import type { Weekday } from './weekday.ts';
@@ -37,6 +39,15 @@ const catchTickError = (guildName: string) => (e: unknown): void => {
   throw e;
 };
 
+const unregisterAward = async (guildId: string): Promise<void> => {
+  await stopAward(guildId);
+  await db.config.unregister(guildId);
+  await db.times.delete(guildId);
+};
+
+const unregisterAwardIfUnreachable = (error: Error, guildId: string, channelId: string): Promise<boolean> =>
+  unregisterIfUnreachable(error, `weeklyAward#${tick.name}:`, guildId, channelId, () => unregisterAward(guildId));
+
 addHandler(Events.ClientReady, async () => {
   const starting = db.config.records.map(({ guildId, guildName }) => startAward(guildId).catch(catchTickError(guildName)));
 
@@ -45,12 +56,8 @@ addHandler(Events.ClientReady, async () => {
   await Promise.all(starting);
 });
 addHandler(Events.GuildDelete, async guild => {
-  await stopAward(guild.id);
-  await Promise.all([
-    Array.fromAsync(db.deleteOutdated(guild.id, 0)),
-    db.times.delete(guild.id),
-    db.config.unregister(guild.id),
-  ]);
+  await unregisterAward(guild.id);
+  await Array.fromAsync(db.deleteOutdated(guild.id, 0));
 });
 addHandler(Events.MessageReactionAdd, async (reaction, user) => {
   let message: Message<boolean>;
@@ -125,7 +132,15 @@ const tick = async (
     // run again almost next week.
     scheduleNext(86400 * 1000 * 6.9);
 
-    const { channel } = await fetchGuildChannel(guildId, channelId);
+    let channel: GuildBasedChannel | null;
+    try {
+      channel = (await fetchGuildChannel(guildId, channelId)).channel;
+    }
+    catch (e) {
+      if (e instanceof Error && await unregisterAwardIfUnreachable(e, guildId, channelId)) return;
+
+      throw e;
+    }
 
     if (channel?.type === ChannelType.GuildText || channel?.type === ChannelType.GuildAnnouncement) {
       // remove messages sent over a week ago
@@ -207,6 +222,8 @@ const tick = async (
           }
           catch (e) {
             if (e instanceof Error) {
+              if (await unregisterAwardIfUnreachable(e, guildId, channelId)) return;
+
               logError(e, `weeklyAward#${tick.name}:`, `failed to send to ${guildName}/${channelName}`);
               return;
             }
@@ -259,6 +276,8 @@ const tick = async (
         }
         catch (e) {
           if (e instanceof Error) {
+            if (await unregisterAwardIfUnreachable(e, guildId, channelId)) return;
+
             logError(e, `weeklyAward#${tick.name}:`, `failed to send to ${guildName}/${channelName}`);
             return;
           }
