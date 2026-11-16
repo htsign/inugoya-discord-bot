@@ -96,6 +96,7 @@ addHandler(Events.MessageReactionRemove, async (reaction, user) => {
   const { author, reactions } = message;
 
   if (author.bot || !message.inGuild()) return;
+  if (db.config.get(message.guildId) == null) return;
 
   const reactionsCount = reactions.cache.reduce((acc, reaction) => acc + reaction.count, 0);
   if (reactionsCount > 0) {
