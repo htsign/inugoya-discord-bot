@@ -48,3 +48,6 @@ addHandler(Events.ClientReady, async client => {
     }
   }
 });
+addHandler(Events.GuildDelete, async guild => {
+  await db.unregister(guild.id);
+});
