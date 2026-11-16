@@ -12,6 +12,7 @@ import {
   logError,
 } from '#lib/log.ts';
 import { addHandler } from '#listeners';
+import { unregisterIfUnreachable } from '../util.ts';
 import { db } from './db.ts';
 
 const thrivingVoiceChannels = new Map<`${Snowflake},${Snowflake}`, symbol>();
@@ -24,15 +25,19 @@ export const clearThrivingVoiceChannels = (guildId: Snowflake): void => {
   }
 };
 
+const unregisterVcAttention = async (guildId: Snowflake): Promise<void> => {
+  await db.unregister(guildId);
+  clearThrivingVoiceChannels(guildId);
+};
+
 addHandler(Events.GuildDelete, async guild => {
-  await db.unregister(guild.id);
-  clearThrivingVoiceChannels(guild.id);
+  await unregisterVcAttention(guild.id);
 });
 addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
   const configRecord = db.get(newState.guild.id);
   if (configRecord == null) return;
 
-  const { guildName, channelId, channelName, threshold } = configRecord;
+  const { guildId, guildName, channelId, channelName, threshold } = configRecord;
 
   const { channelId: oldChannelId } = oldState;
   const { channelId: newChannelId } = newState;
@@ -86,6 +91,8 @@ addHandler(Events.VoiceStateUpdate, async (oldState, newState) => {
             }
             catch (e) {
               if (e instanceof Error) {
+                if (await unregisterIfUnreachable(e, 'vcAttention:', guildId, channelId, () => unregisterVcAttention(guildId))) return;
+
                 logError(e, 'vcAttention:', `failed to send message to ${guildName}/${channelName}`);
                 return;
               }
