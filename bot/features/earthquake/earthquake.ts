@@ -36,7 +36,10 @@ import type {
   UserQuakeEvaluation,
   WebSocketResponse,
 } from '#types/bot/features/earthquake';
-import { fetchGuildChannel } from '../util.ts';
+import {
+  fetchGuildChannel,
+  unregisterIfUnreachable,
+} from '../util.ts';
 import { db } from './db.ts';
 import { geocode } from './geocoding.ts';
 
@@ -217,6 +220,9 @@ const sendWithDiagnostics = async <T>(
   }
 };
 
+const unregisterEarthquakeIfUnreachable = (error: Error, caller: string, guildId: string, channelId: string): Promise<boolean> =>
+  unregisterIfUnreachable(error, `earthquake#${caller}:`, guildId, channelId, () => db.unregister(guildId));
+
 const fetchRegisteredChannel = async (
   caller: string,
   guildId: string,
@@ -229,6 +235,8 @@ const fetchRegisteredChannel = async (
   }
   catch (e) {
     if (e instanceof Error) {
+      if (await unregisterEarthquakeIfUnreachable(e, caller, guildId, channelId)) return null;
+
       logError(e, `earthquake#${caller}:`, `failed to fetch the channel which id is ${channelId} of ${guildName} (guild id: ${guildId})`);
       return null;
     }
@@ -384,6 +392,8 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
       }
       catch (e) {
         if (e instanceof Error) {
+          if (await unregisterEarthquakeIfUnreachable(e, resolveJMAQuake.name, guildId, channelId)) continue;
+
           logError(e, `earthquake#${resolveJMAQuake.name}:`, `failed to send to ${guildName}/${channel.name}`);
           continue;
         }
@@ -560,6 +570,8 @@ const resolveEEW = async (response: EEW): Promise<void> => {
       }
       catch (e) {
         if (e instanceof Error) {
+          if (await unregisterEarthquakeIfUnreachable(e, resolveEEW.name, guildId, channelId)) continue;
+
           logError(e, `earthquake#${resolveEEW.name}:`, `failed to send to ${guildName}/${channelName}`);
           continue;
         }
