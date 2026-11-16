@@ -187,6 +187,47 @@ export const fetchGuildChannelOrNull = async (guild: Guild, channelId: Snowflake
   }
 };
 
+const UNREACHABLE_CHANNEL_ERROR_CODES: ReadonlySet<DiscordAPIError['code']> = new Set([
+  RESTJSONErrorCodes.UnknownChannel,
+  RESTJSONErrorCodes.UnknownGuild,
+  RESTJSONErrorCodes.MissingAccess,
+]);
+
+/**
+ * Whether `e` is a Discord API error saying the channel is gone or inaccessible (Unknown Channel / Unknown Guild / Missing Access).
+ */
+export const isUnreachableChannelError = (e: unknown): boolean =>
+  e instanceof DiscordAPIError && UNREACHABLE_CHANNEL_ERROR_CODES.has(e.code);
+
+/**
+ * Calls `unregister` and resolves to `true` when `error` is an unreachable-channel error, unless the guild is unavailable (then `false`).
+ */
+export const unregisterIfUnreachable = async (
+  error: Error,
+  prefix: string,
+  guildId: Snowflake,
+  channelId: Snowflake,
+  unregister: () => Promise<void>,
+): Promise<boolean> => {
+  if (!isUnreachableChannelError(error)) return false;
+
+  if (client.guilds.cache.get(guildId)?.available === false) {
+    log(prefix, `kept the registration of the guild which id is ${guildId} because the guild is unavailable (${error.name})`);
+    return false;
+  }
+
+  try {
+    await unregister();
+    log(prefix, `unregistered the guild which id is ${guildId} because its channel ${channelId} is unreachable (${error.name})`);
+  }
+  catch (unregisterError) {
+    if (!(unregisterError instanceof Error)) throw unregisterError;
+
+    logError(unregisterError, prefix, `failed to unregister the guild which id is ${guildId} (channel ${channelId}: ${error.name})`);
+  }
+  return true;
+};
+
 /**
  * Narrows `channel` to a text or announcement channel that `me` can post to (plus `extra`), or replies with the reason and returns `null`.
  */

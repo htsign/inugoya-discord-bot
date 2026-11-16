@@ -10,6 +10,7 @@ import {
   logError,
 } from '#lib/log.ts';
 import { addHandler } from '#listeners';
+import { unregisterIfUnreachable } from '../util.ts';
 import { db } from './db.ts';
 
 addHandler(Events.ClientReady, async client => {
@@ -33,6 +34,8 @@ addHandler(Events.ClientReady, async client => {
     }
     catch (e) {
       if (e instanceof Error) {
+        if (await unregisterIfUnreachable(e, 'launched:', guildId, channelId, () => db.unregister(guildId))) continue;
+
         if (channel == null) {
           logError(e, 'launched:', `failed to fetch the channel which id is ${channelId} (guild id: ${guildId})`);
         }
