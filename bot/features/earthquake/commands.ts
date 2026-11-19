@@ -2,7 +2,6 @@ import {
   type APIEmbedField,
   ApplicationCommandOptionType,
   ApplicationCommandType,
-  BaseChannel,
   ChannelType,
   Colors,
   EmbedBuilder,
@@ -12,6 +11,10 @@ import { log } from '#lib/log.ts';
 import { DATETIME_FORMAT } from '#lib/util.ts';
 import type { Obj } from '#types';
 import type { ChatInputCommandCollection } from '#types/bot';
+import {
+  fetchGuildChannelOrNull,
+  resolvePostChannel,
+} from '../util.ts';
 import { db } from './db.ts';
 import {
   intensityFromNumber,
@@ -20,6 +23,15 @@ import {
 } from './earthquake.ts';
 
 const DEFAULT_MIN_INTENSITY = 30;
+
+// on top of ViewChannel and SendMessages, the notice needs embeds, the map image, `@here` and the details thread
+const POST_PERMISSIONS = [
+  PermissionFlagsBits.EmbedLinks,
+  PermissionFlagsBits.AttachFiles,
+  PermissionFlagsBits.MentionEveryone,
+  PermissionFlagsBits.CreatePublicThreads,
+  PermissionFlagsBits.SendMessagesInThreads,
+] as const;
 
 const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
   register: {
@@ -50,7 +62,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = interaction.guild?.name;
 
       if (guildName == null) {
-        interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
 
@@ -58,14 +70,9 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const minIntensity = interaction.options.getInteger('minintensity') ?? DEFAULT_MIN_INTENSITY;
       const alertThreshold = interaction.options.getInteger('alertthreshold') ?? DEFAULT_MIN_INTENSITY;
 
-      if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
-        interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
-        return;
-      }
-      if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
-        interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
-        return;
-      }
+      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me, { extra: POST_PERMISSIONS });
+      if (target == null) return;
+
       try {
         if (minIntensity < 10 || 70 < minIntensity) {
           throw new UnexpectedIntensityError(minIntensity);
@@ -74,7 +81,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       }
       catch (e) {
         if (e instanceof UnexpectedIntensityError) {
-          interaction.reply({ content: `minintensity に不正な値が与えられました。 [${e.intensity}]`, ephemeral: true });
+          await interaction.reply({ content: `minintensity に不正な値が与えられました。 [${e.intensity}]`, ephemeral: true });
           return;
         }
       }
@@ -86,7 +93,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       }
       catch (e) {
         if (e instanceof UnexpectedIntensityError) {
-          interaction.reply({ content: `alertthreshold に不正な値が与えられました。 [${e.intensity}]`, ephemeral: true });
+          await interaction.reply({ content: `alertthreshold に不正な値が与えられました。 [${e.intensity}]`, ephemeral: true });
           return;
         }
       }
@@ -94,9 +101,9 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       const response = await interaction.deferReply();
 
-      await db.register(guildId, guildName, channel.id, channel.name, minIntensity, alertThreshold);
+      await db.register(guildId, guildName, target.id, target.name, minIntensity, alertThreshold);
 
-      response.edit(`${intensityFromNumber(minIntensity)}以上の地震速報をこのサーバーの ${channel} に通知するよう設定しました。`);
+      await response.edit(`${intensityFromNumber(minIntensity)}以上の地震速報をこのサーバーの ${target} に通知するよう設定しました。`);
     },
   },
   unregister: {
@@ -106,7 +113,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = interaction.guild?.name;
 
       if (guildName == null) {
-        interaction.reply({ content: '登録解除したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '登録解除したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       log('unregister earthquake:', interaction.user.username, guildName);
@@ -115,7 +122,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       await db.unregister(guildId);
 
-      response.edit('地震速報の通知対象からこのサーバーを削除しました。');
+      await response.edit('地震速報の通知対象からこのサーバーを削除しました。');
     },
   },
   update: {
@@ -145,17 +152,17 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = guild?.name;
 
       if (guild == null || guildName == null) {
-        interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
 
       const configRecord = db.get(guildId);
       if (configRecord == null) {
-        interaction.reply({ content: 'このサーバーはまだ登録されていません。', ephemeral: true });
+        await interaction.reply({ content: 'このサーバーはまだ登録されていません。', ephemeral: true });
         return;
       }
 
-      const channel = interaction.options.getChannel('channel') ?? await guild.channels.fetch(configRecord.channelId);
+      const channel = interaction.options.getChannel('channel') ?? await fetchGuildChannelOrNull(guild, configRecord.channelId);
       const minIntensity = interaction.options.getInteger('minintensity') ?? configRecord.minIntensity;
       const alertThreshold = interaction.options.getInteger('alertthreshold') ?? configRecord.alertThreshold;
 
@@ -166,21 +173,17 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       };
 
       if (Object.values(isSet).every(x => !x)) {
-        interaction.reply({ content: '最低一つは設定してください。', ephemeral: true });
+        await interaction.reply({ content: '最低一つは設定してください。', ephemeral: true });
         return;
       }
       if (channel == null) {
-        interaction.reply({ content: '指定されたチャンネルは見つかりません。', ephemeral: true });
+        await interaction.reply({ content: '指定されたチャンネルは見つかりません。', ephemeral: true });
         return;
       }
-      if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
-        interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
-        return;
-      }
-      if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
-        interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
-        return;
-      }
+
+      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me, { extra: POST_PERMISSIONS });
+      if (target == null) return;
+
       try {
         if (minIntensity < 10 || 70 < minIntensity) {
           throw new UnexpectedIntensityError(minIntensity);
@@ -189,7 +192,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       }
       catch (e) {
         if (e instanceof UnexpectedIntensityError) {
-          interaction.reply({ content: `minintensity に不正な値が与えられました。 [${e.intensity}]`, ephemeral: true });
+          await interaction.reply({ content: `minintensity に不正な値が与えられました。 [${e.intensity}]`, ephemeral: true });
           return;
         }
       }
@@ -201,7 +204,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       }
       catch (e) {
         if (e instanceof UnexpectedIntensityError) {
-          interaction.reply({ content: `alertthreshold に不正な値が与えられました。 [${e.intensity}]`, ephemeral: true });
+          await interaction.reply({ content: `alertthreshold に不正な値が与えられました。 [${e.intensity}]`, ephemeral: true });
           return;
         }
       }
@@ -209,12 +212,12 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       const response = await interaction.deferReply();
 
-      await db.register(guildId, guildName, channel.id, channel.name, minIntensity, alertThreshold);
+      await db.register(guildId, guildName, target.id, target.name, minIntensity, alertThreshold);
 
       const fields: APIEmbedField[] = [];
 
       if (isSet.channel) {
-        fields.push({ name: '通知チャンネル', value: `<#${channel.id}>` });
+        fields.push({ name: '通知チャンネル', value: `<#${target.id}>` });
       }
       if (isSet.minIntensity) {
         fields.push({ name: '報告する最低の震度', value: intensityFromNumber(minIntensity) });
@@ -223,7 +226,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
         fields.push({ name: '\\@here をつける最低の震度', value: intensityFromNumber(alertThreshold) });
       }
 
-      response.edit({ content: '地震速報通知の設定を変更しました。', embeds: [{ fields }] });
+      await response.edit({ content: '地震速報通知の設定を変更しました。', embeds: [{ fields }] });
     },
   },
   status: {
@@ -233,7 +236,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = guild?.name;
 
       if (guildName == null) {
-        interaction.reply({ content: '確認したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '確認したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       log('peek status earthquake:', interaction.user.username, guildName);
@@ -259,7 +262,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       else {
         embed.setDescription('未登録').setColor(Colors.Red);
       }
-      response.edit({ embeds: [embed] });
+      await response.edit({ embeds: [embed] });
     },
   },
 };
@@ -277,13 +280,13 @@ export const commands: ChatInputCommandCollection<void, Obj> = {
       const subCommandName = interaction.options.getSubcommand(true);
 
       if (!interaction.inGuild()) {
-        interaction.reply({ content: 'サーバー内で実行してください。', ephemeral: true });
+        await interaction.reply({ content: 'サーバー内で実行してください。', ephemeral: true });
         return;
       }
 
       const subCommand = subCommands[subCommandName];
       if (subCommand != null) {
-        subCommand.func(interaction);
+        return subCommand.func(interaction);
       }
     },
     defaultMemberPermissions: PermissionFlagsBits.CreateInstantInvite | PermissionFlagsBits.KickMembers,

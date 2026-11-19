@@ -89,10 +89,12 @@ export const removeUnregisteredKeywords = async (guild: Guild): Promise<void> =>
 addHandler(Events.ClientReady, () => {
   log('random generator initialized by', mtSeed.format('YYYY/MM/DD HH:mm:ss'), mtSeed.unix());
 });
-addHandler(Events.GuildDelete, guild => {
-  db.keywords.deleteAll(guild.id);
-  db.reactionKeywords.deleteAll(guild.id);
-  db.unregister(guild.id);
+addHandler(Events.GuildDelete, async guild => {
+  await Promise.all([
+    db.keywords.deleteAll(guild.id),
+    db.reactionKeywords.deleteAll(guild.id),
+    db.unregister(guild.id),
+  ]);
 });
 addHandler(Events.MessageCreate, message => {
   const { content, author, guild, channel } = message;

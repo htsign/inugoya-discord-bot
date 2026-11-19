@@ -1,7 +1,6 @@
 import {
   ApplicationCommandOptionType,
   ApplicationCommandType,
-  BaseChannel,
   ChannelType,
   Colors,
   EmbedBuilder,
@@ -11,6 +10,7 @@ import { log } from '#lib/log.ts';
 import { DATETIME_FORMAT } from '#lib/util.ts';
 import type { Obj } from '#types';
 import type { ChatInputCommandCollection } from '#types/bot';
+import { resolvePostChannel } from '../util.ts';
 import { db } from './db.ts';
 
 const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
@@ -31,28 +31,22 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const bot = guild?.members.me;
 
       if (guild == null || guildName == null || bot == null) {
-        interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
 
       const channel = interaction.options.getChannel('channel', true);
 
-      if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
-        interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
-        return;
-      }
-      const permissions = bot.permissionsIn(channel);
-      if (!permissions.has(PermissionFlagsBits.SendMessages) || !permissions.has(PermissionFlagsBits.MentionEveryone)) {
-        interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
-        return;
-      }
+      const target = await resolvePostChannel(interaction, channel, bot);
+      if (target == null) return;
+
       log('register launched:', interaction.user.username, guildName);
 
       const response = await interaction.deferReply();
 
-      await db.register(guildId, guildName, channel.id, channel.name);
+      await db.register(guildId, guildName, target.id, target.name);
 
-      response.edit(`このサーバーを登録し、${channel} に通知するよう設定しました。`);
+      await response.edit(`このサーバーを登録し、${target} に通知するよう設定しました。`);
     },
   },
   unregister: {
@@ -62,7 +56,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = interaction.guild?.name;
 
       if (guildName == null) {
-        interaction.reply({ content: '登録解除したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '登録解除したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       log('unregister launched:', interaction.user.username, guildName);
@@ -71,7 +65,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       await db.unregister(guildId);
 
-      response.edit('このサーバーの登録を解除しました。');
+      await response.edit('このサーバーの登録を解除しました。');
     },
   },
   status: {
@@ -81,7 +75,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = interaction.guild?.name;
 
       if (guildName == null) {
-        interaction.reply({ content: '確認したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '確認したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       log('peek status launched:', interaction.user.username, guildName);
@@ -103,7 +97,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       else {
         embed.setDescription('未登録').setColor(Colors.Red);
       }
-      response.edit({ embeds: [embed] });
+      await response.edit({ embeds: [embed] });
     },
   },
 };
@@ -121,13 +115,13 @@ export const commands: ChatInputCommandCollection<void, Obj> = {
       const subCommandName = interaction.options.getSubcommand(true);
 
       if (!interaction.inGuild()) {
-        interaction.reply({ content: 'サーバー内で実行してください。', ephemeral: true });
+        await interaction.reply({ content: 'サーバー内で実行してください。', ephemeral: true });
         return;
       }
 
       const subCommand = subCommands[subCommandName];
       if (subCommand != null) {
-        subCommand.func(interaction);
+        return subCommand.func(interaction);
       }
     },
     defaultMemberPermissions: PermissionFlagsBits.CreateInstantInvite | PermissionFlagsBits.KickMembers,

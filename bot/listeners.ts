@@ -4,6 +4,7 @@ import {
   type ClientEvents,
   Events,
 } from 'discord.js';
+import { logError } from '#lib/log.ts';
 
 // biome-ignore lint/suspicious/noExplicitAny: there's no way to type ClientEvents[K] properly
 const listeners = new Map<keyof ClientEvents, Set<(...args: any) => Awaitable<void>>>();
@@ -21,7 +22,13 @@ export const init = (client: Client<true>) => {
 
     hook(event, (...args) => {
       for (const handler of handlers) {
-        handler(...args);
+        Promise.try(handler, ...args).catch((e: unknown) => {
+          if (e instanceof Error) {
+            logError(e, `listeners[${event}]:`, 'handler failed');
+            return;
+          }
+          throw e;
+        });
       }
     });
   }

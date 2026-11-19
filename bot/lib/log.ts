@@ -46,7 +46,14 @@ export function log(...values: unknown[]): Promise<void> {
     ...values.map(formatter),
   ];
 
-  const wp = writeFile(`logs/${now.format('YYYY-MM-DD')}.log`, `${strings.join(' ')}\n`, { encoding: 'utf-8', flag: 'a' });
+  const path = `logs/${now.format('YYYY-MM-DD')}.log`;
+  const wp = writeFile(path, `${strings.join(' ')}\n`, { encoding: 'utf-8', flag: 'a' }).catch((e: unknown) => {
+    if (e instanceof Error) {
+      console.error(`failed to write log to ${path}:`, e);
+      return;
+    }
+    throw e;
+  });
   console.log(...strings);
 
   return wp;

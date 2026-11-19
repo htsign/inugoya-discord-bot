@@ -3,14 +3,16 @@ import { URL } from 'node:url';
 import {
   type AnyThreadChannel,
   AttachmentBuilder,
+  type Awaitable,
   Colors,
   EmbedBuilder,
+  Events,
+  type GuildBasedChannel,
   type Message,
   type MessageCreateOptions,
   ThreadAutoArchiveDuration,
 } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
-import client from '#client';
 import dayjs from '#lib/dayjsSetup.ts';
 import {
   log,
@@ -20,6 +22,7 @@ import {
   debounce,
   getEnv,
 } from '#lib/util.ts';
+import { addHandler } from '#listeners';
 import type {
   Area,
   AreaPeers,
@@ -33,20 +36,30 @@ import type {
   UserQuakeEvaluation,
   WebSocketResponse,
 } from '#types/bot/features/earthquake';
+import {
+  fetchGuildChannel,
+  unregisterIfUnreachable,
+} from '../util.ts';
 import { db } from './db.ts';
 import { geocode } from './geocoding.ts';
 
 const debug = false;
 const ENDPOINT = `wss://${debug ? 'api-realtime-sandbox' : 'api'}.p2pquake.net/v2/ws`;
 
-const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => void): void => {
+const connectWebSocket = (address: string, onMessage: (event: MessageEvent) => Awaitable<void>): void => {
   try {
     const ws = new WebSocket(address);
 
     ws.onopen = () => log('earthquake: connected');
     ws.onmessage = event => {
       try {
-        onMessage(event);
+        Promise.resolve(onMessage(event)).catch((e: unknown) => {
+          if (e instanceof Error) {
+            logError(e, 'earthquake#onmessage:', 'handler failed');
+            return;
+          }
+          throw e;
+        });
       }
       catch (error) {
         log('earthquake#onmessage: unhandled error', error);
@@ -96,6 +109,10 @@ connectWebSocket(ENDPOINT, ({ data }) => {
     case 9611:
       return resolveUserQuakeEvaluation(response);
   }
+});
+
+addHandler(Events.GuildDelete, async guild => {
+  await db.unregister(guild.id);
 });
 
 export const intensityFromNumber = (
@@ -203,6 +220,30 @@ const sendWithDiagnostics = async <T>(
   }
 };
 
+const unregisterEarthquakeIfUnreachable = (error: Error, caller: string, guildId: string, channelId: string): Promise<boolean> =>
+  unregisterIfUnreachable(error, `earthquake#${caller}:`, guildId, channelId, () => db.unregister(guildId));
+
+const fetchRegisteredChannel = async (
+  caller: string,
+  guildId: string,
+  guildName: string,
+  channelId: string,
+): Promise<GuildBasedChannel | null> => {
+  try {
+    const { channel } = await fetchGuildChannel(guildId, channelId);
+    return channel;
+  }
+  catch (e) {
+    if (e instanceof Error) {
+      if (await unregisterEarthquakeIfUnreachable(e, caller, guildId, channelId)) return null;
+
+      logError(e, `earthquake#${caller}:`, `failed to fetch the channel which id is ${channelId} of ${guildName} (guild id: ${guildId})`);
+      return null;
+    }
+    throw e;
+  }
+};
+
 const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
   const { points = [] } = response;
 
@@ -261,8 +302,7 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
   for (const { guildId, guildName, channelId, minIntensity, alertThreshold } of records) {
     if (maxScale < minIntensity) continue;
 
-    const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
-    const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
+    const channel = await fetchRegisteredChannel(resolveJMAQuake.name, guildId, guildName, channelId);
 
     if (channel?.isTextBased()) {
       const tsunamiToMessage = (tsunami: DomesticTsunami | undefined): [string] | [] => {
@@ -352,6 +392,8 @@ const resolveJMAQuake = async (response: JMAQuake): Promise<void> => {
       }
       catch (e) {
         if (e instanceof Error) {
+          if (await unregisterEarthquakeIfUnreachable(e, resolveJMAQuake.name, guildId, channelId)) continue;
+
           logError(e, `earthquake#${resolveJMAQuake.name}:`, `failed to send to ${guildName}/${channel.name}`);
           continue;
         }
@@ -493,8 +535,7 @@ const resolveEEW = async (response: EEW): Promise<void> => {
   for (const { guildId, guildName, channelId, channelName, minIntensity, alertThreshold } of records) {
     if (maxIntensity < minIntensity) continue;
 
-    const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
-    const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
+    const channel = await fetchRegisteredChannel(resolveEEW.name, guildId, guildName, channelId);
 
     if (channel?.isTextBased()) {
       const embed = new EmbedBuilder()
@@ -529,6 +570,8 @@ const resolveEEW = async (response: EEW): Promise<void> => {
       }
       catch (e) {
         if (e instanceof Error) {
+          if (await unregisterEarthquakeIfUnreachable(e, resolveEEW.name, guildId, channelId)) continue;
+
           logError(e, `earthquake#${resolveEEW.name}:`, `failed to send to ${guildName}/${channelName}`);
           continue;
         }
@@ -601,15 +644,17 @@ const getMapImageAsBuffer = async (
   }
 
   const url = mapImageUrl.toString();
+  const maskedUrl = new URL(url);
+  maskedUrl.searchParams.set('key', '***');
   try {
-    log(`earthquake#${getMapImageAsBuffer.name}:`, { url, len: url.length, markersCount });
+    log(`earthquake#${getMapImageAsBuffer.name}:`, { url: maskedUrl.toString(), len: url.length, markersCount });
 
     const buffer = await fetch(url).then(x => x.arrayBuffer());
     return Buffer.from(buffer);
   }
   catch (e) {
     if (e instanceof Error) {
-      logError(e, `earthquake#${getMapImageAsBuffer.name}:`, `failed to fetch ${url}`);
+      logError(e, `earthquake#${getMapImageAsBuffer.name}:`, `failed to fetch ${maskedUrl}`);
       return null;
     }
     throw e;

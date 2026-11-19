@@ -2,7 +2,6 @@ import {
   type APIEmbedField,
   ApplicationCommandOptionType,
   ApplicationCommandType,
-  BaseChannel,
   ChannelType,
   Colors,
   EmbedBuilder,
@@ -12,10 +11,15 @@ import { log } from '#lib/log.ts';
 import { DATETIME_FORMAT } from '#lib/util.ts';
 import type { Obj } from '#types';
 import type { ChatInputCommandCollection } from '#types/bot';
+import {
+  fetchGuildChannelOrNull,
+  resolvePostChannel,
+} from '../util.ts';
 import { db } from './db.ts';
 import {
   startAward,
   stopAward,
+  unregisterAward,
 } from './index.ts';
 import {
   fromNumber,
@@ -30,6 +34,13 @@ const DEFAULT_MIN_REACTED = 5;
 const DEFAULT_WEEKDAY = SUNDAY;
 const DEFAULT_HOUR = 12;
 const DEFAULT_MINUTE = 0;
+
+// on top of ViewChannel and SendMessages, the report needs embeds and the thread of the 2nd and lower ranks
+const POST_PERMISSIONS = [
+  PermissionFlagsBits.EmbedLinks,
+  PermissionFlagsBits.CreatePublicThreads,
+  PermissionFlagsBits.SendMessagesInThreads,
+] as const;
 
 const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
   register: {
@@ -84,7 +95,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = interaction.guild?.name;
 
       if (guildName == null) {
-        interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
 
@@ -95,29 +106,24 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const hour = interaction.options.getInteger('hour') ?? DEFAULT_HOUR;
       const minute = interaction.options.getInteger('minute') ?? DEFAULT_MINUTE;
 
-      if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
-        interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
-        return;
-      }
-      if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
-        interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
-        return;
-      }
+      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me, { extra: POST_PERMISSIONS });
+      if (target == null) return;
+
       log('register weeklyAward:', interaction.user.username, guildName);
 
       const response = await interaction.deferReply();
 
       await Promise.all([
-        db.config.register(guildId, guildName, channel.id, channel.name, showsRankCount, minReacted),
+        db.config.register(guildId, guildName, target.id, target.name, showsRankCount, minReacted),
         db.times.set(guildId, weekday, hour, minute),
       ]);
       await startAward(guildId);
 
       const hourString = String(hour).padStart(2, '0');
       const minuteString = String(minute).padStart(2, '0');
-      response.edit([
+      await response.edit([
         'リアクション大賞の巡回対象にこのサーバーを登録し、',
-        `週の報告を ${jpString(weekday)}の ${hourString}:${minuteString} に ${channel} で行うよう設定しました。`,
+        `週の報告を ${jpString(weekday)}の ${hourString}:${minuteString} に ${target} で行うよう設定しました。`,
       ].join(''));
     },
   },
@@ -128,20 +134,16 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = interaction.guild?.name;
 
       if (guildName == null) {
-        interaction.reply({ content: '登録解除したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '登録解除したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       log('unregister weeklyAward:', interaction.user.username, guildName);
 
       const response = await interaction.deferReply();
 
-      await stopAward(guildId);
-      await Promise.all([
-        db.times.delete(guildId),
-        db.config.unregister(guildId),
-      ]);
+      await unregisterAward(guildId);
 
-      response.edit('リアクション大賞の巡回対象からこのサーバーを削除しました。');
+      await response.edit('リアクション大賞の巡回対象からこのサーバーを削除しました。');
     },
   },
   update: {
@@ -195,18 +197,18 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = guild?.name;
 
       if (guild == null || guildName == null) {
-        interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '登録したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
 
       const configRecord = db.config.get(guildId);
       const timeRecord = db.times.get(guildId);
       if (configRecord == null || timeRecord == null) {
-        interaction.reply({ content: 'このサーバーはまだ登録されていません。', ephemeral: true });
+        await interaction.reply({ content: 'このサーバーはまだ登録されていません。', ephemeral: true });
         return;
       }
 
-      const channel = interaction.options.getChannel('channel') ?? await guild.channels.fetch(configRecord.channelId);
+      const channel = interaction.options.getChannel('channel') ?? await fetchGuildChannelOrNull(guild, configRecord.channelId);
       const showsRankCount = interaction.options.getInteger('showsrankcount') ?? configRecord.showsRankCount;
       const minReacted = interaction.options.getInteger('minreacted') ?? configRecord.minReacted;
       const weekday = fromNumber(interaction.options.getInteger('weekday') ?? timeRecord.weekday);
@@ -223,27 +225,23 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       };
 
       if (Object.values(isSet).every(x => !x)) {
-        interaction.reply({ content: '最低一つは設定してください。', ephemeral: true });
+        await interaction.reply({ content: '最低一つは設定してください。', ephemeral: true });
         return;
       }
       if (channel == null) {
-        interaction.reply({ content: '指定されたチャンネルは見つかりません。', ephemeral: true });
+        await interaction.reply({ content: '指定されたチャンネルは見つかりません。', ephemeral: true });
         return;
       }
-      if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
-        interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
-        return;
-      }
-      if (!interaction.guild?.members.me?.permissionsIn(channel).has(PermissionFlagsBits.SendMessages)) {
-        interaction.reply({ content: 'このチャンネルには発言する権限がありません。', ephemeral: true });
-        return;
-      }
+
+      const target = await resolvePostChannel(interaction, channel, interaction.guild?.members.me, { extra: POST_PERMISSIONS });
+      if (target == null) return;
+
       log('update weeklyAward:', user.username, guildName);
 
       const response = await interaction.deferReply();
 
       await Promise.all([
-        db.config.register(guildId, guildName, channel.id, channel.name, showsRankCount, minReacted),
+        db.config.register(guildId, guildName, target.id, target.name, showsRankCount, minReacted),
         db.times.set(guildId, weekday, hour, minute),
       ]);
       await stopAward(guildId);
@@ -252,7 +250,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const fields: APIEmbedField[] = [];
 
       if (isSet.channel) {
-        fields.push({ name: '報告チャンネル', value: `<#${channel.id}>` });
+        fields.push({ name: '報告チャンネル', value: `<#${target.id}>` });
       }
       if (isSet.weekday || isSet.hour || isSet.minute) {
         const hourString = String(hour).padStart(2, '0');
@@ -267,7 +265,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
         fields.push({ name: '表彰に必要なリアクション数', value: `${minReacted} 個` });
       }
 
-      response.edit({ content: 'リアクション大賞の設定を変更しました。', embeds: [{ fields }] });
+      await response.edit({ content: 'リアクション大賞の設定を変更しました。', embeds: [{ fields }] });
     },
   },
   status: {
@@ -277,23 +275,23 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       const guildName = guild?.name;
 
       if (guildName == null) {
-        interaction.reply({ content: '確認したいサーバーの中で実行してください。', ephemeral: true });
+        await interaction.reply({ content: '確認したいサーバーの中で実行してください。', ephemeral: true });
         return;
       }
       log('peek status weeklyAward:', interaction.user.username, guildName);
 
-      const response = await interaction.deferReply();
-
       const configRecord = db.config.get(guildId);
       const timeRecord = db.times.get(guildId);
+      if (configRecord != null && timeRecord == null) {
+        await interaction.reply({ content: 'DBデータ不整合です。 `/weeklyaward register` し直してください。', ephemeral: true });
+        return;
+      }
+
+      const response = await interaction.deferReply();
+
       const embed = new EmbedBuilder({ title: '登録状況' });
 
-      if (configRecord != null) {
-        if (timeRecord == null) {
-          interaction.reply({ content: 'DBデータ不整合です。 `/weeklyaward register` し直してください。', ephemeral: true });
-          return;
-        }
-
+      if (configRecord != null && timeRecord != null) {
         const { channelId, showsRankCount, minReacted, createdAt, updatedAt } = configRecord;
         const { weekday, hour, minute } = timeRecord;
         const hourString = String(hour).padStart(2, '0');
@@ -313,7 +311,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
       else {
         embed.setDescription('未登録').setColor(Colors.Red);
       }
-      response.edit({ embeds: [embed] });
+      await response.edit({ embeds: [embed] });
     },
   },
 };
@@ -331,13 +329,13 @@ export const commands: ChatInputCommandCollection<void, Obj> = {
       const subCommandName = interaction.options.getSubcommand(true);
 
       if (!interaction.inGuild()) {
-        interaction.reply({ content: 'サーバー内で実行してください。', ephemeral: true });
+        await interaction.reply({ content: 'サーバー内で実行してください。', ephemeral: true });
         return;
       }
 
       const subCommand = subCommands[subCommandName];
       if (subCommand != null) {
-        subCommand.func(interaction);
+        return subCommand.func(interaction);
       }
     },
     defaultMemberPermissions: PermissionFlagsBits.CreateInstantInvite | PermissionFlagsBits.KickMembers,
