@@ -19,13 +19,13 @@ const thrivingVoiceChannels = new Map<`${Snowflake},${Snowflake}`, symbol>();
 
 const getId: (state: VoiceState) => `${Snowflake},${Snowflake}` = state => `${state.guild.id},${state.channelId}`;
 
-export const clearThrivingVoiceChannels = (guildId: Snowflake): void => {
+const clearThrivingVoiceChannels = (guildId: Snowflake): void => {
   for (const id of thrivingVoiceChannels.keys()) {
     if (id.startsWith(`${guildId},`)) thrivingVoiceChannels.delete(id);
   }
 };
 
-const unregisterVcAttention = async (guildId: Snowflake): Promise<void> => {
+export const unregisterVcAttention = async (guildId: Snowflake): Promise<void> => {
   await db.unregister(guildId);
   clearThrivingVoiceChannels(guildId);
 };
