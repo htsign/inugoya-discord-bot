@@ -5,6 +5,10 @@ import {
   Events,
   type GuildBasedChannel,
   type Message,
+  type MessageReaction,
+  type PartialMessageReaction,
+  type PartialUser,
+  type User,
 } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
 import dayjs from '#lib/dayjsSetup.ts';
@@ -59,46 +63,46 @@ addHandler(Events.GuildDelete, async guild => {
   await unregisterAward(guild.id);
   await Array.fromAsync(db.deleteOutdated(guild.id, 0));
 });
-addHandler(Events.MessageReactionAdd, async (reaction, user) => {
+
+const fetchReactedMessage = async (
+  reaction: MessageReaction | PartialMessageReaction,
+  user: User | PartialUser,
+  action: 'reacted' | 'react removed',
+): Promise<MessageAndReactions | null> => {
   let message: Message<boolean>;
   try {
     message = await reaction.message.fetch();
   }
   catch (e) {
     if (e instanceof Error) {
-      logError(e, 'weeklyAward:', `failed to fetch message: reacted by ${user.username}`);
-      return;
+      logError(e, 'weeklyAward:', `failed to fetch message: ${action} by ${user.username}`);
+      return null;
     }
     throw e;
   }
   const { author, reactions } = message;
 
-  if (author.bot || !message.inGuild()) return;
+  if (author.bot || !message.inGuild()) return null;
 
   // do not record reactions count if message reacted is posted to not registered server
-  if (db.config.get(message.guildId) == null) return;
+  if (db.config.get(message.guildId) == null) return null;
 
   const reactionsCount = reactions.cache.reduce((acc, reaction) => acc + reaction.count, 0);
+  return { message, reactionsCount };
+};
+
+addHandler(Events.MessageReactionAdd, async (reaction, user) => {
+  const reacted = await fetchReactedMessage(reaction, user, 'reacted');
+  if (reacted == null) return;
+
+  const { message, reactionsCount } = reacted;
   await db.set(message, reactionsCount);
 });
 addHandler(Events.MessageReactionRemove, async (reaction, user) => {
-  let message: Message<boolean>;
-  try {
-    message = await reaction.message.fetch();
-  }
-  catch (e) {
-    if (e instanceof Error) {
-      logError(e, 'weeklyAward:', `failed to fetch message: react removed by ${user.username}`);
-      return;
-    }
-    throw e;
-  }
-  const { author, reactions } = message;
+  const reacted = await fetchReactedMessage(reaction, user, 'react removed');
+  if (reacted == null) return;
 
-  if (author.bot || !message.inGuild()) return;
-  if (db.config.get(message.guildId) == null) return;
-
-  const reactionsCount = reactions.cache.reduce((acc, reaction) => acc + reaction.count, 0);
+  const { message, reactionsCount } = reacted;
   if (reactionsCount > 0) {
     await db.set(message, reactionsCount);
   }
