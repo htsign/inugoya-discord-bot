@@ -39,7 +39,7 @@ const catchTickError = (guildName: string) => (e: unknown): void => {
   throw e;
 };
 
-const unregisterAward = async (guildId: string): Promise<void> => {
+export const unregisterAward = async (guildId: string): Promise<void> => {
   await stopAward(guildId);
   await db.config.unregister(guildId);
   await db.times.delete(guildId);

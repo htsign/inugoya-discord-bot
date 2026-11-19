@@ -19,6 +19,7 @@ import { db } from './db.ts';
 import {
   startAward,
   stopAward,
+  unregisterAward,
 } from './index.ts';
 import {
   fromNumber,
@@ -140,11 +141,7 @@ const subCommands: ChatInputCommandCollection<void, Obj, 'cached' | 'raw'> = {
 
       const response = await interaction.deferReply();
 
-      await stopAward(guildId);
-      await Promise.all([
-        db.times.delete(guildId),
-        db.config.unregister(guildId),
-      ]);
+      await unregisterAward(guildId);
 
       await response.edit('リアクション大賞の巡回対象からこのサーバーを削除しました。');
     },
