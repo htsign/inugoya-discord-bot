@@ -223,6 +223,15 @@ class WeeklyAward {
     await retryOnBusy(() => stmt.run({ guildId, channelId, messageId }));
   }
 
+  async unregister(guildId: string): Promise<void> {
+    await retryOnBusy(() =>
+      runInTransaction(db, () => {
+        this.#config.unregister(guildId);
+        this.#times.delete(guildId);
+      })
+    );
+  }
+
   async *deleteOutdated(guildId: string, days: number): AsyncGenerator<number | undefined> {
     const whereStatement = `
       where
@@ -342,14 +351,14 @@ class WeeklyAwardConfig {
     await retryOnBusy(() => stmt.run({ guildId, guildName, channelId, channelName, showsRankCount, minReacted }));
   }
 
-  async unregister(guildId: string): Promise<void> {
+  unregister(guildId: string): void {
     const stmt = db.prepare(`
       delete from ${this.#TABLE}
       where
         guild_id = ?
     `);
 
-    await retryOnBusy(() => stmt.run(guildId));
+    stmt.run(guildId);
   }
 
   get(guildId: string): WeeklyAwardConfigRecord | null {
@@ -429,14 +438,14 @@ class WeeklyAwardTime {
     await retryOnBusy(() => stmt.run({ guildId, weekday, hour, minute }));
   }
 
-  async delete(guildId: string): Promise<void> {
+  delete(guildId: string): void {
     const stmt = db.prepare(`
       delete from ${this.#TABLE}
       where
         guild_id = ?
     `);
 
-    await retryOnBusy(() => stmt.run(guildId));
+    stmt.run(guildId);
   }
 
   get(guildId: string): WeeklyAwardTimeRecord | null {

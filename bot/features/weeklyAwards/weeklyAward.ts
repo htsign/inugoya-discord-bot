@@ -3,10 +3,14 @@ import {
   type APIEmbed,
   ChannelType,
   Events,
+  type GuildBasedChannel,
   type Message,
+  type MessageReaction,
+  type PartialMessageReaction,
+  type PartialUser,
+  type User,
 } from 'discord.js';
 import { isNonEmpty } from 'ts-array-length';
-import client from '#client';
 import dayjs from '#lib/dayjsSetup.ts';
 import {
   log,
@@ -18,8 +22,10 @@ import type {
   WeeklyAwardRecord,
 } from '#types/bot/features/weeklyAwards';
 import {
+  fetchGuildChannel,
   fetchMessageByIds,
   messageToEmbeds,
+  unregisterIfUnreachable,
 } from '../util.ts';
 import { db } from './db.ts';
 import type { Weekday } from './weekday.ts';
@@ -29,60 +35,73 @@ import type { Weekday } from './weekday.ts';
  */
 const instances = new Map<string, NodeJS.Timeout>();
 
-addHandler(Events.ClientReady, async () => {
-  for (const { guildId } of db.config.records) {
-    startAward(guildId);
+const catchTickError = (guildName: string) => (e: unknown): void => {
+  if (e instanceof Error) {
+    logError(e, `weeklyAward#${tick.name}:`, `failed to run for ${guildName}`);
+    return;
   }
+  throw e;
+};
+
+export const unregisterAward = async (guildId: string): Promise<void> => {
+  await db.unregister(guildId);
+  clearTimeout(instances.get(guildId));
+};
+
+const unregisterAwardIfUnreachable = (error: Error, guildId: string, channelId: string): Promise<boolean> =>
+  unregisterIfUnreachable(error, `weeklyAward#${tick.name}:`, guildId, channelId, () => unregisterAward(guildId));
+
+addHandler(Events.ClientReady, async () => {
+  const starting = db.config.records.map(({ guildId, guildName }) => startAward(guildId).catch(catchTickError(guildName)));
 
   log('weekly award is ready.');
+
+  await Promise.all(starting);
 });
 addHandler(Events.GuildDelete, async guild => {
-  await stopAward(guild.id);
-  await Promise.all([
-    Array.fromAsync(db.deleteOutdated(guild.id, 0)),
-    db.times.delete(guild.id),
-    db.config.unregister(guild.id),
-  ]);
+  await unregisterAward(guild.id);
+  await Array.fromAsync(db.deleteOutdated(guild.id, 0));
 });
-addHandler(Events.MessageReactionAdd, async (reaction, user) => {
+
+const fetchReactedMessage = async (
+  reaction: MessageReaction | PartialMessageReaction,
+  user: User | PartialUser,
+  action: 'reacted' | 'react removed',
+): Promise<MessageAndReactions | null> => {
   let message: Message<boolean>;
   try {
     message = await reaction.message.fetch();
   }
   catch (e) {
     if (e instanceof Error) {
-      logError(e, 'weeklyAward:', `failed to fetch message: reacted by ${user.username}`);
-      return;
+      logError(e, 'weeklyAward:', `failed to fetch message: ${action} by ${user.username}`);
+      return null;
     }
     throw e;
   }
   const { author, reactions } = message;
 
-  if (author.bot || !message.inGuild()) return;
+  if (author.bot || !message.inGuild()) return null;
 
   // do not record reactions count if message reacted is posted to not registered server
-  if (db.config.get(message.guildId) == null) return;
+  if (db.config.get(message.guildId) == null) return null;
 
   const reactionsCount = reactions.cache.reduce((acc, reaction) => acc + reaction.count, 0);
+  return { message, reactionsCount };
+};
+
+addHandler(Events.MessageReactionAdd, async (reaction, user) => {
+  const reacted = await fetchReactedMessage(reaction, user, 'reacted');
+  if (reacted == null) return;
+
+  const { message, reactionsCount } = reacted;
   await db.set(message, reactionsCount);
 });
 addHandler(Events.MessageReactionRemove, async (reaction, user) => {
-  let message: Message<boolean>;
-  try {
-    message = await reaction.message.fetch();
-  }
-  catch (e) {
-    if (e instanceof Error) {
-      logError(e, 'weeklyAward:', `failed to fetch message: react removed by ${user.username}`);
-      return;
-    }
-    throw e;
-  }
-  const { author, reactions } = message;
+  const reacted = await fetchReactedMessage(reaction, user, 'react removed');
+  if (reacted == null) return;
 
-  if (author.bot || !message.inGuild()) return;
-
-  const reactionsCount = reactions.cache.reduce((acc, reaction) => acc + reaction.count, 0);
+  const { message, reactionsCount } = reacted;
   if (reactionsCount > 0) {
     await db.set(message, reactionsCount);
   }
@@ -102,15 +121,32 @@ const tick = async (
   hour: number,
   minute: number,
 ): Promise<void> => {
+  const scheduleNext = (ms: number): void => {
+    const timeout = setTimeout(() => {
+      tick(guildId, guildName, channelId, channelName, showsRankCount, minReacted, weekday, hour, minute).catch(catchTickError(guildName));
+    }, ms);
+    instances.set(guildId, timeout);
+  };
+
   const now = dayjs().tz();
 
   if (now.day() === +weekday && now.hour() === hour && now.minute() === minute) {
     log('WeeklyAward: report initiated', guildName);
 
-    const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
-    const channel = guild.channels?.cache?.find(channel => channel.id === channelId);
+    // run again almost next week.
+    scheduleNext(86400 * 1000 * 6.9);
 
-    if (channel?.type === ChannelType.GuildText) {
+    let channel: GuildBasedChannel | null;
+    try {
+      channel = (await fetchGuildChannel(guildId, channelId)).channel;
+    }
+    catch (e) {
+      if (e instanceof Error && await unregisterAwardIfUnreachable(e, guildId, channelId)) return;
+
+      throw e;
+    }
+
+    if (channel?.type === ChannelType.GuildText || channel?.type === ChannelType.GuildAnnouncement) {
       // remove messages sent over a week ago
       for await (const count of db.deleteOutdated(guildId, 7)) {
         if (typeof count === 'number') {
@@ -122,7 +158,9 @@ const tick = async (
         }
       }
 
-      if (db.all().some(({ reactionsCount: count }) => count >= minReacted)) {
+      const contents: { title: string, embeds: APIEmbed[] }[] = [];
+
+      if (db.all().some(record => record.guildId === guildId && record.reactionsCount >= minReacted)) {
         const fetchesMessage = async (record: WeeklyAwardRecord): Promise<MessageAndReactions | null> => {
           if (record.guildId !== guildId) return null;
 
@@ -151,7 +189,6 @@ const tick = async (
         // sort descending order by reactions count
         const messagesArray = Object.entries(talliedMessages).sort(([a], [b]) => (+b) - (+a));
 
-        const contents: { title: string, embeds: APIEmbed[] }[] = [];
         {
           let rank = 1;
 
@@ -189,6 +226,8 @@ const tick = async (
           }
           catch (e) {
             if (e instanceof Error) {
+              if (await unregisterAwardIfUnreachable(e, guildId, channelId)) return;
+
               logError(e, `weeklyAward#${tick.name}:`, `failed to send to ${guildName}/${channelName}`);
               return;
             }
@@ -234,12 +273,15 @@ const tick = async (
           }
         }
       }
-      else {
+
+      if (contents.length === 0) {
         try {
           await channel.send('【リアクション大賞】\n先週はリアクションが付いた投稿はありませんでした！！');
         }
         catch (e) {
           if (e instanceof Error) {
+            if (await unregisterAwardIfUnreachable(e, guildId, channelId)) return;
+
             logError(e, `weeklyAward#${tick.name}:`, `failed to send to ${guildName}/${channelName}`);
             return;
           }
@@ -249,21 +291,10 @@ const tick = async (
     }
 
     log(guildName, 'WeeklyAward: report finished');
-
-    // run again almost next week.
-    const timeout = setTimeout(
-      () => tick(guildId, guildName, channelId, channelName, showsRankCount, minReacted, weekday, hour, minute),
-      86400 * 1000 * 6.9,
-    );
-    instances.set(guildId, timeout);
   }
   // or else, after 1 sec.
   else {
-    const timeout = setTimeout(
-      () => tick(guildId, guildName, channelId, channelName, showsRankCount, minReacted, weekday, hour, minute),
-      1000,
-    );
-    instances.set(guildId, timeout);
+    scheduleNext(1000);
   }
 };
 
@@ -271,7 +302,7 @@ export const startAward = async (guildId: string): Promise<void> => {
   const configRecord = db.config.get(guildId);
   const timeRecord = db.times.get(guildId);
   if (configRecord == null || timeRecord == null) {
-    return log(`startAward: ${{ guildId }} is not registered.`);
+    return log(`startAward: ${JSON.stringify({ guildId })} is not registered.`);
   }
 
   const { guildName, channelId, channelName, showsRankCount, minReacted, createdAt, updatedAt } = configRecord;
@@ -291,7 +322,7 @@ export const startAward = async (guildId: string): Promise<void> => {
 export const stopAward = async (guildId: string): Promise<void> => {
   const configRecord = db.config.get(guildId);
   if (configRecord == null) {
-    return await log(`stopAward: ${{ guildId }} is not registered.`);
+    return await log(`stopAward: ${JSON.stringify({ guildId })} is not registered.`);
   }
 
   const { createdAt, updatedAt } = configRecord;

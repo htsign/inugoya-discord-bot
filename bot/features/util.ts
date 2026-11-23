@@ -1,8 +1,22 @@
 import {
   type APIEmbed,
+  type APIInteractionDataResolvedChannel,
   type Attachment,
+  BaseChannel,
+  ChannelType,
+  type ChatInputCommandInteraction,
+  DiscordAPIError,
   EmbedBuilder,
+  type Guild,
+  type GuildBasedChannel,
+  type GuildMember,
   type Message,
+  type NewsChannel,
+  PermissionFlagsBits,
+  type PermissionResolvable,
+  RESTJSONErrorCodes,
+  type Snowflake,
+  type TextChannel,
   type User,
 } from 'discord.js';
 import { getAverageColor as _getAverageColor } from 'fast-average-color-node';
@@ -17,8 +31,7 @@ import type { EmbedMessageOptions } from '#types/bot';
 
 export const fetchMessageByIds = async (guildId: string, channelId: string, messageId: string): Promise<Message<true> | null> => {
   try {
-    const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
-    const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
+    const { channel } = await fetchGuildChannel(guildId, channelId);
 
     if (channel?.isTextBased() && !channel.isVoiceBased()) {
       return channel.messages.cache.get(messageId) ?? await channel.messages.fetch(messageId);
@@ -146,4 +159,96 @@ export const messageToEmbeds = async (message: Message<boolean>, options: EmbedM
   }
 
   return embeds;
+};
+
+/**
+ * Fetches `{ guild, channel }` by the ids, preferring the caches; rejects when either cannot be fetched.
+ */
+export const fetchGuildChannel = async (
+  guildId: Snowflake,
+  channelId: Snowflake,
+): Promise<{ guild: Guild, channel: GuildBasedChannel | null }> => {
+  const guild = client.guilds.cache.get(guildId) ?? await client.guilds.fetch(guildId);
+  const channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId);
+  return { guild, channel };
+};
+
+/**
+ * Fetches a channel of `guild`, resolving to `null` instead of rejecting when Discord reports it as an Unknown Channel (e.g. deleted).
+ */
+export const fetchGuildChannelOrNull = async (guild: Guild, channelId: Snowflake): Promise<GuildBasedChannel | null> => {
+  try {
+    return await guild.channels.fetch(channelId);
+  }
+  catch (e) {
+    if (e instanceof DiscordAPIError && e.code === RESTJSONErrorCodes.UnknownChannel) return null;
+
+    throw e;
+  }
+};
+
+const UNREACHABLE_CHANNEL_ERROR_CODES: ReadonlySet<DiscordAPIError['code']> = new Set([
+  RESTJSONErrorCodes.UnknownChannel,
+  RESTJSONErrorCodes.UnknownGuild,
+  RESTJSONErrorCodes.MissingAccess,
+]);
+
+/**
+ * Whether `e` is a Discord API error saying the channel is gone or inaccessible (Unknown Channel / Unknown Guild / Missing Access).
+ */
+export const isUnreachableChannelError = (e: unknown): boolean =>
+  e instanceof DiscordAPIError && UNREACHABLE_CHANNEL_ERROR_CODES.has(e.code);
+
+/**
+ * Calls `unregister` and resolves to `true` when `error` is an unreachable-channel error, unless the guild is unavailable (then `false`).
+ */
+export const unregisterIfUnreachable = async (
+  error: Error,
+  prefix: string,
+  guildId: Snowflake,
+  channelId: Snowflake,
+  unregister: () => Promise<void>,
+): Promise<boolean> => {
+  if (!isUnreachableChannelError(error)) return false;
+
+  if (client.guilds.cache.get(guildId)?.available === false) {
+    log(prefix, `kept the registration of the guild which id is ${guildId} because the guild is unavailable (${error.name})`);
+    return false;
+  }
+
+  try {
+    await unregister();
+    log(prefix, `unregistered the guild which id is ${guildId} because its channel ${channelId} is unreachable (${error.name})`);
+  }
+  catch (unregisterError) {
+    if (!(unregisterError instanceof Error)) throw unregisterError;
+
+    logError(unregisterError, prefix, `failed to unregister the guild which id is ${guildId} (channel ${channelId}: ${error.name})`);
+  }
+  return true;
+};
+
+/**
+ * Narrows `channel` to a text or announcement channel that `me` can post to (plus `extra`), or replies with the reason and returns `null`.
+ */
+export const resolvePostChannel = async (
+  interaction: Pick<ChatInputCommandInteraction, 'reply'>,
+  channel: GuildBasedChannel | APIInteractionDataResolvedChannel,
+  me: Nullable<GuildMember>,
+  { extra = [] }: { extra?: PermissionResolvable } = {},
+): Promise<TextChannel | NewsChannel | null> => {
+  if (channel.type !== ChannelType.GuildAnnouncement && channel.type !== ChannelType.GuildText || !(channel instanceof BaseChannel)) {
+    await interaction.reply({ content: '適用できないチャンネルです。', ephemeral: true });
+    return null;
+  }
+
+  const missing = me?.permissionsIn(channel).missing([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, extra]);
+  if (missing == null || missing.length > 0) {
+    const detail = missing == null ? '' : ` (不足: ${missing.join(', ')})`;
+
+    await interaction.reply({ content: `このチャンネルには発言する権限がありません。${detail}`, ephemeral: true });
+    return null;
+  }
+
+  return channel;
 };

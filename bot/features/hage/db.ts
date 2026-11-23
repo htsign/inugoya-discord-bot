@@ -239,12 +239,12 @@ class HageKeyword {
       runInTransaction(db, () => {
         for (const keyword of keywords) {
           if (this.get(guildId, keyword) == null) {
-            return log(`${HageKeyword.name}#${this.delete.name}:`, 'not found', guildId, keyword);
+            log(`${HageKeyword.name}#${this.delete.name}:`, 'not found', guildId, keyword);
+            continue;
           }
 
           stmt.run({ guildId, keyword });
         }
-        return;
       })
     );
   }
@@ -359,12 +359,12 @@ class HageReactionKeyword {
       runInTransaction(db, () => {
         for (const reaction of reactions) {
           if (this.get(guildId, reaction) == null) {
-            return log(`${HageReactionKeyword.name}#${this.delete.name}:`, 'not found', guildId, reaction);
+            log(`${HageReactionKeyword.name}#${this.delete.name}:`, 'not found', guildId, reaction);
+            continue;
           }
 
           stmt.run({ guildId, reaction });
         }
-        return;
       })
     );
   }
